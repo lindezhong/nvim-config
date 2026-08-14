@@ -39,31 +39,8 @@ vim.diagnostic.config({
 
 -- Disable true color (use 256-color terminal palette instead)
 vim.opt.termguicolors = false
+-- Color scheme with custom dark background overrides (see colors/vim8.vim)
 vim.cmd.colorscheme("vim8")
-
--- Highlight overrides for dark terminal background
--- Usage: vim.api.nvim_set_hl(0, "Group", { ctermfg = "Color", ctermbg = "Color", cterm = { bold = true } })
--- Available colors: Black, Red, Green, Yellow, Blue, Magenta, Cyan, White,
---   DarkGray, LightGray, LightRed, LightGreen, LightBlue, LightMagenta, LightCyan (or 0-255)
--- Available attrs: bold, underline, reverse, italic, strikethrough
--- Editor background
-vim.api.nvim_set_hl(0, "Normal", { ctermbg = "Black" })
--- Visual selection highlight
-vim.api.nvim_set_hl(0, "Visual", { ctermfg = "Black" })
--- Diff colors for vimdiff / git diff view
-vim.api.nvim_set_hl(0, "DiffChange", { ctermfg = "Black", ctermbg = "Blue" })
-vim.api.nvim_set_hl(0, "DiffText", { ctermfg = "Black", ctermbg = "Red" })
-vim.api.nvim_set_hl(0, "DiffAdd", { ctermfg = "Black", ctermbg = "Blue" })
-vim.api.nvim_set_hl(0, "DiffDelete", { ctermfg = "Black", ctermbg = "Blue" })
--- Window separator between splits
-vim.api.nvim_set_hl(0, "WinSeparator", { cterm = { reverse = true } })
--- Diagnostic signs in the sign/number column
-vim.api.nvim_set_hl(0, "DiagnosticSignError", { ctermfg = "Red", ctermbg = "Black" })
-vim.api.nvim_set_hl(0, "DiagnosticSignWarn", { ctermfg = "Yellow", ctermbg = "Black" })
-vim.api.nvim_set_hl(0, "DiagnosticSignInfo", { ctermfg = "Blue", ctermbg = "Black" })
-vim.api.nvim_set_hl(0, "DiagnosticSignHint", { ctermfg = "Cyan", ctermbg = "Black" })
--- Sign column background (match Normal)
-vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "Black" })
 
 -- Load all plugin configs from lua/plugins/
 require("lazy").setup("plugins")

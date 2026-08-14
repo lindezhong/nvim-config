@@ -1,21 +1,20 @@
-" 对于配色方案来说需要设置colors_name(配色方案,且跟文件名一致)否则会导致在某些版本的vim中无法应用该方案
-" 这个配置由 `:hi` 获取并转换而来
-" 请获取干净的配置, 即在没有配置过任何 vimrc和安装过vim插件的情况下执行
-" 1. 打开vim, 执行 `:hi` 获取当前vim的样式并且复制出来
-" 2. 去除 `xxx` (这个原来是用在展示颜色的无用) , 正则表达式: `:%s/xxx//g`
-" 3. 在开头添加`hi`正则表达式: `:%s/\n/\rhi /g` , 但需要手动补偿第一行的hi
-" 4. 转换 cleared 模式的配色比如, `hi Table           cleared` 
-"   4.1 如果想要去除cleared 模式正则表达式: `:%s/hi\s\(\S\+\)\s\+cleared.*\n//g`
-"   4.2 如果想保留cleared正则表达式: `:%s/hi\s\(\S\+\)\s\+cleared.*\n/hi clear \1\r/g` , 执行后变为`hi clear Table`
-" 5. 转换 links 模式比如 `hi shHereDoc16     links to shRedir` , 执行后变成 `hi link shHereDoc16 shRedir`
-"   正则表达式: `:%s/hi\s\(\S\+\)\s\+links\s\+to\s\+\(\S\+\)\n/hi link \1 \2\r/g`
+" colors_name must match the filename, otherwise some vim versions cannot find the scheme
+" Generated from `:hi` output in a clean vim (no vimrc, no plugins):
+" 1. Open vim, run `:hi` and copy all output
+" 2. Remove `xxx` placeholders: `:%s/xxx//g`
+" 3. Prepend `hi` to each line: `:%s/\n/\rhi /g` (manually fix the first line)
+" 4. Convert cleared groups, e.g. `hi Table cleared`
+"   4.1 To remove cleared: `:%s/hi\s\(\S\+\)\s\+cleared.*\n//g`
+"   4.2 To keep cleared: `:%s/hi\s\(\S\+\)\s\+cleared.*\n/hi clear \1\r/g`
+" 5. Convert links, e.g. `hi shHereDoc16 links to shRedir` → `hi link shHereDoc16 shRedir`
+"   Regex: `:%s/hi\s\(\S\+\)\s\+links\s\+to\s\+\(\S\+\)\n/hi link \1 \2\r/g`
 
-" 在vimrc中配置的配色方案需要在设置配色方案之后(即`colorscheme vim8`需要在vimr的其它配色前) 
-" 否则会导致vimrc配色方案会因为下面的`hi clear`而被清除掉
+" Colorscheme must be loaded before any other highlight settings in vimrc,
+" otherwise `hi clear` below will wipe them out
 hi clear
 set background=dark
-" 这个是vim8的默认配置方案, 它是暗色配置方案
-" 设置配色方案名称,如果不配置只是按照文件名确定配色方案名称在某些vim版本中无法找到
+" Vim8 default dark color scheme
+" Explicitly set colors_name so all vim versions can find it by name
 let g:colors_name = "vim8"
 hi SpecialKey      term=bold ctermfg=4 guifg=Blue
 hi link EndOfBuffer NonText
@@ -108,3 +107,22 @@ hi link Delimiter Special
 hi link SpecialComment Special
 hi link Debug Special
 
+" ----- Custom overrides (dark background adjustments, not from vim8 defaults) -----
+" Editor background
+hi Normal            ctermbg=Black
+" Visual selection: black foreground for readability on highlight
+hi Visual            ctermfg=Black
+" Diff colors for vimdiff / git diff view
+hi DiffChange        ctermfg=Black ctermbg=Blue
+hi DiffText          ctermfg=Black ctermbg=Red
+hi DiffAdd           ctermfg=Black ctermbg=Blue
+hi DiffDelete        ctermfg=Black ctermbg=Blue
+" Window separator between splits
+hi WinSeparator      cterm=reverse
+" Diagnostic signs: colored text on black background to match Normal
+hi DiagnosticSignError ctermfg=Red ctermbg=Black
+hi DiagnosticSignWarn  ctermfg=Yellow ctermbg=Black
+hi DiagnosticSignInfo  ctermfg=Blue ctermbg=Black
+hi DiagnosticSignHint  ctermfg=Cyan ctermbg=Black
+" Sign column background (match Normal black background)
+hi SignColumn        ctermbg=Black
