@@ -2,11 +2,15 @@
 --
 -- This file sets up the editor environment:
 -- 1. Plugin manager: lazy.nvim (auto-install and bootstrap)
--- 2. Editor options: line numbers, sign column, dark background
--- 3. Diagnostics: display style for errors/warnings (signs only, no virtual text)
--- 4. Colors: terminal color scheme and highlight overrides
--- Bootstrap lazy.nvim plugin manager (auto-clone on first launch)
+-- 2. Editor options: indentation, display, behavior
+-- 3. FileType: per-language indentation rules
+-- 4. Keybindings: buffer/window navigation, daily shortcuts (lua/keymaps.lua)
+-- 5. Session: auto save/load per directory (lua/session.lua)
+-- 6. Commands: custom user commands (lua/commands.lua)
+-- 7. Diagnostics: display style for errors/warnings
+-- 8. Colors: terminal color scheme
 
+-- Bootstrap lazy.nvim plugin manager (auto-clone on first launch)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -18,12 +22,63 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Leader key must be set before loading plugins
+vim.g.mapleader = " "
+
+-- ===== Editor options =====
+
 -- Show line numbers
 vim.opt.number = true
 -- Merge sign column into line number column to save horizontal space
 vim.opt.signcolumn = "number"
+-- Indentation: 4 spaces, expand tabs
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+-- C-style auto indentation for braces/blocks
+vim.opt.cindent = true
+-- Do not wrap long lines (use :set wrap to restore)
+vim.opt.wrap = false
+-- Hide right-bottom cursor position display
+vim.opt.ruler = false
+-- Faster CursorHold events (default 4000ms is too slow for LSP)
+vim.opt.updatetime = 300
+-- Don't show completion messages in cmdline (e.g. "match 1 of 2")
+vim.opt.shortmess:append("c")
+-- Don't create backup file before overwriting
+vim.opt.writebackup = false
+-- Block cursor in all modes (nvim defaults to beam in insert mode)
+vim.opt.guicursor = "n-v-c-i:block"
+-- Only show statusline when multiple windows are open
+vim.opt.laststatus = 1
+-- Fill characters for separators and folds
+vim.opt.fillchars:append({ vert = "|", fold = "-", eob = "~" })
+-- ===== FileType indentation =====
 
--- Diagnostic display: signs only (no inline virtual text after code lines)
+-- Languages that use 2-space indentation
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "sql", "mysql", "yaml", "html", "css", "javascript", "javascriptreact", "typescript" },
+  callback = function()
+    vim.opt_local.tabstop = 2
+    vim.opt_local.shiftwidth = 2
+  end,
+})
+
+-- ===== Keybindings =====
+
+require("keymaps")
+
+-- ===== Session =====
+
+require("session")
+
+-- ===== Commands =====
+
+require("commands")
+
+-- ===== Diagnostics =====
+
+-- Signs only (no inline virtual text after code lines)
 -- Signs use letters (E/W/I/H) instead of icons for terminal compatibility
 vim.diagnostic.config({
   virtual_text = false,
@@ -36,6 +91,8 @@ vim.diagnostic.config({
     },
   },
 })
+
+-- ===== Colors =====
 
 -- Disable true color (use 256-color terminal palette instead)
 vim.opt.termguicolors = false
