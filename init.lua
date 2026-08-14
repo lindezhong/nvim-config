@@ -4,11 +4,9 @@
 -- 1. Plugin manager: lazy.nvim (auto-install and bootstrap)
 -- 2. Editor options: indentation, display, behavior
 -- 3. FileType: per-language indentation rules
--- 4. Keybindings: buffer/window navigation, daily shortcuts (lua/keymaps.lua)
--- 5. Session: auto save/load per directory (lua/session.lua)
--- 6. Commands: custom user commands (lua/commands.lua)
--- 7. Diagnostics: display style for errors/warnings
--- 8. Colors: terminal color scheme
+-- 4. Diagnostics: display style for errors/warnings
+-- 5. Colors: terminal color scheme
+-- 6. Modules: keymaps, session, commands, plugins
 
 -- Bootstrap lazy.nvim plugin manager (auto-clone on first launch)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -53,6 +51,7 @@ vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.laststatus = 1
 -- Fill characters for separators and folds
 vim.opt.fillchars:append({ vert = "|", fold = "-", eob = "~" })
+
 -- ===== FileType indentation =====
 
 -- Languages that use 2-space indentation
@@ -63,18 +62,6 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.shiftwidth = 2
   end,
 })
-
--- ===== Keybindings =====
-
-require("keymaps")
-
--- ===== Session =====
-
-require("session")
-
--- ===== Commands =====
-
-require("commands")
 
 -- ===== Diagnostics =====
 
@@ -97,7 +84,15 @@ vim.diagnostic.config({
 -- Disable true color (use 256-color terminal palette instead)
 vim.opt.termguicolors = false
 -- Color scheme with custom dark background overrides (see colors/vim8.vim)
-vim.cmd.colorscheme("vim8")
+vim.cmd.colorscheme("vim8-dark")
 
--- Load all plugin configs from lua/plugins/
+-- ===== Modules =====
+
+-- Global keybindings: buffer/window navigation, save, jumplist, scroll, etc.
+require("keymaps")
+-- Directory-level session auto save/load with plugin hook interface
+require("session")
+-- Custom commands: :Exit, :Q, :Terminal with plugin hook interface
+require("commands")
+-- Plugin configs from lua/plugins/ (LSP, completion, treesitter, etc.)
 require("lazy").setup("plugins")

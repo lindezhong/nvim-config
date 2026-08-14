@@ -15,7 +15,7 @@ hi clear
 set background=dark
 " Vim8 default dark color scheme
 " Explicitly set colors_name so all vim versions can find it by name
-let g:colors_name = "vim8"
+let g:colors_name = "vim8-dark"
 hi SpecialKey      term=bold ctermfg=4 guifg=Blue
 hi link EndOfBuffer NonText
 hi NonText         term=bold ctermfg=12 gui=bold guifg=Blue
