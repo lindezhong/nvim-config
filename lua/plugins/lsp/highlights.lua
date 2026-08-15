@@ -13,6 +13,10 @@ function M.setup()
   vim.api.nvim_set_hl(0, "ReferencesFloat", { link = "PeekViewFloat" })
   vim.api.nvim_set_hl(0, "ReferencesSelect", { link = "PeekViewSelect" })
   vim.api.nvim_set_hl(0, "ReferencesPreview", { link = "PeekViewPreview" })
+  -- Definition (links to PeekView defaults, override for custom colors)
+  vim.api.nvim_set_hl(0, "DefinitionFloat", { link = "PeekViewFloat" })
+  vim.api.nvim_set_hl(0, "DefinitionSelect", { link = "PeekViewSelect" })
+  vim.api.nvim_set_hl(0, "DefinitionPreview", { link = "PeekViewPreview" })
 end
 
 return M

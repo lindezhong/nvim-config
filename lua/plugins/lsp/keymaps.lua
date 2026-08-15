@@ -15,12 +15,13 @@ function M.setup()
         vim.notify("[LSP] " .. client.name .. " attached", vim.log.levels.INFO)
       end
       local opts = { buffer = args.buf }
-      -- Go to definition: jump to where the symbol is defined
-      vim.keymap.set("n", "<C-b>", vim.lsp.buf.definition, opts)
-      vim.keymap.set("n", "<C-j>", vim.lsp.buf.definition, opts)
-      vim.keymap.set("n", "<C-Down>", vim.lsp.buf.definition, opts)
-      vim.keymap.set("i", "<C-j>", vim.lsp.buf.definition, opts)
-      vim.keymap.set("i", "<C-Down>", vim.lsp.buf.definition, opts)
+      -- Go to definition: jump or show peekview if multiple definitions
+      local definition = require("plugins.lsp.definition").open
+      vim.keymap.set("n", "<C-b>", definition, opts)
+      vim.keymap.set("n", "<C-j>", definition, opts)
+      vim.keymap.set("n", "<C-Down>", definition, opts)
+      vim.keymap.set("i", "<C-j>", definition, opts)
+      vim.keymap.set("i", "<C-Down>", definition, opts)
       -- Find references: show in a floating window
       local references = require("plugins.lsp.references").open
       vim.keymap.set("n", "<C-k>", references, opts)
