@@ -22,9 +22,10 @@ local function open_references()
   -- Capture the word under cursor for precise keyword highlighting in preview
   local word = vim.fn.expand("<cword>")
 
+  local lsp = require("plugins.lsp.lsp")
   -- Call LSP textDocument/references
   -- on_list callback runs in synchronous UI context (no flicker)
-  vim.lsp.buf.references(nil, {
+  lsp.references({
     on_list = function(options)
       -- options.items: result from vim.lsp.util.locations_to_items()
       local items = options.items

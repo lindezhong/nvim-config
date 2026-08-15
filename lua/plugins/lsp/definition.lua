@@ -22,9 +22,10 @@ local function open_definition()
   -- Capture the word under cursor for precise keyword highlighting in preview
   local word = vim.fn.expand("<cword>")
 
+  local lsp = require("plugins.lsp.lsp")
   -- Call LSP textDocument/definition
   -- on_list callback runs in synchronous UI context (no flicker)
-  vim.lsp.buf.definition({
+  lsp.definition({
     on_list = function(options)
       -- options.items: result from vim.lsp.util.locations_to_items()
       local items = options.items

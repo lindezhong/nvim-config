@@ -21,7 +21,8 @@ end
 
 -- Show document symbols in a right-side location list panel
 function M.document_outline()
-  vim.lsp.buf.document_symbol({
+  local lsp = require("plugins.lsp.lsp")
+  lsp.document_symbol({
     on_list = function(options)
       vim.fn.setloclist(0, {}, " ", options)
       vim.cmd("vert botright lopen 40")
