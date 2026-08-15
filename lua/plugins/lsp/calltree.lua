@@ -6,7 +6,6 @@
 -- vim.g.calltree_width: number of columns for the tree panel (default: 40)
 -- vim.g.calltree_timeout: LSP operation timeout in ms (default: 10000)
 -- vim.g.calltree_keys: table of keybindings with fields:
---   open   - open the call tree from current cursor symbol (default: <C-A-i>)
 --   toggle - expand or collapse a node (default: <Tab>)
 --   jump   - jump to the call site in the source file (default: <CR>)
 --   close  - close the tree panel (default: q)
@@ -18,7 +17,6 @@
 vim.g.calltree_width = vim.g.calltree_width or 40
 vim.g.calltree_timeout = vim.g.calltree_timeout or 10000
 vim.g.calltree_keys = vim.tbl_extend("keep", vim.g.calltree_keys or {}, {
-  open = "<C-A-i>",
   toggle = "<Tab>",
   jump = "<CR>",
   close = "q",
@@ -235,8 +233,7 @@ local function open_calltree()
   -- (notably vtsls) to include the file in their project index before responding to queries.
   local function ensure_buf_attached(uri)
     local fname = vim.uri_to_fname(uri)
-    local target_bufnr = vim.fn.bufadd(fname)
-    vim.fn.bufload(target_bufnr)
+    local target_bufnr = require("plugins.lsp.buf").ensure_loaded(fname)
     local attached = false
     for _, c in ipairs(vim.lsp.get_clients({ bufnr = target_bufnr })) do
       if c.id == client.id then
@@ -560,12 +557,4 @@ local function open_calltree()
   end)
 end
 
-return {
-  {
-    dir = ".",
-    name = "calltree",
-    keys = {
-      { vim.g.calltree_keys.open, open_calltree, desc = "Incoming call tree" },
-    },
-  },
-}
+return { open = open_calltree }

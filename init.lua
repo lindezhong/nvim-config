@@ -20,8 +20,6 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Leader key must be set before loading plugins
-vim.g.mapleader = " "
 
 -- ===== Editor options =====
 
@@ -51,6 +49,15 @@ vim.opt.guicursor = "n-v-c-i:block"
 vim.opt.laststatus = 1
 -- Fill characters for separators and folds
 vim.opt.fillchars:append({ vert = "|", fold = "-", eob = "~" })
+-- Border style for all floating windows (hover, completion docs, diagnostics, etc.)
+-- "none"    - no border
+-- "single"  - thin single line  ┌─┐│└─┘│
+-- "double"  - double line       ╔═╗║╚═╝║
+-- "rounded" - single with round corners ╭─╮│╰─╯│
+-- "solid"   - filled block characters (thick border)
+-- "shadow"  - shadow effect on bottom-right edges
+-- Or a table of 8 chars: {topleft, top, topright, right, botright, bot, botleft, left}
+vim.o.winborder = "rounded"
 
 -- ===== FileType indentation =====
 
