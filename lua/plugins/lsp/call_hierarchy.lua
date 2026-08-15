@@ -321,6 +321,7 @@ local function open_call_hierarchy()
           col = element.col,
         })
       end,
+      expand_level = 1,            -- auto-expand root to show first-level callers
       width = vim.g.call_hierarchy_width,
       position = "right",
       keys = vim.g.call_hierarchy_keys,
