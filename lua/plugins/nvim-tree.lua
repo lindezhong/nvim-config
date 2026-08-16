@@ -108,10 +108,6 @@ return {
         end,
       })
 
-      -- Close tree when entering fullscreen :Terminal
-      require("commands").register_terminal("nvim-tree", function()
-        require("nvim-tree.api").tree.close()
-      end)
     end,
   },
 }

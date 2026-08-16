@@ -287,32 +287,34 @@ local function setup_highlights()
   vim.api.nvim_set_hl(0, hl.fill, { ctermbg = 0 })
 end
 
---- Initialize the tabline: set highlights, wire up the render function,
---- and register hooks for colorscheme changes and terminal mode.
-local function setup()
-  -- Apply highlight groups on first load
-  setup_highlights()
-
-  -- Always show tabline (0=never, 1=only when multiple tabs, 2=always)
+--- Show the tabline.
+local function enable()
   vim.o.showtabline = 2
-  -- Point Vim's tabline to our Lua render function via v:lua bridge
   vim.o.tabline = "%!v:lua.require'buftabline'.render()"
-
-  -- Re-apply highlights after colorscheme change (colorscheme clears user-defined groups)
-  vim.api.nvim_create_autocmd("ColorScheme", {
-    callback = setup_highlights,
-  })
-
-  -- Hide tabline when entering fullscreen :Terminal (restore screen real estate)
-  require("commands").register_terminal("buftabline", function()
-    vim.o.showtabline = 0
-  end)
 end
 
--- Run setup immediately when the module is first required
-setup()
+--- Hide the tabline.
+local function disable()
+  vim.o.showtabline = 0
+end
 
---- @type table Module public API (render must be accessible from tabline expression)
+--- Toggle tabline visibility.
+local function toggle()
+  if vim.o.showtabline == 0 then enable() else disable() end
+end
+
+-- Initialize on first require
+setup_highlights()
+enable()
+
+-- Re-apply highlights after colorscheme change
+vim.api.nvim_create_autocmd("ColorScheme", {
+  callback = setup_highlights,
+})
+
 return {
   render = render,
+  enable = enable,
+  disable = disable,
+  toggle = toggle,
 }

@@ -98,9 +98,11 @@ vim.cmd.colorscheme("vim8-dark")
 require("keymaps")
 -- Directory-level session auto save/load with plugin hook interface
 require("session")
--- Custom commands: :Exit, :Q, :Terminal with plugin hook interface
+-- Custom commands: :Exit, :Q
 require("commands")
 -- Buffer tabline: show open buffers as tabs at the top of screen
 require("buftabline")
+-- :Terminal command (fullscreen terminal with cleanup hooks)
+require("terminal")
 -- Plugin configs from lua/plugins/ (LSP, completion, treesitter, etc.)
 require("lazy").setup("plugins")
