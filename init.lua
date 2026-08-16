@@ -100,5 +100,7 @@ require("keymaps")
 require("session")
 -- Custom commands: :Exit, :Q, :Terminal with plugin hook interface
 require("commands")
+-- Buffer tabline: show open buffers as tabs at the top of screen
+require("buftabline")
 -- Plugin configs from lua/plugins/ (LSP, completion, treesitter, etc.)
 require("lazy").setup("plugins")
