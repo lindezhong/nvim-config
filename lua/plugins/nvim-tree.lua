@@ -81,6 +81,15 @@ return {
         },
       })
 
+      -- Hide statusline text in the tree window
+      vim.api.nvim_create_autocmd("BufWinEnter", {
+        callback = function()
+          if vim.bo.filetype == "NvimTree" then
+            vim.wo.statusline = " "
+          end
+        end,
+      })
+
       -- Toggle tree panel
       vim.keymap.set("n", "<Esc><C-n>", "<cmd>NvimTreeToggle<CR>", { silent = true })
       vim.keymap.set("i", "<Esc><C-n>", "<Esc>`^<cmd>NvimTreeToggle<CR>", { silent = true })

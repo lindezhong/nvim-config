@@ -41,17 +41,27 @@ return {
         })
       end
 
+      -- Configure lua_ls to recognize Neovim runtime API
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = {
+            runtime = { version = "LuaJIT" },
+            workspace = {
+              library = { vim.env.VIMRUNTIME },
+              checkThirdParty = false,
+            },
+          },
+        },
+      })
+
       require("mason-lspconfig").setup({
         -- LSP servers to auto-install
-        ensure_installed = { "vtsls", "jsonls" },
+        ensure_installed = { "vtsls", "jsonls", "lua_ls" },
         automatic_enable = {
           -- Exclude ts_ls to avoid conflict with vtsls
           exclude = { "ts_ls" },
         },
       })
-
-      -- Float window highlights for hover/signature popups
-      require("plugins.lsp.highlights").setup()
 
       -- Display LSP loading progress in command line
       vim.api.nvim_create_autocmd("LspProgress", {
@@ -76,6 +86,12 @@ return {
         end,
       })
 
+      -- ===== Internal modules (lua/plugins/lsp/*) =====
+
+      -- Diagnostic display settings (signs, float-on-hold, no virtual text)
+      require("plugins.lsp.config").setup()
+      -- Float window highlights for hover/signature popups
+      require("plugins.lsp.highlights").setup()
       -- Set up buffer-local keybindings when LSP attaches
       require("plugins.lsp.keymaps").setup()
     end,

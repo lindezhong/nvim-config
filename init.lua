@@ -84,21 +84,6 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- ===== Diagnostics =====
-
--- Signs only (no inline virtual text after code lines)
--- Signs use letters (E/W/I/H) instead of icons for terminal compatibility
-vim.diagnostic.config({
-  virtual_text = false,
-  signs = {
-    text = {
-      [vim.diagnostic.severity.ERROR] = "E",
-      [vim.diagnostic.severity.WARN] = "W",
-      [vim.diagnostic.severity.INFO] = "I",
-      [vim.diagnostic.severity.HINT] = "H",
-    },
-  },
-})
 
 -- ===== Colors =====
 
