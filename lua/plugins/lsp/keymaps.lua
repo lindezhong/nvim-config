@@ -79,7 +79,9 @@ function M.setup()
       vim.keymap.set("n", "<C-e>", vim.diagnostic.setloclist, opts)
       vim.keymap.set("i", "<C-e>", vim.diagnostic.setloclist, opts)
       -- Incoming call tree: show callers of the symbol under cursor
-      vim.keymap.set("n", "<C-A-i>", require("plugins.lsp.call_hierarchy").open, opts)
+      vim.keymap.set("n", "<C-A-i>", require("plugins.lsp.call_hierarchy").incoming, opts)
+      -- Outgoing call tree: show callees of the symbol under cursor
+      vim.keymap.set("n", "<C-A-o>", require("plugins.lsp.call_hierarchy").outgoing, opts)
     end,
   })
 end
