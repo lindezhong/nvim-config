@@ -1,0 +1,40 @@
+# #curl
+snippet curlGet curl get
+	curl -X GET '${1:url}' \
+	  -H 'Accept: application/json, text/plain, */*' \
+	  -H 'Connection: keep-alive'
+
+snippet curlPost curl post
+	curl -X POST '${1:url}' \
+	  -H 'Accept: application/json'  \
+	  -H 'Content-Type: application/json'  \
+	  -H 'Connection: keep-alive'  \
+	  --data-raw '${2:json data}'
+
+snippet curlUploadFile curl上传文件
+	curl '${1:url}' \
+	  -H 'Content-Type: multipart/form-data'  \
+	  -H 'Connection: keep-alive'  \
+	  -F 'file=@${2:filePath}' \
+	  -F '${3:key普通参数，value不带@}=${4:value}'
+
+snippet curlHeadCookie 添加cookie
+	-H "Cookie: $cookie" \
+
+snippet curlHeadLanguage curl 语言
+	-H 'Accept-Language: zh-CN,zh;'  \
+
+snippet curlUrlencode 使用curl对url进行编码成可请求的url, 只要参数部分, 如果需要保留host(需要一个host作为url_effective)部分则去除cut命令, 比如 key=? -> key=%3f 或 ? -> %3f
+	${3:params}=''$(curl -s -o /dev/null -w '%{url_effective}' --get --data-urlencode "${1:key=value}" "${2:http://example.com}" | cut -d '?' -f2-)''
+	$0
+
+snippet urlencode 使用curl对url进行编码成可请求的url, 只要参数部分, 如果需要保留host(需要一个host作为url_effective)部分则去除cut命令, 比如 key=? -> key=%3f 或 ? -> %3f
+	${3:params}=''$(curl -s -o /dev/null -w '%{url_effective}' --get --data-urlencode "${1:key=value}" "${2:http://example.com}" | cut -d '?' -f2-)''
+	$0
+
+
+
+
+
+
+

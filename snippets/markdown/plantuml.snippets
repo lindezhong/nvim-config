@@ -1,0 +1,368 @@
+# 官方文档 : https://plantuml.com/zh/guide
+# pdf 下载 : https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_zh.pdf
+
+snippet plantUmlInit 初始化plant uml
+	\`\`\`plantuml
+	@startuml
+	
+	title ${1:标题}
+	
+	$0
+	@enduml
+	\`\`\`
+
+# ```plantuml
+# @startuml
+# allowmixing
+# title 图表混合测试
+# 
+# ' 类图(class-diagram)
+# class 类图 { }
+# ' 部署图(deployment-diagram)
+# agent 部署图agent
+# ' 实体关系图(ie-diagram)
+# Entity01 }|..|| Entity02
+# Entity03 }o..o| Entity04
+# Entity05 ||--o{ Entity06
+# Entity07 |o--|| Entity08
+# ' json
+# json XX {
+#     "k": "v"
+# }
+# ' object
+# object 对象1
+# object "第 2 个对象" as o2
+# 
+# @enduml
+# ```
+snippet plantUmlInitAllowmixing 初始化plant uml, 设置allowmixing允许混合图形,能让类图支持其它图表, 但只支持部分图表的混合, 支持类型: 类图(class),部署图(deployment),实体关系图(ie),json,object
+	\`\`\`plantuml
+	@startuml
+	allowmixing
+	title ${1:标题}
+	
+	$0
+	@enduml
+	\`\`\`
+
+
+
+# #样式
+# ##连线#样式
+snippet plantUmlStyleLineOrtho 连接线风格:直线, 默认曲线
+	skinparam linetype ortho
+
+
+snippet plantUmlStyleLinePolyline 连接线风格:折线, 默认曲线
+	skinparam linetype polyline
+
+
+# ##自动数字
+snippet plantUmlStyleAutoNumber 在流程图中, 自动添加数字
+	autonumber
+	$0
+
+
+# ##方向
+snippet plantUmlStyleDirectionLeftToRight 从左往右构建,默认从上往下构建
+	left to right direction
+	$0
+
+
+snippet plantUmlStyleDirectionRightToLeft 从右往左构建,默认从上往下构建
+	right to left direction
+	$0
+
+
+snippet plantUmlStyleDirectionTopToBottom 从上往下构建,默认从上往下构建
+	top to bottom direction
+	$0
+
+
+snippet plantUmlStyleDirectionBottomToTop 从下往上构建,默认从上往下构建
+	bottom to top direction
+	$0
+
+
+# #注释
+snippet plantUmlNote plant注释 例子 : note {left|right|top|bottom|over} of Object #{Color} : {NoteContext}  1. Object : 注释对象 1.1 类图:如果为类字段格式为 Object::field(到字段要用plantUmlNoteMulti), 如果为方法有相同名用 ''双引号包裹 'name(int length)' 1.2 对于某些uml图来说可以链接到两个对象则用逗号分割 : A,B 2. NoteContet : 注释内容 3. Color: 颜色代码比如 000000 或 blue
+	note ${1:{left|right|top|bottom|over\}} of ${2:Object} : ${3:noteContet}
+	$0
+
+snippet plantUmlNoteMulti plant多行注释,可以用来注释类对象字段, 例子 : note {left|right|top|bottom|over} of Object #{Color}\n {NoteContext} \nend note ,1. Object : 注释对象 1.1 类图:如果为类字段格式为 Object::field, 如果为方法有相同名用 ''双引号包裹 'name(int length)' 1.2 对于某些uml图来说可以链接到两个对象则用逗号分割 : A,B 2. NoteContet : 注释内容 3. Color: 颜色代码比如 000000 或 blue
+	note ${1:{left|right|top|bottom|over\}} of ${2:Object}
+	${3:noteContet}
+	end note
+	$0
+
+snippet plantUmlNoteFloat 浮动注释,可以把注释当成一个对象,然后用link链接,可以用来把注释指向多个对象 : note '{NoteContext}' as {NoteName} \n {NoteName} {Link} {Object} 1. NoteContext: 注释内容 2. NoteName : 注释名 3. Link: 链接可以是 .. , --> 表示不同样式 4. Object: 注释指向的对象
+	note "${1:NoteContext}" as ${2:NoteName}
+	$2 .. ${3:Object}
+	$0
+
+snippet plantUmlNoteLink 类图链接(关系)的注释,该注释需要在链接后面,表示上一个链接的注释, note {left|right|top|bottom} on link #{Color} \n end note
+	note ${1:{left|right|top|bottom|over\}}  on link
+	$2
+	end note
+	$0
+
+
+
+# #类图
+# 支持的类图类型
+# | 类型           | 解释               | 图形     |
+# |----------------+--------------------+----------|
+# | abstract       | abstract           | (A)      |
+# | abstract class | abstract class     | (A)      |
+# | annotation     | annotation         | (@)      |
+# | circle         | circle             | ○        |
+# | ()             | circle_short_form  | ○        |
+# | class          | class              | (C)      |
+# | diamond        | diamond            | ◇        |
+# | <>             | diamond_short_form | ◇        |
+# | entity         | entity             | (E) 绿色 |
+# | enum           | enum               | (E) 橙色 |
+# | exception      | exception          | (X)      |
+# | interface      | interface          | (I)      |
+# | metaclass      | metaclass          | (M)      |
+# | protocol       | protocol           | (P)      |
+# | stereotype     | stereotype         | (S) 粉色 |
+# | struct         | struct             | (S) 白色 |
+
+# 定义可访问性
+# | 字符 | 可访问性        | 图标属性 | 图标方法 |
+# |------+-----------------+----------+----------|
+# | -    | private         | □        | ◼        |
+# | #    | protected       | ◇        | ◇        |
+# | ~    | package private | △        | ▲        |
+# | +    | public          | ○        | ●        |
+
+snippet plantUmlClassInit plant uml 类初始化, 字段/方法定义为标准的java代码
+	class ${1:class_name} {
+	$0
+	}
+
+
+# #类图##类图关系
+# | 类型             | 符号   | 图形 | 目的                                                                                                                                                                                                                                |
+# |------------------+--------+------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+# | 继承(is-a)       | --|>   | ──▷  | 继承,例子: A "说明" --|> "说明,B可以是(B,C),同时表示两个类B,C" B : 说明 , A继承了B                                                                                                                                                  |
+# | 实现             | ..|>   | --▷  | 通过类实现接口,例子: A "说明" ..|> "说明,B可以是(B,C),同时表示两个类B,C" B : 说明 , A实现了B                                                                                                                                        |
+# | 依赖             | ..>    | -->  | 一种较弱的依赖形式,一个对象方法中使用另一个对象,例子: A "说明" ..> "说明,B可以是(B,C),同时表示两个类B,C" B : 说明 , A 方法中使用了B                                                                                                 |
+# | 单向关联         | -->    | ──>  | 使用关系, 一个对象使用(全局变量或类属性中有)另一个对象(比如教室内有桌子),例子:  A "说明" --> "说明,B可以是(B,C),同时表示两个类B,C" B : 说明 , A的属性或全局变量中有B                                                                |
+# | 双向关联         | -->    | ──>  | 双向使用关系, 两个对象互相使用(全局变量或类属性中有)对方(比如老师带多个学生，而每个学生都有带他的老师),例子:  A "说明" -- "说明,B可以是(B,C),同时表示两个类B,C" B : 说明 , A的属性或全局变量中有B且B的属性或全局变量中有A           |
+# | 聚合(has-a)      | o--    | ◇ ── | 整体部分关系(特殊关联关系), 部分可以独立于整体而存在(比如公司与员工的关系),例子: A "说明" o-- "说明,B可以是(B,C),同时表示两个类B,C" B : 说明, A的属性或全局变量中有B, B聚合成A                                                      |
+# | 组合(contains-a) | *--    | ◆ ── | 包含关系(特殊关联关系,强聚合),没有整体就没有部分(比如人和大脑),例子: A "说明" *-- "说明,B可以是(B,C),同时表示两个类B,C" B : 说明, A的属性或全局变量中有B, B组合成A                                                                  |
+
+
+#  泛化(继承)，Generalization(──▷ ):--|> 例子 class1 "说明" --|> "说明" class2 : 说明
+#  实现，Realization(--▷ ):..|> 例子 class1 "说明" ..|> "说明" class2 : 说明
+#  依赖，Dependency(-->):..> 例子 class1 "说明" ..> "说明" class2 : 说明
+#  关联，Association*(──>):--> 例子 class1 "说明" --> "说明" class2 : 说明
+#  聚合，Aggregation(──◇ ):--o 例子 class1 "说明" --o "说明" class2 : 说明
+#  组合，Composition(──◆ ):--* 例子 class1 "说明" --* "说明" class2 : 说明
+# 下面这个例子表示 
+# Studen ───────────── Course
+#              |
+# 			   |
+# 		   Enrollment
+# ```plantuml
+# class Student {}
+# class Course {}
+# Student "0..*" - "1..*" Course
+# (Student, Course) .. Enrollment
+# class Enrollment {}
+# ```
+# 对于继承、实现这两种关系没多少疑问，他们体现的是一种类与类、或者类与接口间的纵向关系；其他的四者关系则体现的是类与类、或者类与接口间的引用、横向关系，是比较难区分的，有很多事物间的关系要想准备定位是很难的，前面也提到，这几种关系都是语义级别的，所以从代码层面并不能完全区分各种关系；
+# 但总的来说，后几种关系所表现的强弱程度依次为：依赖<关联<聚合< 组合；聚合跟组合其实都属于关联
+snippet plantUmlClassLinkGeneralization 类图关系继承/is-a(--|> ──▷ ),继承,例子: A '说明' --|> '说明,B可以是(B,C),同时表示两个类B,C' B : 说明 , A继承了B(单引号需要改双引号)
+	${1:class1}  --|> ${2:class2}
+
+snippet plantUmlClassLinkRealization 类图关系实现(..|>  --▷ ), 通过类实现接口,例子: A '说明' ..|> '说明,B可以是(B,C),同时表示两个类B,C' B : 说明 , A实现了B(单引号需要改双引号)
+	${1:class1} ..|> ${2:class2}
+
+snippet plantUmlClassLinkDependency 类图关系依赖(..> -->),一种较弱的依赖形式,一个对象方法中使用另一个对象,例子: A '说明' ..> '说明,B可以是(B,C),同时表示两个类B,C' B : 说明 , A 方法中使用了B(单引号需要改双引号)
+	${1:class1} ..> ${2:class2}
+
+snippet plantUmlClassLinkAssociationOneWay 类图关系单向关联(--> ──>), 使用关系, 一个对象使用(全局变量或类属性中有)另一个对象(比如教室内有桌子),例子:  A '说明' --> '说明,B可以是(B,C),同时表示两个类B,C' B : 说明 , A的属性或全局变量中有B(单引号需要改双引号)
+	${1:class1} --> ${2:class2}
+
+snippet plantUmlClassLinkAssociationTwoWay 类图关系双向关联(-- ──), 双向使用关系, 两个对象互相使用(全局变量或类属性中有)对方(比如老师带多个学生，而每个学生都有带他的老师),例子:  A '说明' -- '说明,B可以是(B,C),同时表示两个类B,C' B : 说明 , A的属性或全局变量中有B且B的属性或全局变量中有A(单引号需要改双引号)
+	${1:class1} -- ${2:class2}
+
+snippet plantUmlClassLinkAggregation 类图关系聚合/has-a(o-- ◇ ──),整体部分关系(特殊关联关系), 部分可以独立于整体而存在(比如公司与员工的关系),例子: A '说明' o-- '说明,B可以是(B,C),同时表示两个类B,C' B : 说明, A的属性或全局变量中有B,B聚合成A(单引号需要改双引号)
+	${1:class1} --o ${2:class2}
+
+snippet plantUmlClassLinkComposition 类图关系组合/contains-a(*-- ◆ ──),包含关系(特殊关联关系,强聚合),没有整体就没有部分(比如人和大脑),例子: A '说明' *-- '说明,B可以是(B,C),同时表示两个类B,C' B : 说明, A的属性或全局变量中有B,B组合成A(单引号需要改双引号)
+	${1:class1} --* ${2:class2}
+
+
+# #类图##抽象与静态
+snippet plantUmlClassStatic 通过修饰符 {static} 或者 {abstract}，可以定义静态或者抽象的方法或者属性,例子 {static} String id
+	{static}
+
+snippet plantUmlClassAbstract 通过修饰符 {static} 或者 {abstract}，可以定义静态或者抽象的方法或者属性,例子 {abstract} void methods()
+	{abstract}
+
+# #类图##高级类体
+# PlantUML 默认自动将方法和属性重新分组，你可以自己定义分隔符来重排方法和属性，下面的分隔符
+# 都是可用的：-- .. == __.
+# 还可以在分隔符中添加标题：
+# @startuml
+# class Foo1 {
+# You can use
+# several lines
+# ..
+# as you want
+# and group
+# ==
+# things together.
+# __
+# You can have as many groups
+# as you want
+# --
+# End of class
+# }
+# class User {
+# .. Simple Getter ..
+# + getName()
+# + getAddress()
+# .. Some setter ..
+# + setName()
+# __ private data __
+# int age
+# -- encrypted --
+# String password
+# }
+# @enduml
+# #类图##备注和模板
+# 想要改变注释相对于标签的位置，你也可以用 note left on link，note right on link，note on top ,note bottom on link。（对应位置分别在 label 的左边，右边，上边, 下边>）
+# ```plantuml
+# @startuml
+# class Object << general >> {
+#     String name
+#     + String name()
+#     + String name(int length)
+# }
+# Object <|--- ArrayList : 一个链接(link)
+# note on link #red: 这个是一个链接的注释而且为红色
+# note top of Object : 在java中，每个类\扩展这个。(Object类注释) 
+# note "这是一个浮动注释(无连接到类)" as N1
+# note "此注释连接到\n几个对象。" as N2
+# Object .. N2
+# N2 .. ArrayList
+# class Foo {}
+# note left: 在类后定义指向Foo 
+# note right of Object::name
+# 注释Object.name字段
+# end note
+# note left of Object::name()
+# 注释Object.name()方法
+# end note
+# note left of Object::"name(int length)"
+# 注释Object.name(int length)方法,相同名称用 "" 包裹
+# end note
+
+# Foo --|> Object : 一个链接(link)
+# note right on link #blue
+# 这个是一个链接的注释而且为蓝色,需要在链接后面
+# end note
+# @enduml
+# ```
+
+# #类图##包
+# 你可以通过以下的命令来设置默认样式: skinparam packageStyle, 或者对包使用对应的模板
+# scale 750 width
+# package foo1 <<Node>> {}
+# package foo2 <<Rectangle>> {}
+# package foo3 <<Folder>> {}
+# package foo4 <<Frame>> {}
+# package foo5 <<Cloud>> {}
+# package foo1.foo6 <<Database>> {}
+# 你也可以参考下面的示例来定义包之间的连线:
+# foo1 +-- foo1.foo6
+snippet plantUmlClassPackage 类图包,在同一个包下的类需要在包的{}内
+	package "${1:包名}" #DDDDDD {
+	    $0
+	}
+
+# #类图##命名空间
+# 在使用包（package）时（区别于命名空间），类名是类的唯一标识。也就意味着，在不同的包（package）中的类，不能使用相同的类名。
+snippet plantUmlClassNamespaces 类图命名空间, 可以使用'set namespaceSeparator .'自动创建命名空间,namespace com.className {}在使用包（package）时（区别于命名空间），类名是类的唯一标识。也就意味着，在不同的包（package）中的类，不能使用相同的类名.
+	namespace ${1:命名空间名} #DDDDDD {
+	    $0
+	}
+
+# #类图##辅助布局
+# 有时候，默认布局并不完美...你可以使用 together 关键词将某些类进行分组：布局引擎会尝试将它们捆绑在一起（如同在一个包(package) 内) 你也可以使用建立 隐藏链接的方式来强制布局
+# @startuml
+# class Bar1
+# class Bar2
+# together {
+# class Together1
+# class Together2
+# class Together3
+# }
+# Together1 - Together2
+# Together2 - Together3
+# Together2 -[hidden]--> Bar1
+# Bar1 -[hidden]> Bar2
+# @enduml
+snippet plantUmlClassTogether 有时候，默认布局并不完美...你可以使用 together 关键词将某些类进行分组：布局引擎会尝试将它们捆绑在一起（如同在一个包(package) 内) 
+	together {
+	    $0
+	}
+
+
+
+
+# #时序图(Sequence Diagram)
+
+# ##时序图参与者#时序图
+# - participant (参与者) 如果只有名称耶
+# - actor（角色）
+# - boundary（边界）
+# - control（控制）
+# - entity（实体）
+# - database（数据库）
+# - collections（集合）
+# - queue（队列）
+
+# #时序图##关系
+# | 符号 | 例子                          | 解释 |
+# | ->   | 绘制参与者之间传递的消息/请求 |      |
+# | ->>  | 返回消息                      |      |
+# | --x  |
+
+# #时序图##例子#
+# ```plantuml
+# @startuml
+# 'as用于重命名参与者, 请注意, participant 是在时序图中展示的名称, Foo 是在代码中的唯一标识
+# participant participant as Foo
+# actor Foo1
+# boundary boundary as Foo2
+# control control as Foo3
+# entity entity as Foo4
+# database database as Foo5
+# collections collections as Foo6
+# queue queue as Foo7
+# Foo -> Foo1 : To actor
+# Foo -> Foo2 : To boundary
+# Foo -> Foo3 : To control
+# Foo -> Foo4 : To entity
+# Foo -> Foo5 : To database
+# Foo -> Foo6 : To collections
+# Foo -> Foo7 : To queue
+# Foo ->
+# @enduml
+# ```
+
+
+snippet plantUmlSeqActivate 时序图, 生命线, 即带返回值的时序图
+	${1:object1} -> ${2:object2}: ${3:调用}
+	activate $2
+	$0
+	$2 --> $1: ${4:return}
+	deactivate $2
+
+

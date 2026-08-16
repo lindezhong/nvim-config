@@ -1,0 +1,1155 @@
+# 关键字
+snippet keyConst const说明符表示变量是只读的，不得被修改。
+	const
+
+snippet keyStatic 1. 用于局部变量(块作用域内部):表示该变量的值会在函数每次执行后得到保留，下次执行时不会进行初始化 2. 用于全局变量: 表示该变量只用于当前文件，其他源码文件不可以引用该变量，即该变量不会被链接（link）3. `static`修饰的变量，初始化时，值不能等于变量，必须是常量
+	static
+
+snippet keyAuto `auto`说明符表示该变量的存储，由编译器自主分配内存空间，且只存在于定义时所在的作用域，退出作用域时会自动释放。由于只要不是`extern`的变量（外部变量），都是由编译器自主分配内存空间的，这属于默认行为，所以该说明符没有实际作用，一般都省略不写。
+	auto
+
+snippet keyExtern `extern`说明符表示，该变量在其他文件里面声明，没有必要在当前文件里面为它分配空间。通常用来表示，该变量是多个文件共享的。
+	extern
+
+snippet keyRegister `register`说明符向编译器表示，该变量是经常使用的，应该提供最快的读取速度，所以应该放进寄存器。但是，编译器可以忽略这个说明符，不一定按照这个指示行事。
+	register
+
+snippet keyVolatile `volatile`说明符表示所声明的变量，可能会预想不到地发生变化（即其他程序可能会更改它的值），不受当前程序控制，因此编译器不要对这类变量进行优化,每次使用时都应该查询一下它的值。硬件设备的编程中，这个说明符很常用。
+	volatile
+
+snippet keyRestrict `restrict`说明符允许编译器优化某些代码。它只能用于指针，表明该指针是访问数据的唯一方式。
+	restrict
+
+
+# 标准库
+snippet libAssert 断言assert包 #include <assert.h>
+	#include <assert.h>
+
+snippet libCtype 文件定义了一系列字符处理函数的原型,`isalnum()`：是否为字母数字, `isalpha()`：是否为字母, `isdigit()`：是否为数字 `isxdigit()`：是否为十六进制数字符 `islower()`：是否为小写字母 `isupper()`：是否为大写字母 `isblank()`：是否为标准的空白字符（包含空格、水平制表符或换行符 `isspace()`：是否为空白字符（空格、换行符、换页符、回车符、垂直制表符、水平制表符等 `iscntrl()`：是否为控制字符，比如 Ctrl + B`isprint()`：是否为可打印字符 `isgraph()`：是否为空格以外的任意可打印字符 `ispunct()`：是否为标点符号（除了空格、字母、数字以外的可打印字符）
+	#include <ctype.h>
+
+snippet libErrno 声明了一个 int 类型的 errno 变量，用来存储错误码（正整数）,如果这个变量有非零值，表示已经执行的程序发生了错误。if (errno != 0) {exit(EXIT_FAILURE);}
+	#include <errorno.h>
+
+snippet libFloat 定义了浮点数类型 float、double、long double 的一些宏，规定了这些类型的范围和精度。
+	#include <float.h>
+
+snippet libLimits 提供了用来定义各种整数类型（包括字符类型）取值范围的宏。
+	#include <limits.h>
+
+snippet libLocale 程序的本地化设置，主要影响以下的行为: 1.数字格式 2.货币格式 3.字符集 4.日期和时间格式
+	#include <locale.h>
+
+snippet libMath 提供了很多数学函数
+	#include <math.h>
+
+snippet libSignal 提供了信号（即异常情况）的处理工具。所谓“信号”（signal），可以理解成系统与程序之间的短消息，主要用来表示运行时错误，或者发生了异常事件。
+	#include <signal.h>
+
+snippet libStdint 定义了一些固定宽度的整数类型别名 主要有下面三类 1. 宽度完全确定的整数`intN_t`，比如`int32_t`。 2. 宽度不小于某个大小的整数`int_leastN_t`，比如`int_least8_t` 3. 宽度不小于某个大小、并且处理速度尽可能快的整数`int_fastN_t`，比如`int_fast64_t`。
+	#include <stdint.h>
+
+snippet libStdlib
+	#include <stdlib.h>
+
+snippet libTime
+	#include <time.h>
+
+snippet libWchar 宽字符使用两个或四个字节表示一个字符，导致 C 语言常规的字符处理函数都会失效。wchar.h 定义了许多宽字符专用的处理函数。
+	#include <wchar.h>
+
+snippet libWctype wctype.h 提供 ctype.h 里面函数的宽字符版本。
+	#include <wctype.h>
+
+
+
+# c语言代码片段
+
+snippet ifei if else if
+	if(${1:true}) {
+		${2}
+	} else if(${3:true}) {
+		${4}
+	}
+	${0}
+
+
+snippet ifeie if else if else
+	if(${1:true}) {
+		${2}
+	} else if(${3:true}) {
+		${4}
+	} else {
+		${5}
+	}
+	${0}
+
+
+
+snippet switch switch
+	switch (${1:value}) {
+		case ${2:value1}:
+			${3}
+			break;
+		case ${4:value1}:
+			${5}
+			break;
+		default:
+			${6}
+			break;
+	}
+	${0}
+
+
+
+snippet if? 三目运算符
+	${1:expression} ? ${2:value1} : ${3:vaue2};
+	${0}
+
+
+# #流程控制
+# ##goto#流程控制
+# goto 的一个主要用法是跳出多层循环。
+# 
+# ```c
+# for(...) {
+#   for (...) {
+#     while (...) {
+#       do {
+#         if (some_error_condition)
+#           goto bail;
+#       } while(...);
+#     }
+#   }
+# }
+# bail:
+# goto 的另一个用途是提早结束多重判断。
+# ```c
+# if (do_something() == ERR)
+#   goto error;
+# if (do_something2() == ERR)
+#   goto error;
+# if (do_something3() == ERR)
+#   goto error;
+# if (do_something4() == ERR)
+#   goto error;
+# ```
+# 
+# 上面示例有四个判断，只要有一个发现错误，就使用 goto 跳过后面的判断。
+# 
+# 注意，goto 只能在同一个函数之中跳转，并不能跳转到其他函数。
+snippet goto goto语句，跳转到label代码处
+	${1:label}: ${2}
+	
+	goto $1;
+
+# #数据类型
+# ##整数#数据类型
+# unsigned int`里面的`int`可以省略 可以定义成 unsigned i=1;
+snippet unsignedi 非负数整数,整数变量声明为`unsigned`的好处是，同样长度的内存能够表示的最大整数值，增大了一倍。比如，16位的`signed int`最大值为32,767，而`unsigned int`的>    最大值增大到了65,535。
+	unsigned int ${1:i};
+
+# ###整数的子类型##整数#数据类型
+# - `short int`（简写为`short`）：占用空间不多于`int`，一般占用2个字节（整数范围为-32768～32767)。
+# - `long int`（简写为`long`）：占用空间不少于`int`，至少为4个字节。
+# - `long long int`（简写为`long long`）：占用空间多于`long`，至少为8个字节。
+# ###整数进制##整数#数据类型
+# 八进制使用`0`作为前缀，比如int i = 017;(等价于int i = 15;)。
+# 十六进制使用`0x`或`0X`作为前缀，比如int i = 0xf;(等价于int i = 15;)
+# ###整数类型的极限值##整数#数据类型
+# 有时候需要查看，当前系统不同整数类型的最大值和最小值，C 语言的头文件`limits.h`提供了相应的常量，比如`SCHAR_MIN`代表 signed char 类型的最小值`-128`，`SCHAR_MAX`代表 signed char 类型的最大值`127`。
+# 为了代码的可移植性，需要知道某种整数类型的极限值时，应该尽量使用这些常量。
+# - `SCHAR_MIN`，`SCHAR_MAX`：signed char 的最小值和最大值。
+# - `SHRT_MIN`，`SHRT_MAX`：short 的最小值和最大值。
+# - `INT_MIN`，`INT_MAX`：int 的最小值和最大值。
+# - `LONG_MIN`，`LONG_MAX`：long 的最小值和最大值。
+# - `LLONG_MIN`，`LLONG_MAX`：long long 的最小值和最大值。
+# - `UCHAR_MAX`：unsigned char 的最大值。
+# - `USHRT_MAX`：unsigned short 的最大值。
+# - `UINT_MAX`：unsigned int 的最大值。
+# - `ULONG_MAX`：unsigned long 的最大值。
+# - `ULLONG_MAX`：unsigned long long 的最大值。
+# ##浮点数#数据类型
+# float`类型占用4个字节（32位），其中8位存放指数的值和符号，剩下24位存放小数的值和符号。`float`类型至少能够提供（十进制的）6位有效数字，指数部分的范围为（十进制的）`-37`到`37`，即数值范围为10<sup>-37</sup>到10<sup>37</sup>
+#有时候，32位浮点数提供的精度或者数值范围还不够，C 语言又提供了另外两种更大的浮点数类型。
+# - `double`：占用8个字节（64位），至少提供13位有效数字。
+# - `long double`：通常占用16个字节。
+# 注意，由于存在精度限制，浮点数只是一个近似值，它的计算是不精确的，比如 C 语言里面`0.1 + 0.2`并不等于`0.3`，而是有一个很小的误差。
+# ```c
+# if (0.1 + 0.2 == 0.3) // false
+# ```
+# ##布尔类型#数据类型
+# 头文件`stdbool.h`定义了另一个类型别名`bool`，并且定义了`true`代表`1`、`false`代表`0`。只要加载这个头文件，就可以使用这几个关键字。
+# ```c
+# #include <stdbool.h>
+# bool flag = false;
+# ```
+# ## 溢出#数据类型
+# 每一种数据类型都有数值范围，如果存放的数值超出了这个范围（小于最小值或大于最大值），需要更多的二进制位存储，就会发生溢出。大于最大值，叫做向上溢>
+# 出（overflow）；小于最小值，叫做向下溢出（underflow）。
+# 一般来说，编译器不会对溢出报错，会正常执行代码，但是会忽略多出来的二进制位，只保留剩下的位，这样往往会得到意想不到的结果。所以，应该避免溢出。
+# ```c
+# unsigned char x = 255;
+# x = x + 1;
+# printf("%d\n", x); // 0
+# ##sizeof运算符#数据类型
+# `sizeof`是 C 语言提供的一个运算符，返回某种数据类型或某个值占用的字节数量。它的参数可以是数据类型的关键字，也可以是变量名或某个具体的值。
+# sizeof(int)=sizeof(1)=4		sizeof(3.4)=8 (浮点数的字面量一律存储为 double 类型)
+# ##精确宽度类型(exact-width integer type)，保证某个整数类型的宽度是确定的。#数据类型
+# `int8_t`：8位有符号整数。 `uint8_t`：8位无符号整数。 同理还有16，32，64位整数
+# 上面这些都是类型别名，编译器会指定它们指向的底层类型。比如，某个系统中，如果`int`类型为32位，`int32_t`就会指向`int`；如果`long`类型为32位，`i    nt32_t`则会指向`long`。
+
+# #指针
+# 指针是什么？首先，它是一个值，这个值代表一个内存地址，因此指针相当于指向某个内存地址的路标。
+# 字符`*`表示指针，通常跟在类型关键字的后面，表示指针指向的是什么类型的值。比如，`char*`表示一个指向字符的指针，`float*`表示一个指向`float`类型的值的指针。
+# * : 表示取指针指向地址的值 ， & ：表示取变量的地址
+# ```c
+# // foo 是指针类型，bar是intleix
+# int* foo , bar;
+# // 指向指针的指针,`foo`是一个指针，指向的还是一个指针，第二个指针指向的则是一个整数。
+# int** foo;
+# // &表示取变量的地址
+# int v = 1; int* p = &v;
+# // 指针加法 ： * : 表示取指针指向地址的值 , 下面两个方法 p : 地址 , *p : p指向地址的值(为int值)
+# void increment(int* p) {
+# 	*p = *p + 1;
+# }
+# void showPointer(int* p) {
+#   // p+1 表示指针向内存地址的高位移动一个单位 而int占4位所以 newP - p = 4
+# 	int* newP = p + 1;printf("old &p is %p , new &p is %p \n", p, newP); // 输出 : old &p is 0x7fffc26541d0 , new &p is 0x7fffc26541d4
+# }
+# int v = 1;increment(&v);printf("%d\n",v);// 输出2
+# // `&`运算符与`*`运算符互为逆运算
+# int i = 5; printf("%d\n",i == *(&i)); // 输出1(true)
+# // 返回内部变量指针无效，因为当函数结束运行时，内部变量就消失了，这时指向内部变量`i`的内存地址就是无效的，再去使用这个地址是非常危险的。
+# int* print() {int i = 0; return &i;}
+# // 函数指针 比较特殊的是，C 语言还规定，函数名本身就是指向函数代码的指针，通过函数名就能获取函数地址。也就是说，`print`和`&print`是一回事。
+# void print(int n) {printf("%d\n",n);}
+# void (*print_ptr)(int) = &print; (*print_ptr)(10); /*等价于*/ print(10);
+#  ```
+
+# #函数
+# ##函数原型#函数
+# int f();
+# int main() { f(); };
+# int f() {print("函数原型，先定义了f()方法使得f()可以被使用");}
+# ##系统函数#函数
+# 1. exit(int n) : `函数用来终止整个程序的运行。一旦执行到该函数，程序就会立即结束。该函数的原型定义在头文件`stdlib.h`里面。
+# 2. atexit()`函数，用来登记`exit()`执行时额外执行的函数，用来做一些退出程序时的收尾工作。该函数的原型也是定义在头文件`stdlib.h atexit()`的参数是一个函数指针(它的参数函数不能接受参数，也不能有返回值。)
+# ##函数说明符#函数
+# ###extern##函数说明符#函数
+#extern 对该变量/函数作"外部变量声明",表示该变量是一个已经定义的外部变量。有了此声明，就可以从“声明”处起，合法地使用该外部变量。
+#include <stdio.h>
+# int main(void)
+# {
+#     extern int g_X;
+#     printf("the gloal value is %d\n",int_g_X); // 输出 10
+#     return 0;
+# }
+# /*定义全局变量*/
+# int g_X = 10;
+# ###static##函数说明符#函数
+# 1. 默认情况下，每次调用函数时，函数的内部变量都会重新初始化，不会保留上一次运行的值。`static`说明符可以改变这种行为。
+# 2. 方法用static修饰后只能用在本文件内
+# static int f() { static int count = 1; count++; return count; } // 只能在本文件内调用f()
+# printf("%d , %d", f(), f()); // 输出 1 ， 2
+# ###const##函数说明符#函数
+# const等价于java 的 final
+# int* const p; // p = 0 报错 ， *p = 1 修改成功
+# const int* p; // p = 0 修改成功 ， *p = 1 报错
+# const int* const p; // p = 0 和 *p = 0 都报错
+# ##可变参数#函数
+# ```c
+# double average(int argsLength, ...) {
+#   double total = 0;
+#   va_list ap; // 一个数据类型，用来定义一个可变参数对象。它必须在操作可变参数时，首先使用
+#   va_start(ap, argsLength); // 一个函数，用来初始化可变参数对象。它接受两个参数，第一个参数是可变参数对象，第二个参数是原始函数里面，可变参数之前的那个参数，用来为可变参数定位。
+#   for (int j = 1; j <= argsLength; ++j) {
+#     total += va_arg(ap, double); // ：一个函数，用来取出当前那个可变参数，每次调用后，内部指针就会指向下一个可变参数。它接受两个参数，第一个是可变参数对象，第二个是当前可变参数的类型。
+#   }
+#   va_end(ap); // 一个函数，用来清理可变参数对象。
+#   return total / argsLength;
+# }
+# double ave = average(3, 1,2,3); // ave=2, 调用方式,请注意需要传递参数中的 argsLength
+# ```
+snippet argsVariadicDefinition 可变参数定义,调用的时候需传递参数长度argsLength
+	int ${1:argsLength}, ...
+
+snippet argsVariadicUse 可变参数使用
+	va_list ${1:var};
+	va_start($1, ${2:argsLength,'...'前的int变量});
+	for (int ${3:i}=0; $3<$2; $3++) {
+	    ${4:可变参数类型} ${5:var} = va_arg($1, $4);
+		$0
+	}
+	va_end($1);
+
+
+# #数组
+# ```c
+# int a[5] = {22, 37, 3490}; /*等价于*/ int a[] = {22, 37, 3490, 0, 0}; /*等价于*/  int a[5] = {[1]=22, 37, [3]=3490}
+# size_t length = sizeof(1) / sizeof(a[0]) 
+# // 由于数组成员都是同一个类型，每个成员的字节长度都是一样的，所以数组整体的字节长度除以某个数组员的字节长度，就可以得到数组的成员数量。
+# // 注意，`sizeof`返回值的数据类型是`size_t`，所以`sizeof(a) / sizeof(a[0])`的数据类型也是`size_t`。在`printf()`里面的占位符，要用`%zd`或`%zu`。
+# // 注意如果是f(int arr[]) { size_t len = sizeof(arr); } 会报错，因为f()函数中的arr数组作为参数传给函数时，是传给数组的地址，而不是传给整个的数组空间
+# ```
+snippet arrLength 数组长度
+	size_t ${2:length}=sizeof(${1:arr_var})/sizeof($1[0]);
+	$0
+
+# ##数组的地址#数组
+# ```c
+# //数组名等同于起始地址，也就是说，数组名就是指向第一个成员
+# int sum(int* arr, int len); 
+# int a[5] = {11, 22, 33, 44, 55}; 
+# int* p = &a[0]; /*等价于*/ int* p = a;
+# // 例子 : 将数组起始地址作为数组
+# sum(a, 5); sum(&a[0], 5);
+# // int sum(int* arr, int len) /*等价于*/ int sum(int arr[], int len)
+# int sum(int* arr, int len) {
+#   int i;
+#  	int arrays[] = {1,2,3}; 
+#   int total = 0;
+#   for (i = 0; i < len; i++) {
+#     total += arr[i];
+# 	  // total += *(arr++); // (arr实际为指针所以可以自增)数组名可以进行加法和减法运算，等同于在数组成员之间前后移动
+#     // arrays++ // 报错(数组名指向的地址是不能变的)
+#	}
+#   return total;
+# }
+# // 多维数组中也适用
+# int a[4][2]; a[0][0] /*等价于*/ *(a[0] /*等价于*/ **a 
+# a+1 = a[1] , a[0]+1 = a[0][1]
+# // 数组名指向的地址是不能更改的。声明数组时，编译器自动为数组分配了内存地址，这个地址与数组名是绑定的，不可更改，
+# int a[5];
+# int b[5] = {1,2,3,4,5};
+# a=NULL; // 报错
+# a=b; // 报错 这也导致不能将一个数组名赋值给另外一个数组名。
+# ```
+# ##数组复制#数组
+# int* a; int b[] = {1,2,3}; memcpy(a, b, sizeof(b));
+snippet arrCopy 数组复制
+	memcpy(${1:目标数组名}, ${2:源数组名}, sizeof($2));
+
+# ##数组参数#数组
+# ###二维数组参数##数组参数#数组
+# in sum_array(arr[][2], int len);
+# // 函数`sum_array()`的参数是一个二维数组。第一个参数是数组本身（`a[][4]`），这时可以不写第一维的长度，因为它作为第二个参数，会传入函 数，但是一定要写第二维的长度`4`。
+# // 这是因为函数内部拿到的，只是数组的起始地址`a`，以及第一维的成员数量`2`。如果要正确计算数组的结束地址，还必须知道第一维每个成员的字节长度。写成`int a[][4]`，编译器就知道了，第一维每个成员本身也是一个数组，里面包含了4个整数，所以每个成员的字节长度就是`4 * sizeof(int)`。
+# ###变长数组作为参数##数组参数#数组
+# int sum_array(int n, int a[n]); // 数组`a[n]`是一个变长数组，它的长度取决于变量`n`的值, n要在a前面定义
+# int sum = sum_array(4, (int []){1,2,3,4});
+snippet argsArrFunVarOne 方法中定义一个一维数组参数
+	int ${1:len}, ${2:int} ${3:arrays}[$1]$0
+
+snippet argsArrFunVarTow 方法中定义一个二维数组参数
+	int ${1:m}, int ${2:n} ${3:int} ${4:arrays}[$1][$2]$0
+
+
+# #字符串
+# C 语言没有单独的字符串类型，字符串被当作字符数组，即char 类型的数组。比如，字符串"Hello"等价于{'H','e','l','l','o','\0'} . '\0' = false
+# 所有字符串的最后一个字符，都是\0 。这样做的好处是，C 语言不需要知道字符串的长度，就可以读取内存里面的字符串，只要发现有一个字符是\0 ，那么就知道字符串结束了。所以char localStr[10];最多只能容纳9个字符的字符串。
+# ##字符串定义#字符串
+# ```c
+# char str[5]="Hello"; // 报错,因为字符串“hello”的实际长度6,在末尾有 '\0',如果定义的长度大于6(str[100]),则后面都填充'\0'
+# char str[6]={'H','e','l','l','o','\0'};
+# char str[]="Hello"; // 自动推断长度
+# char* str="Hello";
+# char str[]="hello \
+# world"; // str = "hello world" 第一行尾部的反斜杠，将字符串拆成两行,上面这种写法有一个缺点，就是第二行必须顶格书写，如果想包含缩进，那么缩进也会被计入字符串
+# char str[]="hel""lo"; // str = "hello"
+# ```
+# ##字符指针与字符数组的差异#字符串
+# ```c
+# // 1. 字符串指针(但用malloc()分配出来的可以修改)为常量无法修改,字符串数组可以被修改
+# // 原因是系统会将字符串的字面量保存在内存的常量区，这个区是不允许用户修改的。声明为指针时，指针变量存储的值是一个指向常量区的内存地址，因此用户不能通过这个地址去修改常量区
+# // 声明为数组时，编译器会给数组单独分配一段内存，字符串字面量会被编译器解释成字符数组，逐个字符写入这段新分配的内存之中，而这段新内存是允许修改的。
+# char* str="Hello"; str[0]='h'; // 报错
+# char str[]="Hello"; str[0]='h'; // 不报错,str被修改,str="hello"
+# // 2. 指针变量可以指向其它字符串。字符数组变量不能指向另一个字符串。
+# // 原因是数组变量所在的地址无法改变，或者说，编译器一旦为数组变量分配地址后，这个地址就绑定这个数组变量了，这种绑定关系是不变的。C 语言也因此规定，数组变量是一个不可修改的左值，即不能用赋值运算符为它重新赋值。
+# char* str="Hello"; str="hello"; // 不报错
+# char str[]="Hello"; str="hello"; // 报错
+# ```
+# ##字符串函数#字符串
+# - strlen(const char *) : 获取字符串长度 char s[50]="Hello"; strlen(s)=5; sizeof(s)=50;
+snippet strLength 获取字符串长度
+	int ${2:length} = strlen(${1:str_var});
+
+# - strcpy(char *, const char *) : 复制字符串 。复制字符串之前，必须要保证第一个参数的长度不小于第二个参数，否则虽然不会报错，
+snippet strCopy 复制字符串,dest:必须是数组不能是指针，有返回值,必须要保证目标字符串的长度不小于源字符串参数，否则虽然不会报错
+	strcpy(${1:dest}, ${2:src});
+
+# - strncpy(char *, const char *, unsigned long) : strncpy() 跟strcpy() 的用法完全一样，只是多了第3个参数，用来指定复制的最大字符数，防止溢出目标字符串变量的边界。  
+snippet strCopyN 复制n个长度src字符串,dest:必须是数组不能是指针，有返回值
+	strncpy(${1:dest}, ${2:src},${3:n});
+
+# - strcat(char *, const char *) : 它接受两个字符串作为参数，把第二个字符串的副本添加到第一个字符串的末尾。
+snippet strCat 连接字符串,第一个参数只能是数组不能为指针，把第二个字符串的副本添加到第一个字符串的末尾,注意不要超过第一个字符串长度
+	strcat(${1:var}, ${2:追加字符串});
+
+# - strncat(char *, const char *, unsigned long) : strncat() 用于连接两个字符串，用法与strcat() 完全一致，只是增加了第三个参数，指定最大添加的字符数一旦达到指定的字符数，或者在源字符串中遇到空字符\0 ，就不再添加了。
+snippet strCatN 连接字符串,第一个参数只能是数组不能为指针,把第二个字符串的副本添加到第一个字符串的末尾,并指定长度n, strncat('world', 'ldz-delete', 3) -> 'worldldz'
+	strncat(${1:var}, ${2:追加字符串},${3:n});
+
+# - int strcmp(const char* s1, const char* s2) : 函数用于比较两个字符串的内容。如果s1 小于s2 ，strcmp() 返回值小于0；如果s1 大于s2 ，返回值大于0。
+# - strncmp() : 由于strcmp() 比较的是整个字符串，C 语言又提供了strncmp() 函数，只比较到指定的位置。
+# - sprintf(char* s, const char* format, ...) : 函数跟printf() 类似，但是用于将数据写入字符串s
+snippet strPrintf 函数跟printf() 类似，但是用于将数据写入字符串str,str为数组不能为指针,注意写入长度不要超过str长度
+	sprintf(${1:str}, ${2:format}, ${3:...});
+
+# - snprintf(char*s, size_t n, const char* format, ...) : 用来控制写入变量的字符串不超过n - 1
+snippet strPrintfN 函数跟printf() 类似，但是用于将数据写入字符串str,并且控制写入变量的字符串不超过n - 1,str为数组不能为指针,注意写入长度不要超过str长度
+	snprintf(${1:str}, ${2:n}, ${3:format}, ${4:...});
+
+# ##字符串数组#字符串
+# char weekdays[7][10]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
+# char weekdays[][10]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} //二维数组第一维的长度由编译器根据后面的赋值
+# char* weekdays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} // 其实是一个一维数组，成员就是7个字符指针，每个指针指向一个字符串
+# #内存
+# 系统管理的内存，主要是函数内部的变量（局部变量）。这部分变量在函数运行时进入内存，函数运行结束后自动从内存卸载。这些变量存放的区域称为”栈“（stack），”栈“所在的内存是系统自动管理的。
+# 用户手动管理的内存，主要是程序运行的整个过程中都存在的变量（全局变量），这些变量需要用户手动从内存释放。如果使用后忘记释放，它就一直占用内存，直到程序退出，这种情况称为”内存泄漏“（memory leak）。这些变量所在的内存称为”堆“（heap），”堆“所在的内存是用户手动管理的。
+# ##void 指针#内存
+# void指针:只有内存块的地址信息，没有类型信息，等到使用该块内存的时候，再向编译器补充说明，里面的数据类型是什么。另一方面void 指针等同于无类型指针，可以指向任意类型的数据，但是不能解读数据,void 指针与其他所有类型指针之间是互相转换关系
+# ```c
+# int x = 10; 
+# void* p = &x; // 整数指针转为 void 指针
+# int* q = p; // void 指针转为整数指针
+# printf("%c\n", *p); // 报错(Argument type 'void' is incomplete):由于不知道 void 指针指向什么类型的值，所以不能用`*`运算符取出它指向的值。
+# ```
+# ##内存相关函数#内存
+# void* malloc(size_t size) : 函数用于分配内存，该函数向系统要求一段内存，系统就在“堆”里面分配一段连续的内存块给它。
+# ```c
+# int* p = (int*) malloc(sizeof(int));
+# // `malloc()`分配内存有可能分配失败，这时返回常量 NULL。Null 的值为0，是一个无法读写的内存地址，
+# if (p == NULL && !p) {printf("内存分配失败\n");}
+# *p = 12;
+# // `malloc()`用来创建数组，有一个好处，就是它可以创建动态数组，即根据成员数量的不同，而创建长度不同的数组。
+# int* arr = (int*)malloc(n * sizeof(int));
+# char* str = malloc(11);
+# strcpy(str, "hello world"); // 用malloc分配出来的字符串不是不可变的，可以被修改
+# ```
+snippet memoryMalloc 内存分配(分配在堆中),不会初始化内存,这个内存块会一直占用到程序运行结束(需要free(var)),分配内存有可能分配失败，这时返回常量 NULL。
+	${1:type}* ${2:var} = malloc(sizeof($1));
+	$0
+
+snippet memoryFree 用于释放`malloc()`函数分配的内存，，不释放内存块会一直占用到程序运行结束。分配的内存块一旦释放，就不应该再次操作已经释放的地址，包括重新`free()`
+	free(${1:var});
+	$0
+
+# ```c
+# int* p = calloc(10, sizeof(int));
+# 
+# // 等同于
+# int* p = malloc(sizeof(int) * 10);
+# memset(p, 0, sizeof(int) * 10);
+# ```
+snippet memoryCalloc 内存分配(分配在堆中),会将所分配的内存全部初始化为0。分配大小: n*size。这个内存块会一直占用到程序运行结束(需要free(var)),分配内存有可能分配失败，这时返回常量 NULL。
+	void* ${3:var} = calloc(${1:n}, ${2:size});
+	$0
+
+# 修改已分配的内存块大小失败返回NULL。block=NULL等价于malloc(),size=0就会释放掉内存块。会复制原有数据,缩小:丢弃超出的部分>    优先在原有内存块上进行缩减,放大:不初始化内存,可以手动调用memset(),注意，`realloc()`不会对内存块进行初始化。
+snippet memoryRealloc 修改已分配的内存块大小失败返回NULL。block=NULL等价于malloc(),size=0就会释放掉内存块。会复制原有数据(需要free(var))
+	${1:block} = realloc($1, ${2:size};
+	$0
+
+# ```c
+# //不管传入的`dest`和`src`是什么类型的指针，将它们重新定义成一字节的 Char 指针，这样就可以逐字节进行复制。`*d++ = *s++`语句相当于先执行`*d = *s`（源字节的值复制给目标字节），然后各自移动到下一个字节。最后，返回复制后的`dest`指针，便于后续使用。
+# void* my_memcpy(void* dest, void* src, int byte_count) {
+#   char* s = src;
+#   char* d = dest;
+#   while (byte_count--) {
+#     *d++ = *s++;
+#   }
+#   return dest;
+# }
+# ```
+snippet memoryMemcpy 用于将一块内存拷贝到另一块内存,指定复制长度n,目标区域与源区域不允许重叠,有重叠使用memmove()(需要free(var))
+	memcpy(${1:dest}, ${2:src}, ${3:n});
+	$0
+
+# ```c
+# int a[100];
+# memmove(&a[0], &a[1], 99 * sizeof(int));
+# ```
+snippet memoryMemmove 函数用于将一段内存数据复制到另一段内存。允许目标区域与源区域有重叠。如果发生重叠，源区域的内容会被更改；如果没有重叠，它与`memcpy()`行为相同。(需要free(var))
+	memmove(${1:dest}, ${2:src}, ${3:n});
+	$0
+
+snippet memoryMemcmp 比较两个内存区域,指定长度n,如果`s1`大于`s2`，返回大于0的整数；如果`s1`小于`s2`，返回小于0的整数。
+	int ${4:var} = memcmp(${1:s1}, ${2:s2}, ${3:n});
+
+# ##restrict(受限指针)#内存
+# 声明指针变量时，可以使用`restrict`说明符，告诉编译器，该块内存区域只有当前指针一种访问方式，其他指针不能读写该块内存。这种指针称为“受限指针”（restrict pointer）。但实际上能访问只是告诉编译器用于优化
+# ```c
+# int* restrict p;
+# p = malloc(sizeof(int));
+# 
+# int* q = p;
+# *q = 0; //不报错，但现在该内存有`p`和`q`两种访问方式, 后面通过`*q`对该内存区域赋值，会导致未定义行为。
+# ```
+# #struct
+# `struct`关键字，允许自定义复合数据类型，将不同类型的值组合在一起,`struct`结构占用的存储空间(存储空间连续)，不是各个属性存储空间的总和，而是最大内存占用属性的存储空间的倍数，其他属性会添加空位与之对齐。这样可以提高读写效率。
+# ```c
+# struct foo {
+#   int a;
+#   char* b;
+#   char c;
+# };
+# printf("%lu\n", sizeof(struct foo)); // 24
+# // 上面示例中，struct foo 有三个属性，在64位计算机上占用的存储空间分别是：int a 占4个字节，指针char* b 占8个字节，char c 占1个字节。它们加起来，一共是13个字节（4 + 8 + 1）。但是实际上，struct foo 会占用24个字节，原因是它最大的内存占用属性是char* b 的8个字节，导致其他属性的存储空间也是8个字节，这样才可以对齐，导致整个struct foo 就是24个字节（8 * 3）。
+# // 多出来的存储空间，都采用空位填充，所以上面的struct foo 真实的结构其实是下面这样
+# struct foo {
+#   int a;        // 4
+#   char pad1[4]; // 填充4字节
+#   char *b;      // 8
+#   char c;       // 1
+#   char pad2[7]; // 填充7字节
+# };
+# printf("%d\n", sizeof(struct foo)); // 24
+# // 为什么浪费这么多空间进行内存对齐呢？这是为了加快读写速度，把内存占用划分成等长的区块，就可以快速在 Struct 结构体中定位到每个属性的起始地址。
+# // 由于这个特性，在有必要的情况下，定义 Struct 结构体时，可以采用存储空间递增的顺序，定义每个属性，这样就能节省一些空间。
+# struct foo {
+#   char c;
+#   int a;
+#   char* b;
+# };
+# printf("%d\n", sizeof(struct foo)); // 16
+# // 上面示例中，占用空间最小的char c 排在第一位，其次是int a ，占用空间最大的char* b 排在最后。整个strct foo 的内存占用就从24字节下降到16字节。
+# 
+# // 使用
+# struct foo f1 = {'c',3,"hello"};
+# // struct 的数据类型声明语句与变量的声明语句，可以合并为一个语句。
+# struct book {
+#   char title[500];
+#   char author[100];
+#   float value;
+# } b1;
+# // 上面的语句同时声明了数据类型book 和该类型的变量b1 。如果类型标识符book 只用在这一个地方，后面不再用到，这里可以将类型名省略(struct 声明了一个匿名数据类型，然后又声明了这个类型的变量b1)。
+# struct {
+#   char title[500];
+#   char author[100];
+#   float value;
+# } b1;
+# // 与其他变量声明语句一样，可以在声明变量的同时，对变量赋值。
+# struct {
+#   char title[500];
+#   char author[100];
+#   float value;
+# } b1 = {"Harry Potter", "J. K. Rowling", 10.0},
+#   b2 = {"Cancer Ward", "Aleksandr Solzhenitsyn", 7.85};
+# // 指针变量也可以指向struct 结构。
+# struct book {
+#   char title[500];
+#   char author[100];
+#   float value;
+# }* b1;
+# // 或者写成两个语句
+# struct book {
+#   char title[500];
+#   char author[100];
+#   float value;
+# };
+# struct book* b1;
+# ```
+snippet structDefinition 定义一个struct结构,1.结构名:如果为空为匿名结构,匿名结构一定需要变量名 2.变量名:如果不为空则表示定义了一个struce变量,可以在变量名后直接赋值 = {} 3. 可以使用指针变量 * 变量名, 4. 例子 struct Book {char* name;}; 或 struct Book {char* name;} b1 = {'book name'};
+	struct ${1:结构名} {
+	$0
+	\} ${2:变量名};
+
+snippet structInit 初始化一个struct类型的变量(给struct类型赋初始值) 如 : struct Book b1 = {'name'}
+	struct ${1:结构名} ${2:变量名} = {${3:按顺序的变量值}\};
+
+snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 typedef struct {char* name;} Book; Book var_name = {'name'}
+	typedef struct {
+	    $0
+	} ${1:结构别名};
+
+# ##struct复制#struct
+# struct 变量可以使用赋值运算符（= ），复制给另一个变量，这时会生成一个全新的副本。系统会分配一块新的内存空间，大小与原来的变量相同，把每个属性都复制过去，即原样生成了一份数据。这一点跟数组的复制不一样，务必小心。
+# ```c
+# struct cat { char name[30]; short age; } a, b;
+# strcpy(a.name, "Hula");
+# a.age = 3;
+# b = a;
+# b.name[0] = 'M';
+# printf("%s\n", a.name); // Hula
+# printf("%s\n", b.name); // Mula
+# // 但 如果cat.name类型char*(字符指针)这时a 赋值给b ，导致b.name 也是同样的字符指针，指向同一个地址，也就是说两个属性共享同一个地址。因为这时，struct 结构内部保存的是一个指针，而不是上一个例子的数组，这时复制的就不是字符串本身，而是它的指针。并且，这个时候也没法修改字符串，因为字符指针指向的字符串是不能修改的
+# ```
+# ##struct指针#struct
+# 如果将 struct 变量传入函数，函数内部得到的是一个原始值的副本,对于 struct 变量名，使用点运算符（. ）获取属性；对于 struct 变量指针，使用箭头运算符（-> ）获取属性。
+# ```c
+# #include <stdio.h>
+# struct turtle {
+#   char* name;
+#   char* species;
+#   int age;
+# };
+# void happy(struct turtle t) {
+#   t.age = t.age + 1; // 为struct原始值的副本,无法修改传入的struct
+# }
+# void happy(struct turtle* t) {
+#   // (*t).age 不能写成*t.age ，因为点运算符. 的优先级高于* 。*t.age 这种写法会将t.age 看成一个指针，然后取它对应的值，会出现无法预料的结果。
+#   (*t).age = (*t).age + 1; // 为指针可以修改传入struct内部值
+#   t->age = t->age + 1; // (*t).age 这样的写法很麻烦。C 语言就引入了一个新的箭头运算符（-> ），可以从 struct 指针上直接获取属性，大大增强了代码的可读性。
+# }
+# int main() {
+#   struct turtle myTurtle = {"MyTurtle", "sea turtle", 99};
+#   happy(myTurtle);
+#   printf("Age is %i\n", myTurtle.age); // 输出 99
+#   happy(&myTurtle);
+#   printf("Age is %i\n", myTurtle.age); // 输出 101
+#   return 0;
+# }
+# ```
+# ## struct嵌套#struct
+# ```c
+# struct species {
+#   char* name;
+#   int kinds;
+# };
+# struct fish {
+#   char* name;
+#   int age;
+#   struct species breed;
+# };
+# // 初始化带嵌套的struct
+# // 写法1
+# struct fish shark = {"shark", 9, {"Selachimorpha", 500}};
+# struct species myBreed = {"Selachimorpha", 500};
+# // 写法2
+# struct fish shark = {"shark", 9, myBreed};
+# // 写法3
+# struct fish shark = {
+#   .name="shark",
+#   .age=9,
+#   .breed={"Selachimorpha", 500}
+# };
+# // 写法4
+# struct fish shark = {
+#   .name="shark",
+#   .age=9,
+#   .breed.name="Selachimorpha",
+#   .breed.kinds=500
+# };
+# 
+# // 例子
+# struct node {
+#   int data;
+#   struct node* next;
+# };
+# struct node* head;
+# // 生成一个三个节点的列表 (11)->(22)->(33)
+# head = malloc(sizeof(struct node));
+# head->data = 11;
+# head->next = malloc(sizeof(struct node));
+# head->next->data = 22;
+# head->next->next = malloc(sizeof(struct node));
+# head->next->next->data = 33;
+# head->next->next->next = NULL;
+# // 遍历这个列表
+# for (struct node *cur = head; cur != NULL; cur = cur->next) {
+#   printf("%d\n", cur->data);
+# }
+# ```
+# ##位字段#struct
+# ```c
+# struct {
+#   unsigned int field1 : 1;
+#   unsigned int        : 2;
+#   unsigned int field2 : 1;
+#   unsigned int        : 0;
+#   unsigned int field3 : 1;
+# } syntg;
+# synth.field1 = 0;
+# synth.field2 = 1;
+# // 属性后面的:1 ，表示指定这些属性只占用一个二进制位。synth.field1 与synth.field2 之间，有一个宽度为两个二进制位的未命名属性
+# ```
+# ##弹性数组成员#struct
+# 很多时候，不能事先确定数组到底有多少个成员。如果声明数组的时候，事先给出一个很大的成员数，就会很浪费空间。C 语言提供了一个解决方法，叫做弹性数组成员（flexible array member）。
+# ```c
+# struct vstring {
+#   int len;
+#   char chars[];
+# };
+# struct vstring* str = malloc(sizeof(struct vstring) + n * sizeof(char));
+# str->len = n;
+# // chars 数组到底有多少个成员，可以在为vstring 分配内存时确定。
+# // 上面示例中，假定chars 数组的成员数量是n ，只有在运行时才能知道n 到底是多少。然后，就为struct vstring 分配它需要的内存：它本身占用的内存长度，再加上n 个数组成员占用的内存长度。最后，len 属性记录一下n 是多少。
+# // 这样就可以让数组chars 有n 个成员，不用事先确定，可以跟运行时的需要保持一致。
+# // 弹性数组成员有一些专门的规则。首先，弹性成员的数组，必须是 struct 结构的最后一个属性。另外，除了弹性数组成员，struct 结构必须至少还有一个其他属性。
+# ```
+#Union 结构
+# 有时需要一种数据结构，不同的场合表示不同的数据类型。比如，如果只用一种数据结构表示水果的“量”，这种结构就需要有时是整数（6个苹果），有时是浮点数（1.5公斤草莓）。
+# C 语言提供了 Union 结构，用来自定义可以灵活变更的数据结构。它内部可以包含各种属性，但同一时间只能有一个属性，因为所有属性都保存在同一个内存地址，后面写入的属性会覆盖前面的属性。这样做的最大好处是节省空间。
+# ```c
+# union quantity {
+#   short count;
+#   float weight;
+#   float volume;
+# };
+# // 写法一
+# union quantity q;
+# q.count = 4;
+# // 写法二
+# union quantity q = {.count=4};
+# // 写法三:不指定属性名，就会赋值给第一个属性。
+# union quantity q = {4};
+# printf("count is %i\n", q.count); // count is 4
+# printf("weight is %f\n", q.weight); // 未定义行为,输出 : weight is 0.000000 (float初始值)
+# q.weight = 0.1;
+# printf("count is %i\n", q.count); // count is 1036831949 (未定义行为)
+# // 一旦为其他属性赋值，原先可以取到值的 `q.count` 属性就不再有效了。除了这一点，Union 结构的其他用法与 Struct 结构，基本上是一致的。
+# // Union 结构也支持指针运算符 `->`, 上面示例中，ptr 是q 的指针，那么ptr->weight 等同于q.weight 。
+# union quantity* ptr;
+# ptr = &q;
+# printf("%f\n", ptr->weight); // 0.1
+# // Union 结构指针与它的属性有关，当前哪个属性能够取到值，它的指针就是对应的数据类型。
+# union foo {
+#   int a;
+#   float b;
+# } x;
+# int* foo_int_p = (int *)&x;
+# float* foo_float_p = (float *)&x;
+# x.a = 12;
+# printf("%d\n", x.a);           // 12
+# printf("%d\n", *foo_int_p);    // 12
+# x.b = 3.141592;
+# printf("%f\n", x.b);           // 3.141592
+# printf("%f\n", *foo_float_p);  // 3.141592
+# ```
+snippet unionDefinition 定义union结构,它内部可以包含各种属性，但同一时间只能有一个属性,后面写入的属性会覆盖前面的属性。 Union 结构指针与它的属性有关，当前哪个属性能够取到值，它的指针就是对应的数据类型。
+	union ${1:结构名} {
+	$0
+	};
+
+snippet unionDefinitionTypedef 定义union结构取别名, typedef union {int count; float width;} foo; foo f = {.count=1}
+	typedef union {
+	$0
+	} ${1:结构别名};
+
+snippet unionInit 初始化union
+	union ${1:结构名} ${2:变量名} = {.${3:属性名}=${4:value}\};
+	$0
+
+# #enum(枚举)
+# 如果一种数据类型的取值只有少数几种可能，并且每种取值都有自己的含义，为了提高代码的可读性，可以将它们定义为 Enum 类型，中文名为枚举。
+# 
+# ```c
+# // 举没指定值则自动从0开始递增
+# enum colors {RED, GREEN, BLUE};
+# printf("%d\n", RED); // 0
+# printf("%d\n", GREEN);  // 1
+# printf("%d\n", BLUE);  // 2
+#
+# // 由于 Enum 的属性会自动声明为常量，所以有时候使用 Enum 的目的，不是为了自定义一种数据类型，而是为了声明一组常量
+# enum { ONE, TWO };
+# printf("%d %d", ONE, TWO);  // 0 1
+# 
+# // 还有一种不常见的写法，就是声明 Enum 类型时，在同一行里面为变量赋值。
+# // C 语言也允许为 ENUM 常量指定值，不过只能指定为整数
+# // Enum 常量可以是不连续的值。
+# // Enum 常量也可以是同一个值。
+# // 如果一组常量之中，有些指定了值，有些没有指定。那么，没有指定值的常量会从上一个指定了值的常量，开始自动递增赋值。
+# enum {
+#   SHEEP = 1,
+#   WHEAT = -3,
+#   WOOD = 1,
+#   BRICK,
+#   ORE
+# } r = BRICK, s = WOOD;
+# printf("%d\n",r); // 2
+# ```
+
+snippet enumDefinition 枚举定义:1.枚举没指定值则自动从0开始递增2.枚举可以指定值只能指定整数,可以指定为同一个值3.如果没指定值那么从上一个指定了值的枚举，开始自动递增赋值4.Enum 的属性会自动声明为常量5. typedef enum COLORS {RED, GREEN, BLUE}; enum COLORS r = RED; printf('%d', r);
+	enum ${1:枚举名} {
+	    ${2:枚举属性}
+	\};
+
+snippet enumDefinitionTypedef 定义enum取别名, typedef enum {RED, GREEN, BLUE} COLORS; COLORS r = RED; printf('%d', r); // 0 printf('%d', GREEN); // 1
+	typedef enum {
+	    $0
+	\} ${1:enum别名};
+
+snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; enum colors r = RED;
+	enum ${1:枚举名} ${2:枚举变量名} = ${3:枚举属性};
+	$0
+
+# #预处理器（Preprocessor)
+# C 语言编译器在编译程序之前，会先使用预处理器（preprocessor）处理代码。预处理器首先会清理代码，进行删除注释、多行语句合成一个逻辑行等工作。然后，执行`#`开头的预处理指令。本章介绍 C 语言的预处理指令。
+# 每个预处理指令都以`#`开头，放在一行的行首，指令前面可以有空白字符（比如空格或制表符）。`#`和指令的其余部分之间也可以有空格，但是为了兼容老的编译器，一般不留空格。
+# ##define(宏)#预处理器
+# `#define`是最常见的预处理指令，用来将指定的词替换成另一个词。它的参数分成两个部分，第一个参数就是要被替换的部分，其余参数是替换后的内容。每条替换规则，称为一个宏（macro）。
+# ```c
+# // 指定将源码里面的`MAX`，全部替换成`100`。`MAX`就称为一个宏。
+# // 宏的名称不允许有空格，而且必须遵守 C 语言的变量命名规则，只能使用字母、数字与下划线（`_`），且首字符不能是数字。
+# #define MAX 100
+# // 宏是原样替换，指定什么内容，就一模一样替换成什么内容。
+# #define HELLO "Hello, world"
+# // 相当于 printf("%s", "Hello, world");
+# printf("%s", HELLO);
+# // `#define`指令从`#`开始，一直到换行符为止。如果整条指令过长，可以在折行处使用反斜杠，延续到下一行。
+# #define OW "C programming language is invented \
+# in 1970s."
+# // `#define`允许多重替换，即一个宏可以包含另一个宏。`FOUR`会被替换成`2*2`。
+# #define TWO 2
+# #define FOUR TWO*TWO
+# // 注意，如果宏出现在字符串里面（即出现在双引号中），或者是其他标识符的一部分，就会失效，并不会发生替换。
+# // 下面示例中，双引号里面的`TWO`，以及标识符`TWOs`，都不会被替换。
+# printf("TWO\n"); // TWO
+# const TWOs = 22;
+# printf("%d\n", TWOs); // 22
+# // 同名的宏可以重复定义，只要定义是相同的，就没有问题。如果定义不同，就会报错。
+# // 正确
+# #define FOO hello
+# #define FOO hello
+# // 报错
+# #define BAR hello
+# #define BAR world
+# ```
+# ###带参数的宏##define(宏)#预处理器
+# 宏的强大之处在于，它的名称后面可以使用括号，指定接受一个或多个参数。注意，宏的名称与左边圆括号之间，不能有空格
+# 这种写法很像函数，但又不是函数，而是完全原样的替换，会跟函数有不一样的行为。
+# ```c
+# #define SQUARE(X) X*X
+# // 替换成 z = 2*2;
+# z = SQUARE(2);
+# // 这种写法很像函数，但又不是函数，而是完全原样的替换，会跟函数有不一样的行为。
+# // 下面面示例中，`SQUARE(3 + 4)`如果是函数，输出的应该是49（`7*7`）；宏是原样替换，所以替换成`3 + 4*3 + 4`，最后输出19。
+# printf("%d\n", SQUARE(3 + 4)) // 19
+# // 可以看到，原样替换可能导致意料之外的行为。解决办法就是在定义宏的时候，尽量多使用圆括号，这样可以避免很多意外
+# #define SQUARE(X) ((X) * (X))
+# #define getchar() getc(stdin) // 宏的参数也可以是空的。这种情况其实可以省略圆括号，但是加上了，会让它看上去更像函数。
+# // 带参数的宏也可以嵌套，一个宏里面包含另一个宏。
+# #define QUADP(a, b, c) ((-(b) + sqrt((b) * (b) - 4 * (a) * (c))) / (2 * (a)))
+# #define QUADM(a, b, c) ((-(b) - sqrt((b) * (b) - 4 * (a) * (c))) / (2 * (a)))
+# #define QUAD(a, b, c) QUADP(a, b, c), QUADM(a, b, c)
+# ```
+# ###`#`运算符，`##`运算符##define(宏)#预处理器
+# 由于宏不涉及数据类型，所以替换以后可能为各种类型的值。如果希望替换后的值为字符串，可以在替换文本的参数前面加上`#`
+# ```c
+# #define STR(x) #x
+# // 等同于 printf("%s\n", "3.14159"); 如果`x`前面没有`#`，这会被解释成一个浮点数，有了`#`以后，就会被转换成字符串。
+# printf("%s\n", STR(3.14159));
+# #define XNAME(n) "x"#n
+# // 输出 x4, `#n`指定参数输出为字符串，再跟前面的字符串结合，最终输出为`"x4"`。如果不加`#`， #define XNAME(n) "x"n NAME(4)会编译失败
+# printf("%s\n", XNAME(4));
+# #define MK_ID(n) i##n
+# // `n`是宏`MK_ID`的参数，这个参数需要跟标识符`i`粘合在一起，这时`i`和`n`之间就要使用`##`运算符。替换后的文本`i1`、`i2`、`i3`是三个标识符，参数`n`是标识符的一部分。从这个例子可以看到，`##`运算符的一个主要用途是批量生成变量名和标识符
+# // 替换成 int i1, i2, i3;
+# int MK_ID(1), MK_ID(2), MK_ID(3);
+# ```
+# ###不定参数的宏##define(宏)#预处理器
+# 宏的参数还可以是不定数量的（即不确定有多少个参数），`...`表示剩余的参数,`...`只能替代宏的尾部参数
+# ```c
+# #define X(a, b, ...) (10*(a) + 20*(b)), __VA_ARGS__
+# X(5, 4, 3.14, "Hi!", 12) // (10*(5) + 20*(4)), 3.14, "Hi!", 12
+# // `__VA_ARGS__`前面加上一个`#`号，可以让输出变成一个字符串。
+# #define X(...) #__VA_ARGS__
+# printf("%s\n", X(1,2,3));  // Prints "1, 2, 3"
+# ```
+# ###undef##define(宏)#预处理器
+# `#undef`指令用来取消已经使用`#define`定义的宏
+# ```c
+# #define LIMIT 400
+# #undef LIMIT
+# ```
+# 上面示例的`undef`指令取消已经定义的宏`LIMIT`，后面就可以重新用 LIMIT 定义一个宏。有时候想重新定义一个宏，但不确定是否以前定义过，就可以先用`#undef`取消，然后再定义。因为同名的宏如果两次定义不一样，会报错，而`#undef`的参数如果是不存在的宏，并不会报错。
+# ```bash
+# GCC 的`-U`选项可以在命令行取消宏的定义，相当于`#undef`。
+# $ gcc -ULIMIT foo.c
+# ```
+# ##include#预处理器
+# `#include`指令用于编译时将其他源码文件，加载进入当前文件。它有两种形式。
+# ```c
+# // 形式一 加载系统提供的文件,通常是标准库的库文件，不需要写路径。因为编译器会到系统指定的安装目录里面，去寻找这些文件
+# #include <foo.h> // 加载系统提供的文件
+# // 形式二 加载用户提供的文件,具体的路径取决于编译器的设置，可能是当前目录，或项目的工作目录。如果所要包含的文件在其他>位置，就需要指定路径
+# #include "foo.h" // 加载用户提供的文件
+# #include "/usr/local/lib/foo.h"
+# ```
+# GCC 编译器的`-I`参数，也可以用来指定`include`命令中用户文件的加载路径。
+# ```bash
+# $ gcc -Iinclude/ -o code code.c
+# ```
+# ## #if...#endif#预处理器
+# `#if...#endif`指令用于预处理器的条件判断，满足条件时，内部的行会被编译，否则就被编译器忽略。
+# ```c
+# // `#if`后面的`0`，表示条件不成立。所以，内部的变量定义语句会被编译器忽略。`#if 0`这种写法常用来当作注释使用，不需要的代码就放在`#if 0`里面。
+# #if 0
+#   const double pi = 3.1415; // 不会执行
+# #endif
+# // 可以写if else 没有定义过的宏，等同于`0`。因此如果`UNDEFINED`是一个没有定义过的宏，那么`#if UNDEFINED`为伪，而`#if !UNDEFINED`为真。
+# #if HAPPY_FACTOR == 0
+#   printf("I'm not happy!\n");
+# #elif HAPPY_FACTOR == 1
+#   printf("I'm just regular\n");
+# #else
+#   printf("I'm extra happy!\n");
+# #endif
+# // `#if`的常见应用就是打开（或关闭）调试模式。 通过gcc -DDEBUG=1 -o main main.c  指定宏(等价于在文件main.c中定义：#define DEBUG 1) ,  gcc -ULIMIT -o main main.c 取消DEBUG(等价于在main.c取消宏 #undef DEBUG) 
+# // 请注意gcc -DDEBUG=xxx -o main main.c  无法打开debug(只有将DEBUG这个宏定义为1才生效) 如果定义宏也无法打开debug,如果定义空宏(#define DEBUG)会编译报错
+# #if DEBUG
+# printf("value of i : %d\n", i);
+# printf("value of j : %d\n", j);
+# #endif
+# ```
+# ## #ifdef...#endif
+# `#ifdef...#endif`指令用于判断某个宏是否定义过。空宏(#define XXX) `#ifdef...#endif` 为真,空宏 `#if...#endif` 编译报错(因为会被替换)
+# 有时源码文件可能会重复加载某个库，为了避免这种情况，可以在库文件里使用`#define XXX`定义一个空宏。通过这个宏，判断库文件是否被加载了。
+# ```c
+# #define EXTRA_HAPPY
+# #ifdef EXTRA_HAPPY // 空宏
+#   printf("I'm extra happy!\n"); // 输出 : I'm extra happy! 因为空宏(#define XXX)为真
+# #else
+#   printf("I'm just regular\n");
+# #endif
+# // `#ifdef...#else...#endif`可以用来实现条件加载。
+# #ifdef MAVIS
+#   #include "foo.h"
+#   #define STABLES 1
+# #else
+#   #include "bar.h"
+#   #define STABLES 2
+# #endif
+# ```
+# ## defined 运算符#预处理器
+# 上一节的`#ifdef`指令，等同于`#if defined`。使用这种语法，可以完成多重判断。
+# ```c
+# // 这个运算符的一个应用，就是对于不同架构的系统，加载不同的头文件。
+# #if defined IBMPCi //  等价于 `#ifdef IBMPCi ` 但`#ifdef IBMPCi ` 只有一个if
+#   #include "ibmpc.h"
+# #elif defined MAC
+#   #include "mac.h"
+# #else
+#   #include "general.h"
+# #endif
+# ```
+# ## #ifndef...#endif#预处理器
+# `#ifndef...#endif`指令跟`#ifdef...#endif`正好相反。它用来判断，如果某个宏没有被定义过，则执行指定的操作。
+# `#ifndef`等同于`#if !defined`。
+# ```c
+# // `#ifndef`常用于防止重复加载。举例来说，为了防止头文件`myheader.h`被重复加载，可以把它放在`#ifndef...#endif`里面加载。
+# #ifndef MYHEADER_H
+#   #define MYHEADER_H
+#   #include "myheader.h"
+# #endif
+# ```
+# ##预定义宏#预处理器
+# C 语言提供一些预定义的宏，可以直接使用。
+# - `__DATE__`：编译日期，格式为“Mmm dd yyyy”的字符串（比如 Nov 23 2021）。
+# - `__TIME__`：编译时间，格式为“hh:mm:ss”。
+# - `__FILE__`：当前文件名。
+# - `__LINE__`：当前行号。
+# - `__func__`：当前正在执行的函数名。该预定义宏必须在函数作用域使用。
+# - `__STDC__`：如果被设为1，表示当前编译器遵循 C 标准。
+# - `__STDC_HOSTED__`：如果被设为1，表示当前编译器可以提供完整的标准库；否则被设为0（嵌入式系统的标准库常常是不完整的）。
+# - `__STDC_VERSION__`：编译所使用的 C 语言版本，是一个格式为`yyyymmL`的长整数，C99 版本为“199901L”，C11 版本为“201112L”，C17 版本为“201710L”。
+# 下面示例打印这些预定义宏的值。
+# ```c
+# #include <stdio.h>
+# int main(void) {
+#   printf("This function: %s\n", __func__);
+#   printf("This file: %s\n", __FILE__);
+#   printf("This line: %d\n", __LINE__);
+#   printf("Compiled on: %s %s\n", __DATE__, __TIME__);
+#   printf("C Version: %ld\n", __STDC_VERSION__);
+# }
+# ```
+# ## #line#预处理器
+# `#line`指令用于覆盖预定义宏`__LINE__`，将其改为自定义的行号。后面的行将从`__LINE__`的新值开始计数
+# #line`还可以改掉预定义宏`__FILE__`，将其改为自定义的文件名。
+# ```c
+# #line 300 // 将下一行的行号重置为 300
+# #line 300 "newfilename" // 下一行的行号重置为`300`，文件名重置为`newfilename`。
+# ```
+# ## #error#预处理器
+# `#error`指令用于让预处理器抛出一个错误，终止编译。
+# ```c
+# // 上面示例指定，如果编译器不使用 C11 标准，就中止编译。GCC 编译器会像下面这样报错。
+# #if __STDC_VERSION__ != 201112L
+#   #error Not C11
+# #endif
+# ```
+# ```bash
+# $ gcc -std=c99 newish.c
+# newish.c:14:2: error: #error Not C11
+# ```
+# ```c
+# // 上面示例中，编译器一旦发现`INT`类型的最大值小于`100,000`，就会停止编译。
+# #if INT_MAX < 100000
+#   #error int type is too small
+# #endif
+# ```
+# ## #pragma#预处理器
+# `#pragma`指令用来修改编译器属性。
+# ```c
+# // 使用 C99 标准
+# #pragma c9x on
+# ```
+# 上面示例让编译器以 C99 标准进行编译。
+# #file io操作
+snippet fileOpen 打开一个文件流,1. #include <stdio.h> 2. FILE* file = fopen('文件路径','模式'); 3. 需要关闭文件流 : fclose(file); 4. 模式如下 r:读可以返回NULL w:写,覆盖文件 a:写,尾部追加内容 r+:读写,头部追加内容 w+:读写,覆盖文件,实际无法读旧文件 a+:读写,尾部追加内容 b:以二进制流进行读写 x:独占模式/报错,文件存在失败,打开后不允许其它程序操作 5. 文件路径可以是设备文件比如标准输入/输出/异常 stdin stdout stderr
+	FILE* ${1:file} = fopen("${2:filePath}", "${3:model}");
+	$0
+	fclose($1);
+
+snippet fileClose 关闭文件,成功返回0,失败返回EOF(文件结尾标志)EOF=-1
+	fclose(${1:file});
+	$0
+
+snippet fileOpenRe 打开一个文件流,但直接关联到某个已经打开的文件指针 1. #include <stdio.h>  2. 返回值是它的第三个参数 3. 会自动关闭原先已经打开的文件,如果文件指针并没有指向已经打开的文件,则freopen等同于fopen 4. freopen('output.txt', 'w', stdout)此后向`stdout`写入的内容，都会写入`output.txt`
+	${1:file} = freopen("${2:filePath}", "${2:modeel}", $1);
+	$0
+	fclose($1);
+
+snippet fileGetChar 读取一个文件的一个字符int类型,读取失败或到结尾返回EOF 1. int c;while((c = getc(file)) != EOF) {printf('%c',c);} 2. getc/fgetc 功能一致,只是`getc()`一般用宏来实现，而`fgetc()`是函数实现。
+	int ${2:c} = getc(${1:file});
+	$0
+
+snippet filePutChar 向文件写入一个字符1. fputc(int char, FILE *stream) 2. `fputc()`与`putc()`的用法是一样只是`putc()`通常是使用宏来实现，而`f    putc()`只作为函数来实现 3. 写入失败返回EOF
+	putc(${1:c}, ${2:file});
+	$0
+
+snippet filePrintf 文件写入格式化字符串，用法与printf()类似,1. fprintf可以替代printf: fprintf(stdout, 'Hello, world!\n'); 2. 写入失败返回EOF
+	fprintf(${1:file},"${2:str}");
+
+snippet fileScanf 用于按照给定的模式，从文件中读取内容，用法跟scanf()类似 1. while(fscanf(file, ''%s', words) == 1) {puts(words);} 依次读取文件的每个词，将它们一行打印一个，直到文件结束
+	fscanf(${1:file}, "${2:格式比如%s}", ${3:读取到那个变量});
+	$0
+
+# ```c
+# #include <stdio.h>
+# int main(void) {
+#   FILE* fp;
+#   char s[1024];  // 数组必须足够大，足以放下一行
+#   int linecount = 0;
+#   fp = fopen("hello.txt", "r");
+#   while (fgets(s, sizeof s, fp) != NULL)
+#     printf("%d: %s", ++linecount, s); // 每读取一行，都会输出行号和该行的内容。
+#   fclose(fp);
+# 
+#   char words[10];
+#   puts("Enter strings (q to quit):");
+#   while (fgets(words, 10, stdin) != NULL) {
+#     if (words[0] == 'q' && words[1] == '\n')
+#       break;
+#     puts(words); // 如果用户输入的字符串大于9个字符，`fgets()`会多次读取。直到遇到`q` + 回车键，才会退出循环
+#   }
+# 
+# puts("Done.");
+# }
+# ```
+snippet fileGets 从文件读取指定长度并且以换行符结尾字符串到str(char[]),即假设一行有个10个字符指定1024长度只能读取11个字符最后一个字符为换行,但指定7长度第一次读取前6个字符,第二次读取后4个字符+换行符,返回str,while ((char* ss  = fgets(char s[], sizeof s, fp)) != NULL){printf('%d: %s', ++linecount, ss/s);}
+	fgets(${1:str}, sizeof $1, ${2:file}));
+	$0
+
+snippet filePuts `fputs()`函数用于向文件写入字符串，和`puts()`函数只有一点不同，那就是它不会在字符串末尾添加换行符,如果第二个参数为`stdout`（标准输出），就是将内容输出到计算机屏幕，等同于`printf()`
+	fputs(${1:str}, ${2:file});
+	$0
+
+# ```c
+# #include <stdio.h>
+# struct clientData {
+#   int age;
+#   char* name;
+# };
+# 
+# int main(void) {
+#     FILE* fp;
+#     unsigned char bytes[] = {5, 37, 0, 88, 255, 12};
+#     fp = fopen("output.bin", "wb"); // 写入二进制文件时，`fopen()`要使用`wb`模式打开，表示二进制写入
+#     fwrite(bytes, sizeof(char), sizeof(bytes), fp); // output.bin 用十六进制编辑器打开内容如下: 05 25 00 58 ff 0c
+#     fclose(fp);
+#   
+#     struct clientData myClient = {1, "foo bar"};
+#     FILE* cfPtr = fopen("./main.data", "wb");
+#     for (int i = 1; i <= 100; i++) {
+#         myClient.age = i;
+#         fwrite(&myClient, sizeof(struct clientData), 1, cfPtr);
+#     }
+#     fclose(cfPtr);
+#     struct clientData c[10] = {};
+#     FILE* fp = fopen("./main.data", "rb");
+#     int length = 0;
+#     int i = 0;
+#     while ((length = fread(&c, sizeof(struct clientData), 10, fp)) > 0) {
+#         for (int i = 0; i < length; ++i) {
+#             printf("%d ", c[i].age);
+#         }
+#         printf("\n");
+#     }
+#     fclose(fp);
+# 	// 输出
+# 	1 2 3 4 5 6 7 8 9 10 
+# 	11 12 13 14 15 16 17 18 19 20 
+# 	21 22 23 24 25 26 27 28 29 30 
+# 	31 32 33 34 35 36 37 38 39 40 
+# 	41 42 43 44 45 46 47 48 49 50 
+# 	51 52 53 54 55 56 57 58 59 60 
+# 	61 62 63 64 65 66 67 68 69 70 
+# 	71 72 73 74 75 76 77 78 79 80 
+# 	81 82 83 84 85 86 87 88 89 90 
+# 	91 92 93 94 95 96 97 98 99 100 
+#   return 0;
+# }
+# ```
+snippet fileWirte 一次性写入较大的数据块，主要用途是将数组数据一次性写入文件，适合写入二进制数据。size_t fwrite(const void* ptr,size_t size,size_t nmemb,FILE* fp); ptr：数组指针 size：每个数组成员的大小，单位字节 nmemb：数组成员的数量 fp：要写入的文件指针 1. 返回成功写入的数组成员的数量 2. 可以写入任何数据比如char c[], struct clientData c[10] 3. 可以配合fread() 读取回来 代码片段`fileRead` 4. 打开文件model为`b`
+	fwrite(${1:arr},sizeof($1[0]),sizeof($1) / sizeof($1[0]),${2:file});
+
+snippet fileRead fread()用于一次性从文件读取较大的数据块到数组中适合读取二进制数据,size_t fread(void* ptr,size_t size,size_t nmemb,FILE* fp);ptr：数组指针 size：每个数组成员的大小，单位字节 nmemb：数组成员的数量 fp：要写入的文件指针 1. 返回成功读取的数组成员的数量 2. 可以读取任何数据比如char c[] struct clientData c[10] 3. 可以配合fwrite() 读取回来 代码片段`fileWrite` 4. 打开文件model为`b`
+	fread(${1:arr},sizeof($1[0]),sizeof($1) / sizeof($1[0]),${2:file});
+
+snippet fileEof 判断文件的内部指针是否指向文件结尾(返回非0到结尾否则返回0),诸如`fgetc()`这样的文件读取函数，如果返回 EOF，有两种可能，一种可能是已读取到文件结尾，另一种可能是出现读取错误。`feof()`可以用来判断到底是那一种情况。
+	feof(${1:file})
+
+# ```c
+# // 下面的示例逆向输出文件的所有字节。
+# for (count = 1L; count <= size; count++) {
+#   fseek(fp, -count, SEEK_END);
+#   ch = getc(fp);
+# }
+# ```
+snippet fileSeek 改变文件的读写位置:文件指针都有一个内部指示器记录当前打开的文件的读写位置（file position），即下一次读写从哪里开始. 参数如下1. file:文件 2. offset:距离基准（第三个参数）的字节数(long 类型),如果为负值向文件开始处移动,最好只用来操作二进制文件因为文本文件的字符有不同的编码，某个位置的准确字节位置不容易确定 3.whence: 位置基准(枚举)`SEEK_SET`（文件开始处）、`SEEK_CUR `（内部指针的当前位置）、`SEEK_END`（文件末尾 4. 返回值为非零值移动失败如移动的距离超出文件的范围
+	fseek(${1:file}, ${2:offset}, ${3:whence})
+
+snippet fileTell 返回文件内部指示器的当前位置,即文件开始处到当前位置的字节数，0表示文件开始处。如果发生错误，ftell()返回-1L
+	long int ${2:offset} = fteel(${1:file});
+	$0
+
+snippet fileRewind 文件的内部指示器回到文件开始处,而且会清除当前文件的错误指示器,基本等价于fseek(fp, 0l, seek_set),但无返回值
+	rewind(${1:file});
+
+# ```c
+# // `fseek()`和`ftell()`有一个潜在的问题，那就是它们都把文件大小限制在 long int 类型能表示的范围内。这看起来相当大，但是在32位计算机上，long int 的长度为4个字节，能够表示的范围最大为 4GB。随着存储设备的容量迅猛增长，文件也越来越大，往往会超出这个范围。鉴于此，C 语言新增了两个处理大文件的新定位函数：`fgetpos()`和`fsetpos()`。
+# // `fgetpos()`函数会将文件内部指示器的当前位置，存储在指针变量`pos`。该函数接受两个参数，第一个是文件指针，第二个存储指示器位置的变量。变量`pos`必须是通过调用`fgetpos()`方法获得的
+# 
+# fpos_t file_pos;
+# fgetpos(fp, &file_pos);
+# // 一系列文件操作之后
+# fsetpos(fp, &file_pos);
+# ```
+#  所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面的操作出错了
+#  `ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`。
+#  `clearerr()`函数用来重置出错指示器。
+snippet fileClearErr 重置出错指示器,所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面的操作出错了,`ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`
+	clearerr(${1:file});
+
+snippet fileError 所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面>     的操作出错了,`ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`,可用clearerr()重置出错指示器
+	ferror(${1:file})
+
+snippet fileRemove 删除文件,`remove()`返回`0`，否则返回非零值。删除文件必须是在文件关闭的状态下。如果是用`fopen()`打开的文件，必须先用`fclose()`关闭后再删除。
+	remove("${1:file_path}");
+	$0
+
+snippet fileRename `rename()`函数用于文件改名，也用于移动文件。如果改名成功，`rename()`返回`0`，否则返回非零值，改名后的文件不能与现有文件同名。另外，如果要改名的文件已经打开了，必须先关闭，然后再改名，对打开的文件进行改名会失败
+	rename("${1:old_file_path}", "${2:new_file_name}");
+	$0
+
+
+
+
+# # #c语言关键字
+# - const : 常量
+# - extern : 对该变量/函数作"外部变量声明",表示该变量是一个已经定义的外部变量。有了此声明，就可以从“声明”处起，合法地使用该外部变量
