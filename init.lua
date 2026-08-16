@@ -43,8 +43,22 @@ vim.opt.updatetime = 300
 vim.opt.shortmess:append("c")
 -- Don't create backup file before overwriting
 vim.opt.writebackup = false
--- Block cursor in all modes (nvim defaults to beam in insert mode)
-vim.opt.guicursor = "n-v-c-i:block"
+-- Block cursor in all modes, no blinking inside Neovim.
+--
+-- Problem: programs using alternate screen (smcup/rmcup) cause cursor blink
+-- on exit, because rmcup restores the cursor state saved before smcup — if
+-- the terminal default cursor blinks, exiting restores that blink state.
+-- Neovim sends Se (\e[2 q) to reset cursor, but BEFORE rmcup, so it gets
+-- overridden by the restore.
+--
+-- Fix: patch terminfo rmcup to append \e[2 q (steady block) AFTER exiting
+-- alternate screen. This ensures steady cursor regardless of saved state.
+-- Only affects current user (~/.terminfo/), no system-wide impact.
+--
+-- Execute once (or after terminfo reset):
+--   infocmp -x | sed 's|rmcup=\\E\[?1049l\\E\[23;0;0t|rmcup=\\E[?1049l\\E[23;0;0t\\E[2 q|' | tic -x -
+-- Rollback: rm -rf ~/.terminfo/
+vim.opt.guicursor = "a:block-blinkon0"
 -- Only show statusline when multiple windows are open
 vim.opt.laststatus = 1
 -- Fill characters for separators and folds
