@@ -18,7 +18,7 @@ return {
   {
     "L3MON4D3/LuaSnip",
     dependencies = {
-      "honza/vim-snippets", -- Community snippet collection (SnipMate format)
+      "rafamadriz/friendly-snippets", -- Community snippet collection (VSCode JSON format)
     },
     config = function()
       --- @type luasnip
@@ -42,10 +42,8 @@ return {
         paths = { vim.fn.stdpath("config") .. "/snippets" },
       })
 
-      -- Load community snippets from honza/vim-snippets
-      require("luasnip.loaders.from_snipmate").lazy_load({
-        paths = { vim.fn.stdpath("data") .. "/lazy/vim-snippets/snippets" },
-      })
+      -- Load community snippets from rafamadriz/friendly-snippets (VSCode JSON format)
+      require("luasnip.loaders.from_vscode").lazy_load()
     end,
   },
 }
