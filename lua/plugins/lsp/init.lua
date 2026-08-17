@@ -31,6 +31,16 @@ return {
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       vim.lsp.config("*", { capabilities = capabilities })
 
+      -- Disable LSP semantic tokens (they override syntax colors after server starts)
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client then
+            client.server_capabilities.semanticTokensProvider = nil
+          end
+        end,
+      })
+
       -- vtsls: use bundled TypeScript lib as fallback for go-to-definition on built-in types
       local vtsls_tsdk = vim.fn.glob(
         vim.fn.stdpath("data") .. "/mason/packages/vtsls/**/typescript/lib", false, true

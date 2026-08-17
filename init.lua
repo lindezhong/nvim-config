@@ -89,8 +89,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Disable true color (use 256-color terminal palette instead)
 vim.opt.termguicolors = false
--- Color scheme with custom dark background overrides (see colors/vim8.vim)
-vim.cmd.colorscheme("vim8-dark")
 
 -- ===== Modules =====
 
@@ -106,3 +104,5 @@ require("buftabline")
 require("terminal")
 -- Plugin configs from lua/plugins/ (LSP, completion, treesitter, etc.)
 require("lazy").setup("plugins")
+-- Load colorscheme after plugins to prevent runtime from overriding hi! links
+vim.cmd.colorscheme("vim8-dark")

@@ -82,30 +82,30 @@ hi Underlined      term=underline cterm=underline ctermfg=5 gui=underline guifg=
 hi Ignore          ctermfg=15 guifg=bg
 hi Error           term=reverse ctermfg=15 ctermbg=9 guifg=White guibg=Red
 hi Todo            term=standout ctermfg=0 ctermbg=11 guifg=Blue guibg=Yellow
-hi link String Constant
-hi link Character Constant
-hi link Number Constant
-hi link Boolean Constant
-hi link Float Number
-hi link Function Identifier
-hi link Conditional Statement
-hi link Repeat Statement
-hi link Label Statement
-hi link Operator Statement
-hi link Keyword Statement
-hi link Exception Statement
-hi link Include PreProc
-hi link Define PreProc
-hi link Macro PreProc
-hi link PreCondit PreProc
-hi link StorageClass Type
-hi link Structure Type
-hi link Typedef Type
-hi link Tag Special
-hi link SpecialChar Special
-hi link Delimiter Special
-hi link SpecialComment Special
-hi link Debug Special
+hi! link String Constant
+hi! link Character Constant
+hi! link Number Constant
+hi! link Boolean Constant
+hi! link Float Number
+hi! link Function Identifier
+hi! link Conditional Statement
+hi! link Repeat Statement
+hi! link Label Statement
+hi! link Operator Statement
+hi! link Keyword Statement
+hi! link Exception Statement
+hi! link Include PreProc
+hi! link Define PreProc
+hi! link Macro PreProc
+hi! link PreCondit PreProc
+hi! link StorageClass Type
+hi! link Structure Type
+hi! link Typedef Type
+hi! link Tag Special
+hi! link SpecialChar Special
+hi! link Delimiter Special
+hi! link SpecialComment Special
+hi! link Debug Special
 
 " ----- Custom overrides (dark background adjustments, not from vim8 defaults) -----
 " Editor background
@@ -126,3 +126,34 @@ hi DiagnosticSignInfo  ctermfg=Blue ctermbg=Black
 hi DiagnosticSignHint  ctermfg=Cyan ctermbg=Black
 " Sign column background (match Normal black background)
 hi SignColumn        ctermbg=Black
+
+" ----- Treesitter highlight groups (override nvim defaults to match vim colors) -----
+hi link @variable        NONE
+hi link @variable.member NONE
+hi link @variable.builtin Type
+hi link @constant        Constant
+hi link @constant.builtin Constant
+hi link @string          String
+hi link @string.escape   SpecialChar
+hi link @character       Character
+hi link @number          Number
+hi link @boolean         Boolean
+hi link @type            Type
+hi link @type.builtin    Type
+hi link @type.qualifier  StorageClass
+hi link @function        Function
+hi link @function.call   Function
+hi link @function.method.call NONE
+hi link @keyword         Statement
+hi link @keyword.conditional Statement
+hi link @keyword.function Statement
+hi link @keyword.operator Statement
+hi link @keyword.return  Statement
+hi link @keyword.import  PreProc
+hi link @operator        NONE
+hi link @punctuation.bracket NONE
+hi link @punctuation.delimiter NONE
+hi link @comment         Comment
+hi link @tag             Tag
+hi link @tag.attribute   Identifier
+hi link @tag.delimiter   Delimiter
