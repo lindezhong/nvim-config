@@ -1,47 +1,40 @@
 -- LSP (Language Server Protocol) configuration
 --
 -- Plugin declarations and server setup:
--- 1. Mason: portable package manager for LSP servers
--- 2. mason-lspconfig: auto-install and enable configured servers
--- 3. Server configs: vtsls (TypeScript), jsonls (JSON)
--- 4. Calltree: incoming call hierarchy viewer (keybinding in keymaps.lua)
+-- 1. Server configs: vtsls (TypeScript), jsonls (JSON), lua_ls (Lua)
+-- 2. Servers are auto-installed via mason-ensure and auto-enabled via mason-lspconfig
+-- 3. Semantic tokens disabled to prevent overriding syntax colors
+--
+-- :LspInfo    show attached LSP clients for current buffer
+-- :LspLog     open LSP client log file
+
+-- Register LSP servers for auto-installation via Mason
+-- Uses lspconfig names; mason-lspconfig maps them to Mason package names
+require("mason-ensure").addLsp("vtsls")
+require("mason-ensure").addLsp("jsonls")
+require("mason-ensure").addLsp("lua_ls")
 
 return {
-  -- LSP server manager
-  {
-    "williamboman/mason.nvim",
-    config = function()
-      require("mason").setup()
-    end,
-  },
-  -- LSP configuration collection
+  -- Core LSP configuration (server settings, capabilities, keymaps)
   {
     "neovim/nvim-lspconfig",
-  },
-  -- Bridge between Mason and lspconfig, auto-install and enable LSP servers
-  {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = {
-      "williamboman/mason.nvim",
-      "neovim/nvim-lspconfig",
-      "hrsh7th/cmp-nvim-lsp",
-    },
     config = function()
-      -- Inject cmp completion capabilities into all LSP servers
-      local capabilities = require("cmp_nvim_lsp").default_capabilities()
-      vim.lsp.config("*", { capabilities = capabilities })
-
-      -- Disable LSP semantic tokens (they override syntax colors after server starts)
+      -- Disable LSP semantic tokens for all clients on attach.
+      -- Without this, LSP servers send semantic token data that overrides
+      -- treesitter/syntax colors after the server starts, causing a visible color flash.
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
+          -- Get the LSP client that just attached to this buffer
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client then
+            -- Remove semantic tokens capability so the client never sends token data
             client.server_capabilities.semanticTokensProvider = nil
           end
         end,
       })
 
       -- vtsls: use bundled TypeScript lib as fallback for go-to-definition on built-in types
+      -- (e.g. jumping to the definition of Promise, Array, etc.)
       local vtsls_tsdk = vim.fn.glob(
         vim.fn.stdpath("data") .. "/mason/packages/vtsls/**/typescript/lib", false, true
       )[1]
@@ -52,36 +45,35 @@ return {
       end
 
       -- Configure lua_ls to recognize Neovim runtime API
+      -- (vim.*, vim.api.*, etc. for plugin/config development)
       vim.lsp.config("lua_ls", {
         settings = {
           Lua = {
+            -- Use LuaJIT runtime (Neovim's embedded Lua engine)
             runtime = { version = "LuaJIT" },
             workspace = {
+              -- Add Neovim runtime files to workspace library for API completion
               library = { vim.env.VIMRUNTIME },
+              -- Disable third-party library detection prompts
               checkThirdParty = false,
             },
           },
         },
       })
 
-      require("mason-lspconfig").setup({
-        -- LSP servers to auto-install
-        ensure_installed = { "vtsls", "jsonls", "lua_ls" },
-        automatic_enable = {
-          -- Exclude ts_ls to avoid conflict with vtsls
-          exclude = { "ts_ls" },
-        },
-      })
-
       -- Display LSP loading progress in command line
+      -- (e.g. "[lua_ls] Indexing workspace 45%")
       vim.api.nvim_create_autocmd("LspProgress", {
         callback = function(ev)
+          -- Extract progress data from the event
           local data = ev.data
           if not data or not data.params then return end
           local value = data.params.value
           if not value then return end
+          -- Get the client name for display prefix
           local client = vim.lsp.get_clients({ id = data.client_id })[1]
           local name = client and client.name or "LSP"
+          -- Build progress message: "[client] title message (percentage%)"
           local msg = "[" .. name .. "] " .. (value.title or "")
           if value.message then
             msg = msg .. " " .. value.message
@@ -89,9 +81,11 @@ return {
           if value.percentage then
             msg = msg .. " (" .. value.percentage .. "%)"
           end
+          -- Show "done" when progress completes
           if value.kind == "end" then
             msg = "[" .. name .. "] " .. (value.title or "") .. " done"
           end
+          -- Display in command line without adding to message history
           vim.api.nvim_echo({{ msg }}, false, {})
         end,
       })

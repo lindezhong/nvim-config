@@ -27,6 +27,12 @@ return {
       "saadparwaiz1/cmp_luasnip", -- Bridge between LuaSnip and nvim-cmp
     },
     config = function()
+      -- Advertise cmp completion capabilities to all LSP servers
+      -- (enables snippet support, additional text edits, etc.)
+      -- NOTE: this requires nvim-cmp to load before LSP servers start (must NOT be lazy-loaded)
+      local capabilities = require("cmp_nvim_lsp").default_capabilities()
+      vim.lsp.config("*", { capabilities = capabilities })
+
       --- @type cmp
       local cmp = require("cmp")
       --- @type luasnip

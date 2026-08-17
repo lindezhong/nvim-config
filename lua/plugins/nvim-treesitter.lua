@@ -9,7 +9,10 @@
 -- :TSInstall <lang>   install a new language parser
 -- :TSUpdate           update all installed parsers
 
---- @type LazyPluginSpec[]
+-- Register tree-sitter-cli for auto-installation via Mason
+-- (required to compile language parsers from grammar files)
+require("mason-ensure").add("tree-sitter-cli")
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
@@ -22,8 +25,16 @@ return {
     config = function()
       --- @type string[] Language parsers to auto-install on first launch
       local ensure_installed = { "typescript", "tsx", "javascript", "lua" }
-      -- Download and compile parsers for the specified languages
-      require("nvim-treesitter").install(ensure_installed)
+
+      -- Only install parsers if tree-sitter-cli is available in PATH
+      -- (on first launch, Mason may still be downloading it)
+      if vim.fn.executable("tree-sitter") == 1 then
+        -- Download and compile parsers for the specified languages
+        require("nvim-treesitter").install(ensure_installed)
+      else
+        -- Notify user to restart after Mason finishes installing tree-sitter-cli
+        vim.notify("tree-sitter-cli installing, restart nvim to compile parsers", vim.log.levels.INFO)
+      end
 
       -- Attach treesitter highlighter whenever a supported filetype is opened
       vim.api.nvim_create_autocmd("FileType", {
