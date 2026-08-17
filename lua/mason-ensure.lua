@@ -11,28 +11,56 @@
 -- This module must be separate from lua/plugins/mason.lua because lazy spec files
 -- must return plugin spec tables and cannot export custom functions.
 
+--- @class MasonEnsureEntry
+--- @field name string Package name (mason registry name or lspconfig server name)
+--- @field version string|nil Optional version constraint (e.g. "0.25.0")
+
 --- @class MasonEnsure
---- @field tools string[] List of generic Mason tool names (e.g. "tree-sitter-cli")
---- @field lsp_servers string[] List of LSP server names in lspconfig format (e.g. "lua_ls")
+--- @field tools MasonEnsureEntry[] List of generic Mason tools
+--- @field lsp_servers MasonEnsureEntry[] List of LSP servers in lspconfig format
 local M = { tools = {}, lsp_servers = {} }
 
+--- Parse "name@version" format into name and version components.
+--- If no "@" is present, version is nil (install latest).
+--- @param spec string Package spec, e.g. "tree-sitter-cli" or "tree-sitter-cli@0.25.0"
+--- @return string name Package name
+--- @return string|nil version Version constraint or nil for latest
+local function parse(spec)
+  -- Split on the first "@" character
+  local name, version = spec:match("^([^@]+)@(.+)$")
+  if name then
+    return name, version
+  end
+  -- No version specified, install latest
+  return spec, nil
+end
+
 --- Register a generic Mason tool for auto-installation.
---- Uses Mason registry package names (e.g. "tree-sitter-cli", "stylua").
+--- Supports optional version pinning with "@" syntax (e.g. "tree-sitter-cli@v0.26.11").
 --- Browse available packages: https://github.com/mason-org/mason-registry/tree/main/packages
 --- Or run :Mason in Neovim to search interactively.
---- @param name string Mason registry package name
-function M.add(name)
-  table.insert(M.tools, name)
+--- Version: check the source.id field in the package's package.yaml in mason-registry,
+--- it points to the upstream repo (e.g. pkg:github/tree-sitter/tree-sitter@v0.26.12),
+--- available versions are the release tags of that upstream repo.
+--- @param spec string Mason registry package name, optionally with @version
+function M.add(spec)
+  -- Parse spec into name and version, then store as structured entry
+  local name, version = parse(spec)
+  table.insert(M.tools, { name = name, version = version })
 end
 
 --- Register an LSP server for auto-installation via mason-lspconfig.
---- Uses lspconfig server names (e.g. "vtsls", "lua_ls"), mason-lspconfig
---- handles the mapping to Mason package names internally.
+--- Supports optional version pinning with "@" syntax (e.g. "vtsls@0.2.6").
+--- Uses lspconfig server names, mason-lspconfig handles the mapping to Mason package names.
 --- Browse available servers: :help lspconfig-all
 --- Or see https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
---- @param name string lspconfig server name
-function M.addLsp(name)
-  table.insert(M.lsp_servers, name)
+--- Version: find the server's mason package name via :Mason, then check its package.yaml
+--- in mason-registry for the upstream repo; available versions are that repo's release tags.
+--- @param spec string lspconfig server name, optionally with @version
+function M.addLsp(spec)
+  -- Parse spec into name and version, then store as structured entry
+  local name, version = parse(spec)
+  table.insert(M.lsp_servers, { name = name, version = version })
 end
 
 return M

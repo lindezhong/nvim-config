@@ -4,8 +4,10 @@
 -- into ~/.local/share/nvim/mason/ without polluting system PATH.
 --
 -- Other plugins declare dependencies at the top of their spec files:
---   require("mason-ensure").add("tool-name")       generic tools (tree-sitter-cli, stylua, etc.)
---   require("mason-ensure").addLsp("server-name")   LSP servers (via mason-lspconfig)
+--   require("mason-ensure").add("tool-name")           generic tools, latest version
+--   require("mason-ensure").add("tool-name@1.0.0")     generic tools, pinned version
+--   require("mason-ensure").addLsp("server-name")       LSP servers, latest version
+--   require("mason-ensure").addLsp("server-name@1.0")   LSP servers, pinned version
 
 --- @type LazyPluginSpec[]
 return {
@@ -29,10 +31,11 @@ return {
         local registry = require("mason-registry")
         registry.refresh(function()
           -- Iterate over each registered tool and install if not already present
-          for _, name in ipairs(tools) do
-            local ok, pkg = pcall(registry.get_package, name)
+          for _, entry in ipairs(tools) do
+            local ok, pkg = pcall(registry.get_package, entry.name)
             if ok and not pkg:is_installed() then
-              pkg:install()
+              -- Pass version option if specified, otherwise install latest
+              pkg:install({ version = entry.version })
             end
           end
         end)
@@ -52,9 +55,20 @@ return {
       -- Read the LSP server list populated by lsp/init.lua via mason-ensure.addLsp()
       local servers = require("mason-ensure").lsp_servers
       if #servers > 0 then
+        -- Build ensure_installed list in "name@version" format for mason-lspconfig
+        local ensure_installed = {}
+        for _, entry in ipairs(servers) do
+          if entry.version then
+            -- Pin to specific version: "vtsls@0.2.6"
+            table.insert(ensure_installed, entry.name .. "@" .. entry.version)
+          else
+            -- Install latest: "vtsls"
+            table.insert(ensure_installed, entry.name)
+          end
+        end
         -- Auto-install listed servers and enable them for matching filetypes
         require("mason-lspconfig").setup({
-          ensure_installed = servers,
+          ensure_installed = ensure_installed,
         })
       end
     end,
