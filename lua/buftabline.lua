@@ -312,6 +312,11 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   callback = setup_highlights,
 })
 
+-- Force tabline redraw when buffer list or current buffer changes
+vim.api.nvim_create_autocmd({ "BufAdd", "BufDelete", "BufEnter" }, {
+  callback = function() vim.schedule(function() vim.cmd.redrawtabline() end) end,
+})
+
 return {
   render = render,
   enable = enable,

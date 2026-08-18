@@ -24,8 +24,9 @@ function M.jump_to(win, loc)
   if not vim.api.nvim_win_is_valid(win) then return end
   -- Focus the target window
   vim.api.nvim_set_current_win(win)
-  -- Load target file into buffer
+  -- Load target file into buffer (bufadd creates unlisted buffers by default)
   local buf = buf_utils.ensure_loaded(loc.filename)
+  vim.bo[buf].buflisted = true  -- make visible in :ls, buftabline, bnext/bprev
   -- Only switch buffer when jumping to a different file (avoids flicker)
   if buf ~= vim.api.nvim_win_get_buf(win) then
     vim.api.nvim_win_set_buf(win, buf)
