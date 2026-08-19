@@ -7,6 +7,8 @@
 --   :DBUIAddConnection     add a new database connection
 --   :DBUIClose             close the sidebar
 --
+-- Data directory: ~/.local/share/db_ui (connections and saved queries)
+--
 -- Connection URL formats (passed to :DBUIAddConnection):
 --   General:    adapter://[user[:password]@][host][:port]/[database]
 --   MySQL:      mysql://user:pass@host:port/dbname
