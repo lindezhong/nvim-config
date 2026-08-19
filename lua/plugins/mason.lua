@@ -33,8 +33,7 @@ return {
           -- Iterate over each registered tool and install if not already present
           for _, entry in ipairs(tools) do
             local ok, pkg = pcall(registry.get_package, entry.name)
-            if ok and not pkg:is_installed() then
-              -- Pass version option if specified, otherwise install latest
+            if ok and not pkg:is_installed() and not pkg:is_installing() then
               pkg:install({ version = entry.version })
             end
           end
