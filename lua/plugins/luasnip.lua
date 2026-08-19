@@ -32,6 +32,9 @@ return {
         region_check_events = "CursorMoved",
       })
 
+      -- jsx files inherit javascript snippets
+      luasnip.filetype_extend("javascriptreact", { "javascript" })
+
       -- Load custom Lua snippets (supports function_node, dynamic_node, postfix)
       require("luasnip.loaders.from_lua").lazy_load({
         paths = { vim.fn.stdpath("config") .. "/lua/snippets" },
