@@ -163,3 +163,5 @@ hi link @comment         Comment
 hi link @tag             Tag
 hi link @tag.attribute   Identifier
 hi link @tag.delimiter   Delimiter
+hi link @markup.raw      NONE
+hi link @markup.raw.block NONE
