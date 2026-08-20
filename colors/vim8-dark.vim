@@ -126,6 +126,8 @@ hi DiagnosticSignInfo  ctermfg=Blue ctermbg=Black
 hi DiagnosticSignHint  ctermfg=Cyan ctermbg=Black
 " Sign column background (match Normal black background)
 hi SignColumn        ctermbg=Black
+" Match parentheses/brackets highlight: dark grey background
+hi MatchParen        guibg=#4e4e4e guifg=NONE gui=NONE ctermbg=239 ctermfg=NONE cterm=NONE
 
 " ----- Treesitter highlight groups (override nvim defaults to match vim colors) -----
 hi link @variable        NONE

@@ -7,7 +7,7 @@
 -- Key mappings:
 --   <C-p>      file search (includes hidden + ignored files)
 --   <C-f>      current buffer line search
---   <Esc><C-p> live grep (rg, includes ignored files)
+--   <C-A-p>    live grep (rg, includes ignored files)
 --
 -- Inside Telescope (press <Esc> for normal mode):
 --   <CR>       open file
@@ -187,8 +187,8 @@ return {
       vim.keymap.set("i", "<C-f>", function() vim.cmd("stopinsert"); builtin.current_buffer_fuzzy_find() end, { silent = true })
 
       -- Live grep (normal + insert mode)
-      vim.keymap.set("n", "<Esc><C-p>", builtin.live_grep, { silent = true })
-      vim.keymap.set("i", "<Esc><C-p>", function() vim.cmd("stopinsert"); builtin.live_grep() end, { silent = true })
+      vim.keymap.set("n", "<C-A-p>", builtin.live_grep, { silent = true })
+      vim.keymap.set("i", "<C-A-p>", function() vim.cmd("stopinsert"); builtin.live_grep() end, { silent = true })
 
     end,
   },

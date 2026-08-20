@@ -49,10 +49,10 @@ function M.setup()
       -- Rename symbol: rename all references across the project
       vim.keymap.set("n", "<leader>rn", lsp.rename, opts)
       -- Code action: show available fixes and refactorings
-      vim.keymap.set("n", "<Esc><S-i>", lsp.code_action, opts)
-      vim.keymap.set("n", "<Esc><CR>", lsp.code_action, opts)
-      vim.keymap.set("i", "<Esc><S-i>", lsp.code_action, opts)
-      vim.keymap.set("i", "<Esc><CR>", lsp.code_action, opts)
+      vim.keymap.set("n", "<A-S-i>", lsp.code_action, opts)
+      vim.keymap.set("n", "<A-CR>", lsp.code_action, opts)
+      vim.keymap.set("i", "<A-S-i>", lsp.code_action, opts)
+      vim.keymap.set("i", "<A-CR>", lsp.code_action, opts)
       -- Format file: format the entire buffer using LSP formatter
       vim.keymap.set("n", "<leader>f", lsp.format, opts)
       -- Format selection: format visual selection and exit visual mode
@@ -67,7 +67,7 @@ function M.setup()
       -- Type definition: jump to the type of the symbol under cursor
       vim.keymap.set("n", "<S-b>", lsp.type_definition, opts)
       -- Implementation: jump to the implementation of an interface/abstract
-      vim.keymap.set("n", "<Esc><C-b>", lsp.implementation, opts)
+      vim.keymap.set("n", "<C-A-b>", lsp.implementation, opts)
       -- Workspace symbols: search symbols across the entire project
       vim.keymap.set("n", "<C-t>", lsp.workspace_symbol, opts)
       -- Document outline: show file symbols in a right-side panel

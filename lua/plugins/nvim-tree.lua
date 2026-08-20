@@ -1,8 +1,8 @@
 -- File tree sidebar (nvim-tree/nvim-tree.lua)
 --
 -- Sidebar file explorer with directory tree view:
--- 1. Toggle: Esc+C-n to open/close the tree panel
--- 2. Locate: Esc+S-n to reveal current file in the tree
+-- 1. Toggle: C-A-n to open/close the tree panel
+-- 2. Locate: A-S-n to reveal current file in the tree
 -- 3. Filters: hide .git, .idea, .vscode, .vim, .github, .swp etc.
 -- 4. Auto-close: quit nvim when tree is the last window
 -- 5. Terminal integration: auto-close tree on :Terminal
@@ -91,11 +91,11 @@ return {
       })
 
       -- Toggle tree panel
-      vim.keymap.set("n", "<Esc><C-n>", "<cmd>NvimTreeToggle<CR>", { silent = true })
-      vim.keymap.set("i", "<Esc><C-n>", "<Esc>`^<cmd>NvimTreeToggle<CR>", { silent = true })
+      vim.keymap.set("n", "<C-A-n>", "<cmd>NvimTreeToggle<CR>", { silent = true })
+      vim.keymap.set("i", "<C-A-n>", "<Esc>`^<cmd>NvimTreeToggle<CR>", { silent = true })
       -- Reveal current file in the tree
-      vim.keymap.set("n", "<Esc><S-n>", "<cmd>NvimTreeFindFile<CR>", { silent = true })
-      vim.keymap.set("i", "<Esc><S-n>", "<Esc>`^<cmd>NvimTreeFindFile<CR>", { silent = true })
+      vim.keymap.set("n", "<A-S-n>", "<cmd>NvimTreeFindFile<CR>", { silent = true })
+      vim.keymap.set("i", "<A-S-n>", "<Esc>`^<cmd>NvimTreeFindFile<CR>", { silent = true })
 
       -- Auto-close nvim when tree is the last remaining window
       vim.api.nvim_create_autocmd("BufEnter", {
