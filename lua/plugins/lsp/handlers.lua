@@ -6,12 +6,12 @@
 local M = {}
 
 -- Scroll float window (hover/signature popup) without focusing it
-function M.scroll_float(direction)
+-- key: pre-converted terminal key code (e.g. from nvim_replace_termcodes)
+function M.scroll_float(key)
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_config(win).relative ~= "" then
-      local scroll_cmd = direction > 0 and "\\<C-e>" or "\\<C-y>"
       vim.api.nvim_win_call(win, function()
-        vim.cmd("normal! " .. math.abs(direction) .. scroll_cmd)
+        vim.cmd("normal! " .. key)
       end)
       return true
     end

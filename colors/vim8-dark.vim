@@ -130,6 +130,9 @@ hi SignColumn        ctermbg=Black
 hi Pmenu             cterm=NONE ctermfg=NONE ctermbg=NONE
 hi PmenuSel          cterm=NONE ctermfg=Black ctermbg=7
 hi NormalFloat       cterm=NONE ctermfg=NONE ctermbg=NONE
+" Scrollbar: transparent track so it doesn't break border lines
+hi PmenuSbar         ctermbg=NONE guibg=NONE
+hi PmenuThumb        ctermbg=DarkGray guibg=DarkGray
 " Match parentheses/brackets highlight: dark grey background
 hi MatchParen        guibg=#4e4e4e guifg=NONE gui=NONE ctermbg=239 ctermfg=NONE cterm=NONE
 

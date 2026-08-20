@@ -29,18 +29,22 @@ function M.setup()
       vim.keymap.set("n", "<C-d>", lsp.hover, opts)
       vim.keymap.set("i", "<C-d>", lsp.hover, opts)
       -- Scroll float window without focusing it
+      local ctrl_e = vim.api.nvim_replace_termcodes("4<C-e>", true, false, true)
+      local ctrl_y = vim.api.nvim_replace_termcodes("4<C-y>", true, false, true)
       vim.keymap.set({"n", "i"}, "<S-Down>", function()
-        handlers.scroll_float(4)
+        handlers.scroll_float(ctrl_e)
       end, { buffer = args.buf, silent = true })
       vim.keymap.set({"n", "i"}, "<S-Up>", function()
-        handlers.scroll_float(-4)
+        handlers.scroll_float(ctrl_y)
       end, { buffer = args.buf, silent = true })
-      -- S-j/S-k: scroll float if open, otherwise fallback to page scroll
+      -- S-j/S-k: scroll float if open (full page), otherwise fallback to page scroll
+      local ctrl_f = vim.api.nvim_replace_termcodes("<C-f>", true, false, true)
+      local ctrl_b = vim.api.nvim_replace_termcodes("<C-b>", true, false, true)
       vim.keymap.set("n", "<S-j>", function()
-        if not handlers.scroll_float(4) then vim.cmd("normal! \x06") end
+        if not handlers.scroll_float(ctrl_f) then vim.cmd("normal! " .. ctrl_f) end
       end, { buffer = args.buf, silent = true })
       vim.keymap.set("n", "<S-k>", function()
-        if not handlers.scroll_float(-4) then vim.cmd("normal! \x02") end
+        if not handlers.scroll_float(ctrl_b) then vim.cmd("normal! " .. ctrl_b) end
       end, { buffer = args.buf, silent = true })
       -- Rename symbol: rename all references across the project
       vim.keymap.set("n", "<leader>rn", lsp.rename, opts)
