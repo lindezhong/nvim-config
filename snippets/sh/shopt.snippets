@@ -70,19 +70,14 @@ snippet setErrExit 当命令失败时退出脚本
 	set -e
 	$0
 
-
 snippet setNounSet 尝试使用未定义变量时退出脚本
 	set -u
 	$0
-
 
 snippet setPipefail 使得整个管道命令只要有一个命令失败，整个管道就会返回失败状态
 	set -o pipefail
 	$0
 
-
 snippet setExacting 严格模式：命令失败、使用未定义变量、管道命令失败(整个管道命令只要有一个命令失败)都会退出
 	set -euo pipefail
 	$0
-
-

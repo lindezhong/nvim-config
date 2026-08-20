@@ -143,7 +143,6 @@ snippet iter 迭代器基础代码
 	            raise StopIteration() # 根据条件停止循环
 	        return None
 
-
 # ##生成器#内置类型
 # 在 Python 中，使用了 yield 的函数被称为生成器（generator）。
 # 跟普通函数不同的是，生成器是一个返回迭代器的函数，只能用于迭代操作，更简单点理解生成器就是一个迭代器。
@@ -372,7 +371,6 @@ snippet try_resources 自动关闭资源
 snippet try_resources_contextlib_closing 自动关闭资源,object: 实现close()的类,import contextlib
 	with  contextlib.closing(${1:object}) as ${2:var_name}:
 	    ${3:pass}
-
 
 snippet autoCloseable 自动关闭资源类，配合with语法使用,try_resources(代码片段提示)
 	class ${1:class_name}(object):
@@ -705,4 +703,3 @@ snippet errorNote 异常添加信息
 
 snippet classVar 定义类字段，供ide提示用
 	__slots__ = ("${1: field_name}")
-

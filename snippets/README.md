@@ -67,9 +67,46 @@ snippet anotherTrigger Another snippet
 Rules:
 - The `snippet` keyword starts a declaration, followed by trigger and optional description
 - **Body lines must be indented with a real tab character**
-- A snippet ends at the next unindented line (blank line or next `snippet` declaration)
+- A snippet ends at the next unindented, non-empty line (next `snippet` declaration or `#` comment)
 - Blank lines **within** a body must also have a tab prefix to avoid terminating the snippet
 - Comments (`#`) are only valid outside snippet bodies
+
+### Empty Line Pitfall (LuaSnip SnipMate Parser)
+
+LuaSnip's SnipMate parser (`luasnip/loaders/from_snipmate.lua`) determines body boundaries
+by checking each line:
+- Line starts with whitespace → body content
+- Line is empty (`""`) → **included in body** (does NOT terminate the snippet)
+- Line is non-empty and has no leading whitespace → terminates the snippet
+
+This means **consecutive empty lines between snippets are absorbed into the preceding
+snippet's body**, causing unwanted trailing newlines on expansion.
+
+```
+# BAD — 2 empty lines become part of `now`'s body → extra newline on expansion
+snippet now Current datetime
+	NOW()
+
+
+snippet date_add Add interval to date
+	DATE_ADD(${1:date}, INTERVAL ${2:value} ${3:unit})
+```
+
+```
+# CORRECT — 1 empty line for readability, comment separates snippets
+snippet now Current datetime
+	NOW()
+
+# date_add
+snippet date_add Add interval to date
+	DATE_ADD(${1:date}, INTERVAL ${2:value} ${3:unit})
+```
+
+**Guidelines:**
+- Keep at most **1 empty line** between a snippet body and the next `snippet`/`#` line
+- The `#` comment does not affect snippet behavior — it simply improves readability
+- Never leave 2+ consecutive empty lines between snippets — they produce visible extra newlines
+- Trailing empty lines at the end of file are also absorbed into the last snippet's body — avoid them
 
 ### Tabstops and Placeholders
 

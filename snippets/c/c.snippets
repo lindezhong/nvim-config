@@ -20,7 +20,6 @@ snippet keyVolatile `volatile`说明符表示所声明的变量，可能会预�
 snippet keyRestrict `restrict`说明符允许编译器优化某些代码。它只能用于指针，表明该指针是访问数据的唯一方式。
 	restrict
 
-
 # 标准库
 snippet libAssert 断言assert包 #include <assert.h>
 	#include <assert.h>
@@ -61,8 +60,6 @@ snippet libWchar 宽字符使用两个或四个字节表示一个字符，导致
 snippet libWctype wctype.h 提供 ctype.h 里面函数的宽字符版本。
 	#include <wctype.h>
 
-
-
 # c语言代码片段
 
 snippet ifei if else if
@@ -73,7 +70,6 @@ snippet ifei if else if
 	}
 	${0}
 
-
 snippet ifeie if else if else
 	if(${1:true}) {
 		${2}
@@ -83,8 +79,6 @@ snippet ifeie if else if else
 		${5}
 	}
 	${0}
-
-
 
 snippet switch switch
 	switch (${1:value}) {
@@ -100,12 +94,9 @@ snippet switch switch
 	}
 	${0}
 
-
-
 snippet if? 三目运算符
 	${1:expression} ? ${2:value1} : ${3:vaue2};
 	${0}
-
 
 # #流程控制
 # ##goto#流程控制
@@ -284,7 +275,6 @@ snippet argsVariadicUse 可变参数使用
 	}
 	va_end($1);
 
-
 # #数组
 # ```c
 # int a[5] = {22, 37, 3490}; /*等价于*/ int a[] = {22, 37, 3490, 0, 0}; /*等价于*/  int a[5] = {[1]=22, 37, [3]=3490}
@@ -344,7 +334,6 @@ snippet argsArrFunVarOne 方法中定义一个一维数组参数
 
 snippet argsArrFunVarTow 方法中定义一个二维数组参数
 	int ${1:m}, int ${2:n} ${3:int} ${4:arrays}[$1][$2]$0
-
 
 # #字符串
 # C 语言没有单独的字符串类型，字符串被当作字符数组，即char 类型的数组。比如，字符串"Hello"等价于{'H','e','l','l','o','\0'} . '\0' = false
@@ -1146,9 +1135,6 @@ snippet fileRemove 删除文件,`remove()`返回`0`，否则返回非零值。�
 snippet fileRename `rename()`函数用于文件改名，也用于移动文件。如果改名成功，`rename()`返回`0`，否则返回非零值，改名后的文件不能与现有文件同名。另外，如果要改名的文件已经打开了，必须先关闭，然后再改名，对打开的文件进行改名会失败
 	rename("${1:old_file_path}", "${2:new_file_name}");
 	$0
-
-
-
 
 # # #c语言关键字
 # - const : 常量

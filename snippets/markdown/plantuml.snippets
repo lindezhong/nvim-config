@@ -45,44 +45,35 @@ snippet plantUmlInitAllowmixing 初始化plant uml, 设置allowmixing允许混�
 	@enduml
 	\`\`\`
 
-
-
 # #样式
 # ##连线#样式
 snippet plantUmlStyleLineOrtho 连接线风格:直线, 默认曲线
 	skinparam linetype ortho
 
-
 snippet plantUmlStyleLinePolyline 连接线风格:折线, 默认曲线
 	skinparam linetype polyline
-
 
 # ##自动数字
 snippet plantUmlStyleAutoNumber 在流程图中, 自动添加数字
 	autonumber
 	$0
 
-
 # ##方向
 snippet plantUmlStyleDirectionLeftToRight 从左往右构建,默认从上往下构建
 	left to right direction
 	$0
 
-
 snippet plantUmlStyleDirectionRightToLeft 从右往左构建,默认从上往下构建
 	right to left direction
 	$0
-
 
 snippet plantUmlStyleDirectionTopToBottom 从上往下构建,默认从上往下构建
 	top to bottom direction
 	$0
 
-
 snippet plantUmlStyleDirectionBottomToTop 从下往上构建,默认从上往下构建
 	bottom to top direction
 	$0
-
 
 # #注释
 snippet plantUmlNote plant注释 例子 : note {left|right|top|bottom|over} of Object #{Color} : {NoteContext}  1. Object : 注释对象 1.1 类图:如果为类字段格式为 Object::field(到字段要用plantUmlNoteMulti), 如果为方法有相同名用 ''双引号包裹 'name(int length)' 1.2 对于某些uml图来说可以链接到两个对象则用逗号分割 : A,B 2. NoteContet : 注释内容 3. Color: 颜色代码比如 000000 或 blue
@@ -105,8 +96,6 @@ snippet plantUmlNoteLink 类图链接(关系)的注释,该注释需要在链接�
 	$2
 	end note
 	$0
-
-
 
 # #类图
 # 支持的类图类型
@@ -141,7 +130,6 @@ snippet plantUmlClassInit plant uml 类初始化, 字段/方法定义为标准�
 	class ${1:class_name} {
 	$0
 	}
-
 
 # #类图##类图关系
 # | 类型             | 符号   | 图形 | 目的                                                                                                                                                                                                                                |
@@ -195,7 +183,6 @@ snippet plantUmlClassLinkAggregation 类图关系聚合/has-a(o-- ◇ ──),�
 
 snippet plantUmlClassLinkComposition 类图关系组合/contains-a(*-- ◆ ──),包含关系(特殊关联关系,强聚合),没有整体就没有部分(比如人和大脑),例子: A '说明' *-- '说明,B可以是(B,C),同时表示两个类B,C' B : 说明, A的属性或全局变量中有B,B组合成A(单引号需要改双引号)
 	${1:class1} --* ${2:class2}
-
 
 # #类图##抽象与静态
 snippet plantUmlClassStatic 通过修饰符 {static} 或者 {abstract}，可以定义静态或者抽象的方法或者属性,例子 {static} String id
@@ -313,9 +300,6 @@ snippet plantUmlClassTogether 有时候，默认布局并不完美...你可以�
 	    $0
 	}
 
-
-
-
 # #时序图(Sequence Diagram)
 
 # ##时序图参与者#时序图
@@ -364,5 +348,3 @@ snippet plantUmlSeqActivate 时序图, 生命线, 即带返回值的时序图
 	$0
 	$2 --> $1: ${4:return}
 	deactivate $2
-
-

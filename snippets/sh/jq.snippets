@@ -46,6 +46,3 @@ snippet jqArrDel jq 删除数组中的元素(根据下标),key/index可以使用
 snippet jqArrDelLength jq 删除数组中的元素最后一个元素,key可以使用变量 : echo '[1,2]' | jq 'del(.[length])' -> [1]
 	${1:json变量}=\$(echo -n \${$1\} | jq --arg key "${2:key}" 'del(.[\$key][.[$key] | length - 1])')
 	$0
-
-
-
