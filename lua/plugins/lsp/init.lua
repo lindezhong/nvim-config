@@ -1,7 +1,8 @@
 -- LSP (Language Server Protocol) configuration
 --
 -- Plugin declarations and server setup:
--- 1. Server configs: vtsls (TypeScript), jsonls (JSON), lua_ls (Lua)
+-- 1. Server configs: vtsls, jsonls, lua_ls, pyright, clangd, bashls,
+--    html, cssls, yamlls, lemminx (Java handled by nvim-jdtls plugin)
 -- 2. Servers are auto-installed via mason-ensure and auto-enabled via mason-lspconfig
 -- 3. Semantic tokens disabled to prevent overriding syntax colors
 --
@@ -10,9 +11,16 @@
 
 -- Register LSP servers for auto-installation via Mason
 -- Uses lspconfig names; mason-lspconfig maps them to Mason package names
-require("mason-ensure").addLsp("vtsls")
-require("mason-ensure").addLsp("jsonls")
-require("mason-ensure").addLsp("lua_ls")
+require("mason-ensure").addLsp("vtsls")     -- TypeScript/JavaScript
+require("mason-ensure").addLsp("jsonls")    -- JSON
+require("mason-ensure").addLsp("lua_ls")    -- Lua
+require("mason-ensure").addLsp("pyright")   -- Python
+require("mason-ensure").addLsp("clangd")    -- C/C++
+require("mason-ensure").addLsp("bashls")    -- Shell (Bash/Sh)
+require("mason-ensure").addLsp("html")      -- HTML
+require("mason-ensure").addLsp("cssls")     -- CSS/SCSS/Less
+require("mason-ensure").addLsp("yamlls")    -- YAML
+require("mason-ensure").addLsp("lemminx")   -- XML
 
 return {
   -- Core LSP configuration (server settings, capabilities, keymaps)

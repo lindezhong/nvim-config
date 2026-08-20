@@ -6,6 +6,7 @@
 -- persistence, and the DAP UI integration.
 --
 -- Supported languages: Python, TypeScript/JavaScript, C/C++, Lua, Shell
+-- (Java DAP is handled by nvim-jdtls plugin separately)
 --
 -- Keybindings:
 --   F5          start/continue debugging
@@ -133,6 +134,7 @@ return {
         end,
       }
 
+
       -- ===== Default Configurations =====
       -- Fallback launch configs used when no .vscode/launch.json is present.
 
@@ -246,6 +248,7 @@ return {
         },
       }
 
+
       -- .vscode/launch.json is read automatically by the built-in
       -- dap.providers.configs["dap.launch.json"] provider (no manual load needed).
       -- js-debug: set outFiles/skipFiles to [] in launch.json — non-empty values
@@ -274,7 +277,15 @@ return {
       -- ===== Keymaps =====
 
       vim.keymap.set("n", "<F5>", dap.continue, { silent = true, desc = "DAP: continue/start" })
-      vim.keymap.set("n", "<F4>", dap.terminate, { silent = true, desc = "DAP: terminate" })
+      -- F4: terminate session AND close UI via the on-complete callback.
+      -- UI is intentionally NOT closed on process crash/exit (no event_terminated listener),
+      -- so error output remains visible. Only this explicit user action closes it.
+      --- @return nil
+      vim.keymap.set("n", "<F4>", function()
+        dap.terminate(nil, nil, function()
+          require("dapui").close()
+        end)
+      end, { silent = true, desc = "DAP: terminate" })
       vim.keymap.set("n", "<F6>", dap.run_to_cursor, { silent = true, desc = "DAP: run to cursor" })
       vim.keymap.set("n", "<F7>", dap.step_into, { silent = true, desc = "DAP: step into" })
       vim.keymap.set("n", "<F8>", dap.step_over, { silent = true, desc = "DAP: step over" })
@@ -397,52 +408,22 @@ return {
         },
       })
 
-      -- Auto open/close UI based on debug session lifecycle.
-      -- Guards against child session events (js-debug uses startDebugging
-      -- which creates child sessions that also emit these events).
+      -- ===== DAP UI lifecycle =====
+      -- Strategy: open automatically on session start; NEVER auto-close on process
+      -- exit/crash so that error output (e.g. port conflict stack traces) remains
+      -- visible for inspection. User closes explicitly via:
+      --   F4         → terminate session + close UI (callback in keymap above)
+      --   <Leader>F5 → toggle UI visibility (session unaffected)
 
-      --- @type boolean tracks whether dap-ui is currently open
-      local dapui_open = false
-
-      --- Open dap-ui when a debug session initializes (first session only).
-      --- @param session dap.Session
-      dap.listeners.after.event_initialized.dapui_config = function(session)
-        if not dapui_open then
-          dapui_open = true
-          dapui.open()
-        end
+      --- Open dap-ui panels when the debug adapter signals "initialized".
+      --- @param session dap.Session the newly initialized debug session (unused)
+      dap.listeners.after.event_initialized.dapui_config = function()
+        dapui.open()
       end
 
-      --- Schedule UI close on session termination (root session only).
-      --- Uses 500ms delay to avoid closing if a new session starts immediately.
-      --- Checks dap.session() to handle rapid restart safely.
-      --- @param session dap.Session
-      dap.listeners.before.event_terminated.dapui_config = function(session)
-        -- Ignore child sessions (e.g. js-debug's startDebugging sub-sessions)
-        if session.parent then return end
-        vim.defer_fn(function()
-          -- Only close if no active session exists (handles rapid restart)
-          if dapui_open and not dap.session() then
-            dapui_open = false
-            dapui.close()
-          end
-        end, 500)
-      end
-
-      --- Same close logic for the exited event (some adapters send this instead
-      --- of terminated, or both — the dapui_open guard makes it idempotent).
-      --- @param session dap.Session
-      dap.listeners.before.event_exited.dapui_config = function(session)
-        if session.parent then return end
-        vim.defer_fn(function()
-          if dapui_open and not dap.session() then
-            dapui_open = false
-            dapui.close()
-          end
-        end, 500)
-      end
-
-      -- Toggle UI keymap (works both during and outside debug sessions)
+      -- Toggle UI visibility without affecting the debug session.
+      -- Works both during active sessions (hide panels to focus on code)
+      -- and after session ends (dismiss remaining output panels).
       vim.keymap.set("n", "<Leader><F5>", dapui.toggle, { silent = true, desc = "DAP UI: toggle" })
 
     end,
