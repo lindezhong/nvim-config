@@ -3,11 +3,10 @@
 -- Provides intelligent auto-completion popup with multiple sources.
 -- Integrates with LuaSnip for snippet expansion and placeholder navigation.
 --
--- Sources (priority order):
---   1. nvim_lsp  — LSP-powered completions (functions, types, variables)
---   2. luasnip   — snippet trigger completions
---   3. buffer    — words from open buffers (fallback)
---   4. path      — filesystem path completions (fallback)
+-- Sources are split into two priority groups (nvim-cmp's "fallback" pattern):
+-- nvim-cmp queries group 2 ONLY when group 1 returns zero results.
+--   Group 1: nvim_lsp, luasnip   — primary, always tried first
+--   Group 2: buffer, path        — fallback when LSP/snippets yield nothing
 --
 -- Keybindings:
 --   <C-Space>  manually trigger completion menu
@@ -22,7 +21,6 @@ return {
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",    -- LSP completion source
       "hrsh7th/cmp-buffer",      -- Buffer words completion source
-      "hrsh7th/cmp-path",        -- Filesystem path completion source
       "L3MON4D3/LuaSnip",       -- Snippet engine (config in lua/plugins/luasnip.lua)
       "saadparwaiz1/cmp_luasnip", -- Bridge between LuaSnip and nvim-cmp
     },
@@ -35,6 +33,9 @@ return {
 
       --- @type cmp
       local cmp = require("cmp")
+      -- Register the custom path source (replaces external hrsh7th/cmp-path plugin).
+      -- See lua/plugins/cmp/path.lua for the implementation.
+      cmp.register_source("path", require("plugins.cmp.path").new())
       --- @type luasnip
       local luasnip = require("luasnip")
 
@@ -135,6 +136,7 @@ return {
           { name = "path" },      -- File paths (fallback)
         }),
       })
+
     end,
   },
 }
