@@ -69,32 +69,107 @@ return {
         },
       })
 
-      -- Display LSP loading progress in command line
-      -- (e.g. "[lua_ls] Indexing workspace 45%")
+      -- ===== LSP progress notifications =====
+      -- Show LSP loading progress in the command line only during initial workspace
+      -- initialization. Once all progress tokens for a client complete, subsequent
+      -- progress events (e.g. from opening new files) are suppressed. Messages are
+      -- recorded in :messages and auto-cleared from the command line after 60 seconds.
+      -- State is reset on LspDetach so restarted servers show progress again.
+
+      --- @type table<integer, table<string|integer, boolean>>
+      --- Maps client_id -> set of currently active progress token ids.
+      local lsp_active_tokens = {}
+
+      --- @type table<integer, boolean>
+      --- Maps client_id -> true once the client's initial load is complete.
+      local lsp_initialized = {}
+
+      --- @type uv_timer_t
+      --- Single shared timer used to clear the command line after the last message.
+      local lsp_clear_timer = vim.uv.new_timer()
+
+      --- Display a message in the command line and schedule auto-clear after 60s.
+      --- Each call resets the timer so only the last message triggers the clear.
+      --- @param msg string  The message to display
+      local function lsp_echo(msg)
+        -- Show the message and record it in :messages history
+        vim.api.nvim_echo({{ msg }}, true, {})
+        -- Reset the auto-clear timer (single-shot, 60 seconds)
+        lsp_clear_timer:stop()
+        lsp_clear_timer:start(60000, 0, vim.schedule_wrap(function()
+          -- Clear the command line without adding to history
+          vim.api.nvim_echo({{""}}, false, {})
+        end))
+      end
+
+      -- LspProgress: track progress tokens and display during initial load only
       vim.api.nvim_create_autocmd("LspProgress", {
         callback = function(ev)
-          -- Extract progress data from the event
           local data = ev.data
+          -- Guard: ensure progress data is present
           if not data or not data.params then return end
           local value = data.params.value
           if not value then return end
-          -- Get the client name for display prefix
-          local client = vim.lsp.get_clients({ id = data.client_id })[1]
+          --- @type integer
+          local client_id = data.client_id
+          --- @type string|integer
+          local token = data.params.token
+          -- Suppress all progress after initial load is complete
+          if lsp_initialized[client_id] then return end
+
+          -- Initialize the token set for this client on first event
+          if not lsp_active_tokens[client_id] then
+            lsp_active_tokens[client_id] = {}
+          end
+
+          if value.kind == "begin" then
+            -- Register a new active progress token
+            lsp_active_tokens[client_id][token] = true
+          elseif value.kind == "end" then
+            -- Remove completed token from active set
+            lsp_active_tokens[client_id][token] = nil
+            -- When all tokens complete, mark client as initialized
+            if not next(lsp_active_tokens[client_id]) then
+              lsp_initialized[client_id] = true
+              lsp_active_tokens[client_id] = nil
+              local client = vim.lsp.get_clients({ id = client_id })[1]
+              local name = client and client.name or "LSP"
+              lsp_echo("[" .. name .. "] initialized")
+            end
+            return
+          end
+
+          -- Display in-progress message: "[name] title message (percentage%)"
+          local client = vim.lsp.get_clients({ id = client_id })[1]
           local name = client and client.name or "LSP"
-          -- Build progress message: "[client] title message (percentage%)"
           local msg = "[" .. name .. "] " .. (value.title or "")
-          if value.message then
+          -- Append message text if it differs from title (avoid duplication)
+          if value.message and value.message ~= value.title then
             msg = msg .. " " .. value.message
           end
-          if value.percentage then
+          -- Append percentage only when meaningful (> 0%)
+          if value.percentage and value.percentage > 0 then
             msg = msg .. " (" .. value.percentage .. "%)"
           end
-          -- Show "done" when progress completes
-          if value.kind == "end" then
-            msg = "[" .. name .. "] " .. (value.title or "") .. " done"
+          lsp_echo(msg)
+        end,
+      })
+
+      -- LspAttach: notify when a language server attaches to a buffer
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(ev)
+          local client = vim.lsp.get_clients({ id = ev.data.client_id })[1]
+          if client then
+            lsp_echo("[LSP] " .. client.name .. " attached")
           end
-          -- Display in command line without adding to message history
-          vim.api.nvim_echo({{ msg }}, false, {})
+        end,
+      })
+
+      -- LspDetach: clear initialization state so a restarted server shows progress again
+      vim.api.nvim_create_autocmd("LspDetach", {
+        callback = function(ev)
+          lsp_initialized[ev.data.client_id] = nil
+          lsp_active_tokens[ev.data.client_id] = nil
         end,
       })
 
