@@ -126,6 +126,10 @@ hi DiagnosticSignInfo  ctermfg=Blue ctermbg=Black
 hi DiagnosticSignHint  ctermfg=Cyan ctermbg=Black
 " Sign column background (match Normal black background)
 hi SignColumn        ctermbg=Black
+" Floating windows & popup menu: match Telescope style (no bg, reverse selection)
+hi Pmenu             cterm=NONE ctermfg=NONE ctermbg=NONE
+hi PmenuSel          cterm=NONE ctermfg=Black ctermbg=7
+hi NormalFloat       cterm=NONE ctermfg=NONE ctermbg=NONE
 " Match parentheses/brackets highlight: dark grey background
 hi MatchParen        guibg=#4e4e4e guifg=NONE gui=NONE ctermbg=239 ctermfg=NONE cterm=NONE
 

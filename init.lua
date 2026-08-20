@@ -72,6 +72,7 @@ vim.opt.fillchars:append({ vert = "|", fold = "-", eob = "~" })
 -- "shadow"  - shadow effect on bottom-right edges
 -- Or a table of 8 chars: {topleft, top, topright, right, botright, bot, botleft, left}
 vim.o.winborder = "rounded"
+vim.o.pumborder = "rounded"
 
 -- ===== FileType indentation =====
 

@@ -6,6 +6,7 @@
 -- 3. Filters: hide .git, .idea, .vscode, .vim, .github, .swp etc.
 -- 4. Auto-close: quit nvim when tree is the last window
 -- 5. Terminal integration: auto-close tree on :Terminal
+-- 6. Colors: folder arrows use same blue as directory names
 --
 -- Built-in keybindings inside the tree panel:
 --   o / <CR>  open file or toggle directory
@@ -80,6 +81,15 @@ return {
           open_file = { quit_on_open = false },
         },
       })
+
+      -- Folder arrows use same blue as directory names.
+      -- Must use ColorScheme autocmd because hi clear in colorscheme wipes earlier settings.
+      local function set_arrow_hl()
+        vim.api.nvim_set_hl(0, "NvimTreeFolderArrowClosed", { link = "Directory" })
+        vim.api.nvim_set_hl(0, "NvimTreeFolderArrowOpen", { link = "Directory" })
+      end
+      set_arrow_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_arrow_hl })
 
       -- Hide statusline text in the tree window
       vim.api.nvim_create_autocmd("BufWinEnter", {
