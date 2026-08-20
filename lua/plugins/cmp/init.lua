@@ -39,6 +39,14 @@ return {
       --- @type luasnip
       local luasnip = require("luasnip")
 
+      -- Matched characters in popup highlighted blue (same as coc's CocSearch)
+      local function set_cmp_hl()
+        vim.api.nvim_set_hl(0, "CmpItemAbbrMatch", { ctermfg = "Blue" })
+        vim.api.nvim_set_hl(0, "CmpItemAbbrMatchFuzzy", { ctermfg = "Blue" })
+      end
+      set_cmp_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = set_cmp_hl })
+
       cmp.setup({
         -- Snippet expansion handler: called when a snippet item is confirmed.
         -- Delegates to LuaSnip to parse the LSP snippet body into editable nodes.

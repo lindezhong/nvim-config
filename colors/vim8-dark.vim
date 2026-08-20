@@ -128,7 +128,7 @@ hi DiagnosticSignHint  ctermfg=Cyan ctermbg=Black
 hi SignColumn        ctermbg=Black
 " Floating windows & popup menu: match Telescope style (no bg, reverse selection)
 hi Pmenu             cterm=NONE ctermfg=NONE ctermbg=NONE
-hi PmenuSel          cterm=NONE ctermfg=Black ctermbg=7
+hi PmenuSel          cterm=NONE ctermfg=NONE ctermbg=DarkGray
 hi NormalFloat       cterm=NONE ctermfg=NONE ctermbg=NONE
 " Scrollbar: transparent track so it doesn't break border lines
 hi PmenuSbar         ctermbg=NONE guibg=NONE
