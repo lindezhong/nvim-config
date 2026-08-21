@@ -1,26 +1,32 @@
 -- Singleton StarDict dictionary reader with async chunked loading and
 -- configurable HTML rendering via tree-sitter.
 --
--- Reads StarDict binary format (.ifo/.idx/.dict) and provides prefix search
--- with case-insensitive matching. Definitions are rendered through a dispatch
--- table keyed by the dictionary's sametypesequence content type. The HTML
--- renderer uses tree-sitter to walk the DOM and applies user-defined actions
--- (skip/replace/before/wrap/transform) matched by CSS-like selectors.
+-- Reads StarDict binary format (.idx required; .ifo/.dict/.dict.dz optional)
+-- and provides prefix search with case-insensitive matching. Supports dictzip
+-- random-access decompression via LuaJIT FFI + Neovim's bundled zlib.
 --
--- Multiple actions can match a single element and are composed in html_map
--- definition order. The html_map uses an ordered array format (not a hash
--- table) because Lua tables have no guaranteed key iteration order.
+-- File detection: pass any path sharing the dictionary's base name (e.g.
+-- "foo.ifo", "foo.idx", "foo.dict", "foo.dict.dz") — the module strips the
+-- extension and probes for each file. Only .idx is required; .ifo provides
+-- content_type metadata (defaults to plain text if absent), .dict.dz/.dict
+-- provide definition data (read_definition returns the word itself if absent).
+--
+-- The HTML renderer uses tree-sitter to walk the DOM and applies user-defined
+-- actions (skip/replace/before/wrap/transform) matched by CSS-like selectors.
+-- The html_map uses an ordered array format (not a hash table) because Lua
+-- tables have no guaranteed key iteration order.
 --
 -- Usage:
 --   local dict = require("dict")
 --   dict.setup({
---     path = "/path/to/dict.ifo",
+--     path = "/path/to/dict.ifo",  -- or .idx / .dict / .dict.dz
 --     html_map = {
---       { ".DC", { type = "skip" } },
---       { ".DX", { type = "before", value = "\n" } },
---       { "br",  { type = "replace", value = "\n" } },
---       { ".LJ", { type = "wrap", before = "\n", after = "\n" } },
---       { ".phonetic", { type = "transform", fn = function(text) return "[" .. text .. "]" end } },
+--       -- Selectors: "tag", ".class", "#id", "tag.class", "tag#id"
+--       { ".ad",        { type = "skip" } },                    -- discard element and children
+--       { "br",         { type = "replace", value = "\n" } },   -- replace element with text
+--       { "span.pos",   { type = "before", value = "\n" } },    -- prepend text before children
+--       { "#phonetic",  { type = "wrap", before = "[", after = "]" } },  -- wrap children
+--       { "div.def",    { type = "transform", fn = function(t) return t:upper() end } },
 --     },
 --   })
 --   dict:on_ready(function()
@@ -30,6 +36,33 @@
 
 --- @type uv  libuv binding (vim.uv in nvim 0.10+, vim.loop in older)
 local uv = vim.uv or vim.loop
+
+-- LuaJIT FFI binding to zlib for dictzip (.dict.dz) random-access decompression.
+-- Neovim links zlib at build time, so the library is always present in-process.
+local ffi = require("ffi")
+pcall(ffi.cdef, [[
+typedef struct z_stream_s {
+  const unsigned char *next_in;
+  unsigned int avail_in;
+  unsigned long total_in;
+  unsigned char *next_out;
+  unsigned int avail_out;
+  unsigned long total_out;
+  const char *msg;
+  void *state;
+  void *zalloc;
+  void *zfree;
+  void *opaque;
+  int data_type;
+  unsigned long adler;
+  unsigned long reserved;
+} z_stream;
+const char *zlibVersion(void);
+int inflateInit2_(z_stream *strm, int windowBits, const char *version, int stream_size);
+int inflate(z_stream *strm, int flush);
+int inflateEnd(z_stream *strm);
+]])
+local zlib_ok, zlib = pcall(ffi.load, ffi.os == "Windows" and "zlib1" or "z")
 
 --- Number of index entries to parse per chunk before yielding to the event loop.
 --- Lower values reduce per-frame blocking; higher values reduce total load time.
@@ -45,7 +78,7 @@ local ENTRIES_PER_CHUNK = 20000
 --- @field ready boolean  true after index is fully loaded and sorted
 --- @field content_type string|nil  sametypesequence value from .ifo (e.g. "h")
 --- @field idx_path string  absolute path to .idx binary index file
---- @field dict_path string  absolute path to .dict definitions file
+--- @field dict_path string|nil  path to .dict/.dict.dz file, nil if no definition data
 --- @field _selectors { tag: string|nil, cls: string|nil, id: string|nil, action: table }[]  pre-compiled selector rules
 --- @field _loading boolean  true while async loading is in progress (prevents duplicate setup)
 --- @field _on_ready_cbs function[]  callbacks queued before ready, fired once on load completion
@@ -62,6 +95,13 @@ M.content_type = nil
 M._selectors = {}
 --- Pending callbacks registered via on_ready() before loading completes.
 M._on_ready_cbs = {}
+--- Whether we're reading from a dictzip (.dict.dz) file.
+M._use_dictzip = false
+--- Uncompressed bytes per dictzip chunk (typically 58315).
+M._dz_chunk_size = 0
+--- File byte offsets for each compressed chunk (1-based, length = chunk_count + 1).
+--- offsets[i+1] - offsets[i] = compressed size of chunk i (0-based).
+M._dz_offsets = {}
 
 -- Renderer dispatch table: content_type → function(self, data) → string
 -- Currently supports: "h" (HTML). Unsupported types fall through to raw data.
@@ -77,16 +117,35 @@ function M.setup(opts)
   -- Mark as loading to block re-entry
   M._loading = true
 
-  local ifo_path = opts.path
-  -- Derive .idx and .dict paths from common base name
-  local base = ifo_path:gsub("%.ifo$", "")
+  local base = opts.path:match("^(.+)%.dict%.dz$") or opts.path:match("^(.+)%.[^.]+$") or opts.path
   M.idx_path = base .. ".idx"
-  M.dict_path = base .. ".dict"
+
+  local dz_path = base .. ".dict.dz"
+  local dict_path = base .. ".dict"
+  if uv.fs_stat(dz_path) then
+    M.dict_path = dz_path
+    M._use_dictzip = true
+  elseif uv.fs_stat(dict_path) then
+    M.dict_path = dict_path
+  else
+    M.dict_path = nil
+  end
+
   -- Pre-compile selector rules from the ordered html_map array
   M._selectors = M._parse_html_map(opts.html_map or {})
 
-  -- Parse .ifo synchronously (tiny file, fast) to get content_type
-  M:_parse_ifo(ifo_path)
+  -- Parse .ifo if it exists to get content_type
+  local ifo_path = base .. ".ifo"
+  if uv.fs_stat(ifo_path) then
+    M:_parse_ifo(ifo_path)
+  end
+  -- Parse dictzip header to build chunk offset table (sync, ~15KB)
+  if M._use_dictzip then
+    if not M:_parse_dz_header() then
+      M._use_dictzip = false
+      M.dict_path = uv.fs_stat(dict_path) and dict_path or nil
+    end
+  end
   -- Warn if HTML renderer is needed but tree-sitter html parser is missing
   if M.content_type == "h" and not pcall(vim.treesitter.language.inspect, "html") then
     vim.notify("dict: HTML dictionary requires tree-sitter html parser (:TSInstall html)", vim.log.levels.WARN)
@@ -148,11 +207,19 @@ function M:read_definition(index)
   local entry = self.entries[index]
   if not entry then return "" end
 
-  local fd = uv.fs_open(self.dict_path, "r", 438)
-  if not fd then return "" end
+  if not self.dict_path then
+    return entry.word
+  end
 
-  local data = uv.fs_read(fd, entry.size, entry.offset)
-  uv.fs_close(fd)
+  local data
+  if self._use_dictzip then
+    data = self:_read_dictzip(entry.offset, entry.size)
+  else
+    local fd = uv.fs_open(self.dict_path, "r", 438)
+    if not fd then return "" end
+    data = uv.fs_read(fd, entry.size, entry.offset)
+    uv.fs_close(fd)
+  end
 
   if not data then return "" end
   local renderer = self._renderers[self.content_type]
@@ -364,7 +431,7 @@ function M:_html_to_text(html)
 
   -- Attempt to get the HTML tree-sitter parser for this buffer
   local ok, parser = pcall(vim.treesitter.get_parser, buf, "html")
-  if not ok then
+  if not ok or not parser then
     -- Fallback: strip all HTML tags with regex if parser unavailable
     vim.api.nvim_buf_delete(buf, { force = true })
     return (html:gsub("<[^>]+>", ""))
@@ -489,6 +556,127 @@ function M:_parse_ifo(ifo_path)
       self.content_type = val
     end
   end
+end
+
+--- Parse dictzip (.dict.dz) gzip header to build the chunk offset table.
+--- Must be called after M.dict_path is set to the .dz file.
+--- @return boolean  true on success, false on any parse failure
+function M:_parse_dz_header()
+  if not zlib_ok then
+    vim.notify("dict: zlib not available, cannot read .dict.dz", vim.log.levels.WARN)
+    return false
+  end
+
+  local fd = uv.fs_open(self.dict_path, "r", 438)
+  if not fd then return false end
+
+  local hdr = uv.fs_read(fd, 14, 0)
+  if not hdr or #hdr < 14 then uv.fs_close(fd); return false end
+  if hdr:byte(1) ~= 0x1F or hdr:byte(2) ~= 0x8B then uv.fs_close(fd); return false end
+  local flags = hdr:byte(4)
+  local has_extra = bit.band(flags, 0x04) ~= 0
+  local has_name = bit.band(flags, 0x08) ~= 0
+  local has_comment = bit.band(flags, 0x10) ~= 0
+  local has_hcrc = bit.band(flags, 0x02) ~= 0
+  if not has_extra then uv.fs_close(fd); return false end
+
+  local xlen = hdr:byte(11) + hdr:byte(12) * 256
+  local extra = uv.fs_read(fd, xlen, 10 + 2)
+  if not extra or #extra < 10 then uv.fs_close(fd); return false end
+  if extra:sub(1, 2) ~= "RA" then uv.fs_close(fd); return false end
+
+  local chunk_size = extra:byte(7) + extra:byte(8) * 256
+  local chunk_count = extra:byte(9) + extra:byte(10) * 256
+  if chunk_size == 0 or chunk_count == 0 then uv.fs_close(fd); return false end
+
+  -- RA subfield: 2(SI) + 2(sublen) + 2(ver) + 2(chlen) + 2(chcnt) = 10 bytes header
+  local RA_HEADER_SIZE = 10
+  if #extra < RA_HEADER_SIZE + chunk_count * 2 then uv.fs_close(fd); return false end
+
+  -- Compressed data starts after: 10(gzip hdr) + 2(xlen field) + xlen(extra data)
+  local pos = 10 + 2 + xlen
+  if has_name then
+    local name_buf = uv.fs_read(fd, 256, pos)
+    if not name_buf then uv.fs_close(fd); return false end
+    local null = name_buf:find("\0", 1, true)
+    if not null then uv.fs_close(fd); return false end
+    pos = pos + null
+  end
+  if has_comment then
+    local cbuf = uv.fs_read(fd, 256, pos)
+    if not cbuf then uv.fs_close(fd); return false end
+    local null = cbuf:find("\0", 1, true)
+    if not null then uv.fs_close(fd); return false end
+    pos = pos + null
+  end
+  if has_hcrc then pos = pos + 2 end
+
+  local offsets = {}
+  offsets[1] = pos
+  for i = 1, chunk_count do
+    local idx = RA_HEADER_SIZE + (i - 1) * 2
+    local comp_size = extra:byte(idx + 1) + extra:byte(idx + 2) * 256
+    offsets[i + 1] = offsets[i] + comp_size
+  end
+
+  self._dz_chunk_size = chunk_size
+  self._dz_offsets = offsets
+  uv.fs_close(fd)
+  return true
+end
+
+--- Decompress a raw DEFLATE buffer using zlib (windowBits=-15).
+--- @param compressed string  raw deflate data
+--- @param max_out integer  maximum output size (= chunk_size)
+--- @return string
+function M._inflate_raw(compressed, max_out)
+  if max_out <= 0 or max_out > 65536 then return "" end
+  local stream = ffi.new("z_stream")
+  local out_buf = ffi.new("unsigned char[?]", max_out)
+  stream.next_in = ffi.cast("const unsigned char*", compressed)
+  stream.avail_in = #compressed
+  stream.next_out = out_buf
+  stream.avail_out = max_out
+  if zlib.inflateInit2_(stream, -15, zlib.zlibVersion(), ffi.sizeof("z_stream")) ~= 0 then
+    return ""
+  end
+  local ret = zlib.inflate(stream, 4) -- Z_FINISH
+  local n = max_out - stream.avail_out
+  zlib.inflateEnd(stream)
+  if ret ~= 1 and n == 0 then return "" end -- Z_STREAM_END = 1
+  return ffi.string(out_buf, n)
+end
+
+--- Read arbitrary range from dictzip file by inflating relevant chunks.
+--- @param offset integer  byte offset in uncompressed data
+--- @param size integer  number of bytes to read
+--- @return string
+function M:_read_dictzip(offset, size)
+  if size <= 0 then return "" end
+  local cs = self._dz_chunk_size
+  if cs == 0 or #self._dz_offsets == 0 then return "" end
+  local first = math.floor(offset / cs)
+  local last = math.floor((offset + size - 1) / cs)
+
+  local fd = uv.fs_open(self.dict_path, "r", 438)
+  if not fd then return "" end
+
+  local parts = {}
+  for i = first, last do
+    if not self._dz_offsets[i + 1] or not self._dz_offsets[i + 2] then break end
+    local comp_offset = self._dz_offsets[i + 1]
+    local comp_size = self._dz_offsets[i + 2] - comp_offset
+    local compressed = uv.fs_read(fd, comp_size, comp_offset)
+    if not compressed then break end
+    local chunk_data = M._inflate_raw(compressed, cs)
+    if #chunk_data == 0 then break end
+    parts[#parts + 1] = chunk_data
+  end
+  uv.fs_close(fd)
+
+  local full = table.concat(parts)
+  local start_pos = offset - first * cs + 1
+  return full:sub(start_pos, start_pos + size - 1)
 end
 
 --- Start async loading of the .idx file via libuv non-blocking I/O.
