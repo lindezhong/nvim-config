@@ -41,16 +41,60 @@ return {
         end,
       })
 
-      -- vtsls: use bundled TypeScript lib as fallback for go-to-definition on built-in types
-      -- (e.g. jumping to the definition of Promise, Array, etc.)
+      -- Auto-trigger signature help when typing "(" or ","
+      -- Shows function parameter info in a float (all overloads, current param highlighted).
+      -- Uses a per-buffer table to merge trigger characters from all attached clients
+      -- and creates at most one TextChangedI autocmd per buffer.
+      local sig_trigger_bufs = {} --- @type table<integer, table<string, boolean>>
+      vim.api.nvim_create_autocmd("LspAttach", {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if not client then return end
+          local triggers = vim.tbl_get(
+            client, "server_capabilities", "signatureHelpProvider", "triggerCharacters"
+          )
+          if not triggers or #triggers == 0 then return end
+          local bufnr = args.buf
+          if not sig_trigger_bufs[bufnr] then
+            -- First client with signature triggers on this buffer: create autocmd
+            sig_trigger_bufs[bufnr] = {}
+            vim.api.nvim_create_autocmd("TextChangedI", {
+              buffer = bufnr,
+              callback = function()
+                local col = vim.api.nvim_win_get_cursor(0)[2]
+                if col == 0 then return end
+                local char = vim.api.nvim_get_current_line():sub(col, col)
+                if sig_trigger_bufs[bufnr][char] then
+                  vim.lsp.buf.signature_help()
+                end
+              end,
+            })
+            vim.api.nvim_create_autocmd("BufDelete", {
+              buffer = bufnr,
+              once = true,
+              callback = function() sig_trigger_bufs[bufnr] = nil end,
+            })
+          end
+          -- Merge this client's trigger characters into the buffer set
+          for _, ch in ipairs(triggers) do
+            sig_trigger_bufs[bufnr][ch] = true
+          end
+        end,
+      })
+
+      -- vtsls: auto-insert function call snippets with parameter placeholders,
+      -- and use bundled TypeScript lib for go-to-definition on built-in types
+      local vtsls_settings = {
+        typescript = { suggest = { completeFunctionCalls = true } },
+        javascript = { suggest = { completeFunctionCalls = true } },
+      }
       local vtsls_tsdk = vim.fn.glob(
         vim.fn.stdpath("data") .. "/mason/packages/vtsls/**/typescript/lib", false, true
       )[1]
       if vtsls_tsdk then
-        vim.lsp.config("vtsls", {
-          settings = { typescript = { tsdk = vtsls_tsdk } },
-        })
+        vtsls_settings.typescript.tsdk = vtsls_tsdk
       end
+      vim.lsp.config("vtsls", { settings = vtsls_settings })
 
       -- Configure lua_ls to recognize Neovim runtime API
       -- (vim.*, vim.api.*, etc. for plugin/config development)
