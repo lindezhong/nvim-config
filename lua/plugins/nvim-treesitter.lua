@@ -24,7 +24,7 @@ return {
     build = ":TSUpdate",
     config = function()
       --- @type string[] Language parsers to auto-install on first launch
-      local ensure_installed = { "typescript", "tsx", "javascript", "lua" }
+      local ensure_installed = { "typescript", "tsx", "javascript", "lua", "html" }
 
       -- Only install parsers if tree-sitter-cli is available in PATH
       -- (on first launch, Mason may still be downloading it)

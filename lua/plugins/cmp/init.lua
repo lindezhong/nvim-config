@@ -36,6 +36,7 @@ return {
       -- Register the custom path source (replaces external hrsh7th/cmp-path plugin).
       -- See lua/plugins/cmp/path.lua for the implementation.
       cmp.register_source("path", require("plugins.cmp.path").new())
+      cmp.register_source("dict", require("plugins.cmp.dict"))
       --- @type luasnip
       local luasnip = require("luasnip")
 
@@ -98,37 +99,32 @@ return {
           end, { "i", "s" }),
         }),
 
-        -- Menu item formatting: append snippet description to the menu column.
-        -- Truncates long descriptions to prevent the popup from becoming too wide.
         formatting = {
           --- @param entry cmp.Entry  The completion entry being formatted
           --- @param vim_item vim.CompletedItem  The item to display in the menu
           --- @return vim.CompletedItem
           format = function(entry, vim_item)
-            -- Only enrich items from the luasnip source
+            local detail = vim_item.menu
             if entry.source.name == "luasnip" then
-              -- Retrieve the internal snippet ID from the completion data
               local snip_id = entry.completion_item.data and entry.completion_item.data.snip_id
               if snip_id then
-                -- Safely fetch the snippet object by ID
                 local ok, snip = pcall(require("luasnip").get_id_snippet, snip_id)
                 if ok and snip then
                   --- @type string|string[]
                   local desc = snip.description
-                  -- Description may be a table of lines; join into single string
                   if type(desc) == "table" then desc = table.concat(desc, " ") end
-                  if desc and desc ~= "" then
-                    -- Non-ASCII (CJK etc) chars are wider; use shorter limit
-                    local max = desc:find("[^\032-\126]") and 20 or 40
-                    -- Truncate by unicode character count (not bytes) to avoid
-                    -- cutting multi-byte characters in the middle
-                    if vim.fn.strchars(desc) > max then
-                      desc = vim.fn.strcharpart(desc, 0, max - 1) .. "…"
-                    end
-                    vim_item.menu = desc
-                  end
+                  detail = desc
                 end
               end
+            elseif vim_item.menu == nil or vim_item.menu == "" then
+              detail = entry.completion_item.detail
+            end
+            if detail and detail ~= "" then
+              local max = detail:find("[^\032-\126]") and 20 or 40
+              if vim.fn.strchars(detail) > max then
+                detail = vim.fn.strcharpart(detail, 0, max - 1) .. "…"
+              end
+              vim_item.menu = detail
             end
             return vim_item
           end,
@@ -142,6 +138,7 @@ return {
         }, {
           { name = "buffer" },    -- Buffer words (fallback)
           { name = "path" },      -- File paths (fallback)
+          { name = "dict" },      -- English-Chinese dictionary (fallback)
         }),
       })
 
