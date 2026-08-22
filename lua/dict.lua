@@ -216,26 +216,34 @@ end
 --- Case-insensitive prefix search.
 --- @param prefix string
 --- @param max_items? integer  maximum results (0 or nil = unlimited)
+--- @param opts? { dedup?: boolean }  dedup: skip entries with identical word (default true)
 --- @return { word: string, index: integer }[]
-function M:search(prefix, max_items)
+function M:search(prefix, max_items, opts)
   if not self.ready or #prefix < 1 then
     return {}
   end
+  local dedup = not opts or opts.dedup == nil or opts.dedup
 
   local prefix_lower = prefix:lower()
   local start = self:_lower_bound(prefix_lower)
   local results = {}
   local entries = self.entries
+  local prev_word
 
   for i = start, #entries do
     local entry = entries[i]
     if entry.word:lower():sub(1, #prefix_lower) ~= prefix_lower then
       break
     end
+    if dedup and entry.word == prev_word then
+      goto continue
+    end
+    prev_word = entry.word
     results[#results + 1] = { word = entry.word, index = i }
     if max_items and max_items > 0 and #results >= max_items then
       break
     end
+    ::continue::
   end
 
   return results
