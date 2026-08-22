@@ -91,6 +91,37 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Disable true color (use 256-color terminal palette instead)
 vim.opt.termguicolors = false
 
+-- ===== Dictionary =====
+
+require("dict").setup({
+  path = vim.fn.stdpath("config") .. "/assets/dict/concise.ifo",
+  html_map = {
+    { ".DC", { type = "skip" } },
+    { ".YX", { type = "skip" } },
+    { ".entryNum", { type = "skip" } },
+    { ".superscript", { type = "transform", fn = function(t)
+      local sup = { ["0"] = "⁰", ["1"] = "¹", ["2"] = "²", ["3"] = "³", ["4"] = "⁴",
+                    ["5"] = "⁵", ["6"] = "⁶", ["7"] = "⁷", ["8"] = "⁸", ["9"] = "⁹" }
+      return (t:gsub("%d", sup))
+    end } },
+    { ".subscript", { type = "transform", fn = function(t)
+      local sub = { ["0"] = "₀", ["1"] = "₁", ["2"] = "₂", ["3"] = "₃", ["4"] = "₄",
+                    ["5"] = "₅", ["6"] = "₆", ["7"] = "₇", ["8"] = "₈", ["9"] = "₉" }
+      return (t:gsub("%d", sub))
+    end } },
+    { ".entryDot", { type = "replace", value = "■ " } },
+    { ".CB", { type = "before", value = "\n" } },
+    { ".PY", { type = "before", value = "\n" } },
+    { ".DX", { type = "before", value = "\n" } },
+    { ".JX", { type = "before", value = "\n" } },
+    { ".GZ", { type = "before", value = "\n" } },
+    { ".LY", { type = "before", value = "\n " } },
+    { ".LS", { type = "before", value = "\n " } },
+    { ".YD", { type = "before", value = "\n" } },
+    { ".section_title", { type = "before", value = "\n" } },
+  },
+})
+
 -- ===== Modules =====
 
 -- Global keybindings: buffer/window navigation, save, jumplist, scroll, etc.
