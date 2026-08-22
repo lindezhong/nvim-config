@@ -56,6 +56,20 @@ vim.keymap.set("i", "<A-l>", "<Esc>`^<C-i>")
 -- Keep cursor position when leaving insert mode (prevent moving 1 char left)
 vim.keymap.set("i", "<Esc>", "<Esc>`^")
 
+-- Close any floating window on Esc (LSP hover, diagnostics, dict, etc.)
+vim.keymap.set("n", "<Esc>", function()
+  local closed = false
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_config(win).relative ~= "" then
+      vim.api.nvim_win_close(win, true)
+      closed = true
+    end
+  end
+  if not closed then
+    vim.cmd("nohlsearch")
+  end
+end)
+
 -- Redo (since C-r is remapped to search-replace below)
 vim.keymap.set("n", "<S-u>", "<cmd>redo<CR>", { silent = true })
 

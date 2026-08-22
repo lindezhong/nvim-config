@@ -20,6 +20,8 @@
 --   :Translate [word]   print definition to messages (defaults to <cword>)
 --   <leader>t (normal)  show definition in floating window for word under cursor
 --   <leader>t (visual)  show definition in floating window for selected text
+--   S-j / S-k           scroll the floating window without entering it
+--   <leader>t again     enter the floating window for full navigation
 --
 -- Usage:
 --   local dict = require("dict")
@@ -184,6 +186,7 @@ function M.setup(opts)
   vim.keymap.set("x", "<leader>t", function()
     local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."))
     local word = table.concat(region, " "):gsub("^%s+", ""):gsub("%s+$", "")
+    vim.cmd([[execute "normal! \<Esc>`<"]])
     vim.schedule(function()
       M:show_translate(word)
     end)
@@ -291,11 +294,29 @@ function M:translate(word)
 end
 
 --- Show translation in a floating window (auto-closes on cursor move).
+--- Press again while window is open to enter it for full navigation.
 --- @param word string
 function M:show_translate(word)
-  -- Close previous floating window if still open
   if self._translate_win and vim.api.nvim_win_is_valid(self._translate_win) then
-    vim.api.nvim_win_close(self._translate_win, true)
+    -- Second press: enter existing floating window for full navigation
+    local win = self._translate_win
+    local float_buf = vim.api.nvim_win_get_buf(win)
+    self._translate_win = nil
+    pcall(vim.api.nvim_del_augroup_by_name, "dict_translate")
+    pcall(vim.keymap.del, "n", "<S-j>", { buffer = self._translate_src_buf })
+    pcall(vim.keymap.del, "n", "<S-k>", { buffer = self._translate_src_buf })
+    self._translate_src_buf = nil
+    self._translate_win = win
+    vim.api.nvim_set_current_win(win)
+    vim.api.nvim_create_autocmd("WinLeave", {
+      buffer = float_buf,
+      once = true,
+      callback = function()
+        pcall(vim.api.nvim_win_close, win, true)
+        self._translate_win = nil
+      end,
+    })
+    return
   end
   local text
   if not word or word == "" then
@@ -309,33 +330,78 @@ function M:show_translate(word)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].bufhidden = "wipe"
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.bo[buf].modifiable = false
   local width = 0
   for _, l in ipairs(lines) do
     width = math.max(width, vim.fn.strdisplaywidth(l))
   end
+  local height = math.min(#lines, 20)
+  local lines_below = vim.o.lines - vim.fn.screenrow() - 1
+  local row = lines_below >= height and 1 or -height
   local win = vim.api.nvim_open_win(buf, false, {
     relative = "cursor",
-    row = 1,
+    row = row,
     col = 0,
     width = math.max(1, math.min(width, vim.o.columns - 4)),
-    height = math.min(#lines, 20),
+    height = height,
     style = "minimal",
   })
   self._translate_win = win
-  local group = vim.api.nvim_create_augroup("dict_translate_close", { clear = true })
-  local function close()
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
-    end
-    pcall(vim.api.nvim_del_augroup_by_id, group)
-    pcall(vim.keymap.del, "n", "<Esc>", { buffer = 0 })
-  end
+  local src_buf = vim.api.nvim_get_current_buf()
+  self._translate_src_buf = src_buf
+  local group = vim.api.nvim_create_augroup("dict_translate", { clear = true })
+  -- S-j/S-k scroll the floating window without entering it
+  vim.keymap.set("n", "<S-j>", function()
+    vim.api.nvim_win_call(win, function() vim.cmd([[execute "normal! \<C-f>"]]) end)
+  end, { buffer = src_buf })
+  vim.keymap.set("n", "<S-k>", function()
+    vim.api.nvim_win_call(win, function() vim.cmd([[execute "normal! \<C-b>"]]) end)
+  end, { buffer = src_buf })
+  local cursor_pos = vim.api.nvim_win_get_cursor(0)
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter" }, {
     group = group,
-    once = true,
-    callback = close,
+    buffer = src_buf,
+    callback = function(ev)
+      if ev.event ~= "InsertEnter" then
+        local pos = vim.api.nvim_win_get_cursor(0)
+        if pos[1] == cursor_pos[1] and pos[2] == cursor_pos[2] then
+          return
+        end
+      end
+      self:_close_translate_float()
+      return true
+    end,
   })
-  vim.keymap.set("n", "<Esc>", close, { buffer = 0 })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    group = group,
+    buffer = src_buf,
+    once = true,
+    callback = function()
+      self:_close_translate_float()
+    end,
+  })
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = group,
+    pattern = tostring(win),
+    once = true,
+    callback = function()
+      self:_close_translate_float()
+    end,
+  })
+end
+
+--- Close the translate floating window and clean up all associated state.
+function M:_close_translate_float()
+  local win = self._translate_win
+  if not win then return end
+  self._translate_win = nil
+  if vim.api.nvim_win_is_valid(win) then
+    vim.api.nvim_win_close(win, true)
+  end
+  pcall(vim.api.nvim_del_augroup_by_name, "dict_translate")
+  pcall(vim.keymap.del, "n", "<S-j>", { buffer = self._translate_src_buf })
+  pcall(vim.keymap.del, "n", "<S-k>", { buffer = self._translate_src_buf })
+  self._translate_src_buf = nil
 end
 
 --- Parse a CSS-like selector string into its tag, class, and id components.
