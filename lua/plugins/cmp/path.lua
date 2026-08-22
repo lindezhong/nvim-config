@@ -97,8 +97,8 @@ source.complete = function(self, params, callback)
   local include_hidden = input:sub(1, 1) == "."
   -- 0-based line number (LSP protocol)
   local cursor_line = params.context.cursor.row - 1
-  -- 0-based byte column of cursor
-  local cursor_col = params.context.cursor.col
+  -- 0-based byte column of cursor (cursor_before_line length is always 0-based)
+  local cursor_col = #params.context.cursor_before_line
   -- Byte column where the typed input (filename part) begins
   local input_start = cursor_col - #input
 
