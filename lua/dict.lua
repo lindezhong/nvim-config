@@ -16,6 +16,11 @@
 -- The html_map uses an ordered array format (not a hash table) because Lua
 -- tables have no guaranteed key iteration order.
 --
+-- Translation interface:
+--   :Translate [word]   print definition to messages (defaults to <cword>)
+--   <leader>t (normal)  show definition in floating window for word under cursor
+--   <leader>t (visual)  show definition in floating window for selected text
+--
 -- Usage:
 --   local dict = require("dict")
 --   dict.setup({
@@ -131,6 +136,8 @@ function M.setup(opts)
     M.dict_path = nil
   end
 
+  M._show_word_header = opts.show_word_header ~= false
+
   -- Pre-compile selector rules from the ordered html_map array
   M._selectors = M._parse_html_map(opts.html_map or {})
 
@@ -150,6 +157,38 @@ function M.setup(opts)
   if M.content_type == "h" and not pcall(vim.treesitter.language.inspect, "html") then
     vim.notify("dict: HTML dictionary requires tree-sitter html parser (:TSInstall html)", vim.log.levels.WARN)
   end
+  -- :Translate [word] — print definition to messages
+  vim.api.nvim_create_user_command("Translate", function(cmd)
+    local arg = vim.trim(cmd.args)
+    local word = arg ~= "" and arg or vim.fn.expand("<cword>")
+    if word == "" then
+      print("dict: empty input")
+      return
+    end
+    if not M.ready then
+      print("dict: not ready")
+      return
+    end
+    local text = M:translate(word)
+    if text then
+      print(text)
+    else
+      print("dict: " .. word .. " not found")
+    end
+  end, { nargs = "?" })
+  -- <leader>t (normal) — floating window for word under cursor
+  vim.keymap.set("n", "<leader>t", function()
+    M:show_translate(vim.fn.expand("<cword>"))
+  end)
+  -- <leader>t (visual) — floating window for selected text
+  vim.keymap.set("x", "<leader>t", function()
+    local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."))
+    local word = table.concat(region, " "):gsub("^%s+", ""):gsub("%s+$", "")
+    vim.schedule(function()
+      M:show_translate(word)
+    end)
+  end)
+
   -- Defer async loading by 50ms to avoid blocking startup
   vim.defer_fn(function()
     M:_load_async()
@@ -223,10 +262,80 @@ function M:read_definition(index)
 
   if not data then return "" end
   local renderer = self._renderers[self.content_type]
-  if renderer then
-    return renderer(self, data)
+  local text = renderer and renderer(self, data) or data
+  if self._show_word_header then
+    return "[" .. entry.word .. "]\n\n" .. text
   end
-  return data
+  return text
+end
+
+--- Translate a word: exact match (case-insensitive) returning definition text.
+--- @param word string
+--- @return string|nil  definition text, or nil if not found
+function M:translate(word)
+  if not self.ready or not word or word == "" then return nil end
+  local word_lower = word:lower()
+  local lo, hi = 1, #self.entries
+  while lo <= hi do
+    local mid = math.floor((lo + hi) / 2)
+    local entry_lower = self.entries[mid].word:lower()
+    if entry_lower == word_lower then
+      return self:read_definition(mid)
+    elseif entry_lower < word_lower then
+      lo = mid + 1
+    else
+      hi = mid - 1
+    end
+  end
+  return nil
+end
+
+--- Show translation in a floating window (auto-closes on cursor move).
+--- @param word string
+function M:show_translate(word)
+  -- Close previous floating window if still open
+  if self._translate_win and vim.api.nvim_win_is_valid(self._translate_win) then
+    vim.api.nvim_win_close(self._translate_win, true)
+  end
+  local text
+  if not word or word == "" then
+    text = "dict: empty input"
+  elseif not self.ready then
+    text = "dict: not ready"
+  else
+    text = self:translate(word) or ("dict: " .. word .. " not found")
+  end
+  local lines = vim.split(text, "\n")
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[buf].bufhidden = "wipe"
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  local width = 0
+  for _, l in ipairs(lines) do
+    width = math.max(width, vim.fn.strdisplaywidth(l))
+  end
+  local win = vim.api.nvim_open_win(buf, false, {
+    relative = "cursor",
+    row = 1,
+    col = 0,
+    width = math.max(1, math.min(width, vim.o.columns - 4)),
+    height = math.min(#lines, 20),
+    style = "minimal",
+  })
+  self._translate_win = win
+  local group = vim.api.nvim_create_augroup("dict_translate_close", { clear = true })
+  local function close()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    pcall(vim.api.nvim_del_augroup_by_id, group)
+    pcall(vim.keymap.del, "n", "<Esc>", { buffer = 0 })
+  end
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter" }, {
+    group = group,
+    once = true,
+    callback = close,
+  })
+  vim.keymap.set("n", "<Esc>", close, { buffer = 0 })
 end
 
 --- Parse a CSS-like selector string into its tag, class, and id components.
