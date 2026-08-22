@@ -272,25 +272,47 @@ function M:read_definition(index)
   return text
 end
 
---- Translate a word: exact match (case-insensitive) returning definition text.
+--- Translate a word: case-insensitive match returning all variant definitions.
+--- When multiple entries share the same word (different case), all definitions
+--- are returned, joined by a separator line. Entries with identical definition
+--- text are deduplicated (the dictionary may contain duplicate entries).
 --- @param word string
 --- @return string|nil  definition text, or nil if not found
 function M:translate(word)
   if not self.ready or not word or word == "" then return nil end
   local word_lower = word:lower()
   local lo, hi = 1, #self.entries
+  local found
   while lo <= hi do
     local mid = math.floor((lo + hi) / 2)
     local entry_lower = self.entries[mid].word:lower()
     if entry_lower == word_lower then
-      return self:read_definition(mid)
+      found = mid
+      break
     elseif entry_lower < word_lower then
       lo = mid + 1
     else
       hi = mid - 1
     end
   end
-  return nil
+  if not found then return nil end
+  -- Scan backward to the first case-insensitive match
+  while found > 1 and self.entries[found - 1].word:lower() == word_lower do
+    found = found - 1
+  end
+  -- Collect all variant definitions, deduplicate identical content
+  local parts = {}
+  local seen = {}
+  local i = found
+  while i <= #self.entries and self.entries[i].word:lower() == word_lower do
+    local def = self:read_definition(i)
+    if not seen[def] then
+      seen[def] = true
+      parts[#parts + 1] = def
+    end
+    i = i + 1
+  end
+  return table.concat(parts, "\n\n────────────────────\n\n")
 end
 
 --- Show translation in a floating window (auto-closes on cursor move).
