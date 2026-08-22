@@ -93,13 +93,28 @@ local function render()
   local current = vim.api.nvim_get_current_buf()
 
   -- Collect listed buffers
-  --- @type {buf: number, name: string}[]
+  --- @type {buf: number, name: string, fullpath: string}[]
   local tabs = {}
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.fn.buflisted(buf) == 1 then
-      local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t")
+      local fullpath = vim.api.nvim_buf_get_name(buf)
+      local name = vim.fn.fnamemodify(fullpath, ":t")
       if name == "" then name = "[No Name]" end
-      table.insert(tabs, { buf = buf, name = name })
+      table.insert(tabs, { buf = buf, name = name, fullpath = fullpath })
+    end
+  end
+
+  -- Disambiguate duplicate filenames by prepending parent directories
+  local name_count = {}
+  for _, tab in ipairs(tabs) do
+    name_count[tab.name] = (name_count[tab.name] or 0) + 1
+  end
+  for _, tab in ipairs(tabs) do
+    if name_count[tab.name] > 1 and tab.fullpath ~= "" then
+      local parts = vim.split(vim.fn.fnamemodify(tab.fullpath, ":."), "/", { plain = true })
+      if #parts >= 2 then
+        tab.name = parts[#parts - 1] .. "/" .. parts[#parts]
+      end
     end
   end
 
