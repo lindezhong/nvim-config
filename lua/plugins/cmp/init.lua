@@ -13,6 +13,8 @@
 --   <CR>       confirm selected item (expands snippet if selected)
 --   <Tab>      jump to next snippet placeholder / next cmp item / expand / fallback
 --   <S-Tab>    jump to prev snippet placeholder / prev cmp item / fallback
+--   <S-Down>   scroll documentation window down (one page)
+--   <S-Up>     scroll documentation window up (one page)
 
 --- @type LazyPluginSpec[]
 return {
@@ -62,6 +64,22 @@ return {
         mapping = cmp.mapping.preset.insert({
           -- Manually trigger the completion popup
           ["<C-Space>"] = cmp.mapping.complete(),
+
+          -- Scroll documentation window by page
+          ["<S-Down>"] = cmp.mapping(function()
+            local win = cmp.core.view.docs_view.window
+            if win and win:visible() then
+              local height = vim.api.nvim_win_get_height(win.win)
+              cmp.mapping.scroll_docs(height)()
+            end
+          end, { "i", "s" }),
+          ["<S-Up>"] = cmp.mapping(function()
+            local win = cmp.core.view.docs_view.window
+            if win and win:visible() then
+              local height = vim.api.nvim_win_get_height(win.win)
+              cmp.mapping.scroll_docs(-height)()
+            end
+          end, { "i", "s" }),
 
           -- Confirm the currently selected (or first) completion item.
           -- If the item is a snippet, this triggers expansion.

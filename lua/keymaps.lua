@@ -73,11 +73,15 @@ end)
 -- Redo (since C-r is remapped to search-replace below)
 vim.keymap.set("n", "<S-u>", "<cmd>redo<CR>", { silent = true })
 
--- Page scroll with Shift+j/k
+-- Page scroll with Shift+j/k and Shift+Down/Up
 vim.keymap.set("n", "<S-j>", "<C-f>")
 vim.keymap.set("n", "<S-k>", "<C-b>")
 vim.keymap.set("v", "<S-j>", "<C-f>")
 vim.keymap.set("v", "<S-k>", "<C-b>")
+vim.keymap.set("n", "<S-Down>", "<C-f>")
+vim.keymap.set("n", "<S-Up>", "<C-b>")
+vim.keymap.set("v", "<S-Down>", "<C-f>")
+vim.keymap.set("v", "<S-Up>", "<C-b>")
 
 -- Word jump with Shift+h/l
 vim.keymap.set("n", "<S-h>", "<S-Left>")

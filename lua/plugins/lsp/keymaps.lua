@@ -2,6 +2,14 @@
 --
 -- All keymaps are set via LspAttach autocmd, so they only activate
 -- in buffers where an LSP server is running.
+--
+-- Keybindings:
+--   <C-b>/<C-j>/<C-Down>  go to definition (peek if multiple)
+--   <C-k>/<C-Up>          find references (floating picker)
+--   <C-d>                 hover documentation
+--   <S-Down>/<S-Up>       scroll float window (4 lines); page scroll if no float
+--   <S-j>/<S-k>           scroll float window (full page); page scroll if no float
+--   <leader>rn            rename symbol
 
 local M = {}
 
@@ -28,18 +36,23 @@ function M.setup()
       -- Hover documentation: show type info and docs in a float window
       vim.keymap.set("n", "<C-d>", lsp.hover, opts)
       vim.keymap.set("i", "<C-d>", lsp.hover, opts)
-      -- Scroll float window without focusing it
+      -- Scroll float window without focusing it; fallback to page scroll
       local ctrl_e = vim.api.nvim_replace_termcodes("4<C-e>", true, false, true)
       local ctrl_y = vim.api.nvim_replace_termcodes("4<C-y>", true, false, true)
-      vim.keymap.set({"n", "i"}, "<S-Down>", function()
-        handlers.scroll_float(ctrl_e)
-      end, { buffer = args.buf, silent = true })
-      vim.keymap.set({"n", "i"}, "<S-Up>", function()
-        handlers.scroll_float(ctrl_y)
-      end, { buffer = args.buf, silent = true })
-      -- S-j/S-k: scroll float if open (full page), otherwise fallback to page scroll
       local ctrl_f = vim.api.nvim_replace_termcodes("<C-f>", true, false, true)
       local ctrl_b = vim.api.nvim_replace_termcodes("<C-b>", true, false, true)
+      vim.keymap.set("n", "<S-Down>", function()
+        if not handlers.scroll_float(ctrl_e) then vim.cmd("normal! " .. ctrl_f) end
+      end, { buffer = args.buf, silent = true })
+      vim.keymap.set("n", "<S-Up>", function()
+        if not handlers.scroll_float(ctrl_y) then vim.cmd("normal! " .. ctrl_b) end
+      end, { buffer = args.buf, silent = true })
+      vim.keymap.set("i", "<S-Down>", function()
+        handlers.scroll_float(ctrl_e)
+      end, { buffer = args.buf, silent = true })
+      vim.keymap.set("i", "<S-Up>", function()
+        handlers.scroll_float(ctrl_y)
+      end, { buffer = args.buf, silent = true })
       vim.keymap.set("n", "<S-j>", function()
         if not handlers.scroll_float(ctrl_f) then vim.cmd("normal! " .. ctrl_f) end
       end, { buffer = args.buf, silent = true })
