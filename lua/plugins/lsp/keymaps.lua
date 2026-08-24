@@ -3,13 +3,33 @@
 -- All keymaps are set via LspAttach autocmd, so they only activate
 -- in buffers where an LSP server is running.
 --
--- Keybindings:
+-- Navigation:
 --   <C-b>/<C-j>/<C-Down>  go to definition (peek if multiple)
 --   <C-k>/<C-Up>          find references (floating picker)
---   <C-d>                 hover documentation
+--   <S-b>                 go to type definition
+--   <C-A-b>              go to implementation
+--   <C-t>                 search workspace symbols
+--   <leader>o             document outline (right-side panel)
+--
+-- Documentation & Scroll:
+--   <C-d>                 hover documentation (type info and docs)
 --   <S-Down>/<S-Up>       scroll float window (4 lines); page scroll if no float
 --   <S-j>/<S-k>           scroll float window (full page); page scroll if no float
---   <leader>rn            rename symbol
+--
+-- Editing:
+--   <leader>rn            rename symbol across project
+--   <A-S-i>/<A-CR>        code action (fixes and refactorings)
+--   <leader>f             format file (normal) or selection (visual)
+--   <C-s>                 expand selection by syntax tree (normal/visual)
+--
+-- Diagnostics:
+--   [g                    jump to previous diagnostic
+--   ]g                    jump to next diagnostic
+--   <C-e>                 open diagnostic float (focusable) or loclist if no diagnostic
+--
+-- Call Hierarchy:
+--   <C-A-i>              show incoming calls (callers)
+--   <C-A-o>              show outgoing calls (callees)
 
 local M = {}
 
@@ -88,9 +108,16 @@ function M.setup()
       -- Selection range: progressively expand selection by syntax tree
       vim.keymap.set("n", "<C-s>", lsp.selection_range, opts)
       vim.keymap.set("x", "<C-s>", lsp.selection_range, opts)
-      -- Show diagnostics list: open all diagnostics in location list
-      vim.keymap.set("n", "<C-e>", vim.diagnostic.setloclist, opts)
-      vim.keymap.set("i", "<C-e>", vim.diagnostic.setloclist, opts)
+      -- Show diagnostics: if current line has diagnostics, open focusable float;
+      -- otherwise open all diagnostics in location list
+      local function diagnostic_float_or_loclist()
+        local _, winid = vim.diagnostic.open_float(nil, { focusable = true, focus = true })
+        if not winid then
+          vim.diagnostic.setloclist()
+        end
+      end
+      vim.keymap.set("n", "<C-e>", diagnostic_float_or_loclist, opts)
+      vim.keymap.set("i", "<C-e>", diagnostic_float_or_loclist, opts)
       -- Incoming call tree: show callers of the symbol under cursor
       vim.keymap.set("n", "<C-A-i>", require("plugins.lsp.call_hierarchy").incoming, opts)
       -- Outgoing call tree: show callees of the symbol under cursor
