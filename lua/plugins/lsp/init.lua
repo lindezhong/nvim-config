@@ -217,6 +217,19 @@ return {
         end,
       })
 
+      -- :LspStatus — show indexing state of all attached LSP clients
+      vim.api.nvim_create_user_command("LspStatus", function()
+        local clients = vim.lsp.get_clients({ bufnr = 0 })
+        if #clients == 0 then
+          vim.notify("No LSP clients attached", vim.log.levels.INFO)
+          return
+        end
+        for _, client in ipairs(clients) do
+          local status = lsp_initialized[client.id] and "ready" or "indexing..."
+          vim.notify("[" .. client.name .. "] " .. status, vim.log.levels.INFO)
+        end
+      end, { desc = "Show LSP indexing status" })
+
       -- ===== Internal modules (lua/plugins/lsp/*) =====
 
       -- Diagnostic display settings (signs, float-on-hold, no virtual text)

@@ -31,8 +31,10 @@ function M.jump_to(win, loc)
   if buf ~= vim.api.nvim_win_get_buf(win) then
     vim.api.nvim_win_set_buf(win, buf)
   end
-  -- Set cursor position (col is 1-indexed, nvim expects 0-indexed col)
-  vim.api.nvim_win_set_cursor(win, { loc.lnum, loc.col - 1 })
+  -- Set cursor position (clamp to buffer size for async-loaded buffers like jdt://)
+  local line_count = vim.api.nvim_buf_line_count(buf)
+  local lnum = math.max(1, math.min(loc.lnum, line_count))
+  vim.api.nvim_win_set_cursor(win, { lnum, loc.col - 1 })
 end
 
 return M

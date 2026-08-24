@@ -71,7 +71,7 @@ return {
         -- Detect project root by walking up from the current file looking for build markers.
         -- Falls back to cwd if no marker is found (e.g. standalone .java file).
         --- @type string absolute path to the project root directory
-        local root = require("jdtls.setup").find_root({ "gradlew", "mvnw", "pom.xml", "build.gradle", ".git" })
+        local root = require("jdtls.setup").find_root({ ".git", "gradlew", "mvnw" })
           or vim.fn.getcwd()
         -- Use the root directory's basename as a unique project identifier.
         -- This isolates jdtls workspace metadata per project under the cache dir.
@@ -87,6 +87,14 @@ return {
           },
           -- Project root directory (jdtls uses this for classpath resolution)
           root_dir = root,
+          settings = {
+            java = {
+              references = { includeDecompiledSources = true },
+              configuration = {
+                runtimes = require("local-config").java_runtimes,
+              },
+            },
+          },
           -- Pass debug/test bundles so jdtls loads them at startup
           init_options = {
             bundles = bundles,

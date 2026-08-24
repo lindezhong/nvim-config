@@ -1,3 +1,6 @@
+# Machine-local configuration (per-machine paths, not shared)
+lua/local.lua
+
 # Plugin lock file (each machine syncs its own versions)
 lazy-lock.json
 

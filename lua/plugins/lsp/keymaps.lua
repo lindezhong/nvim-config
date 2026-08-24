@@ -100,7 +100,7 @@ function M.setup()
       -- Type definition: jump to the type of the symbol under cursor
       vim.keymap.set("n", "<S-b>", lsp.type_definition, opts)
       -- Implementation: jump to the implementation of an interface/abstract
-      vim.keymap.set("n", "<C-A-b>", lsp.implementation, opts)
+      vim.keymap.set("n", "<A-j>", lsp.implementation, opts)
       -- Workspace symbols: search symbols across the entire project
       vim.keymap.set("n", "<C-t>", lsp.workspace_symbol, opts)
       -- Document outline: show file symbols in a right-side panel
