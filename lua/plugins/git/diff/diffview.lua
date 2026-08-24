@@ -110,22 +110,34 @@ function M.show_vimdiff(inst, opts)
       vim.bo[inst.new_buf].filetype = ft
     end
   else
-    -- No ref2 means compare against the working tree file
+    -- No ref2 means compare against the working tree file.
+    -- Read content from the in-memory buffer (captures unsaved edits) or disk.
     local root = git.root() or ""
-    -- Build the absolute path to the working tree file
     local abs_path = root .. "/" .. opts.path
-    -- Add the file buffer (reuses existing buffer if already loaded)
-    inst.new_buf = vim.fn.bufadd(abs_path)
-    -- Temporarily suppress swap file warning messages
-    local saved_shm = vim.o.shortmess
-    vim.o.shortmess = saved_shm .. "A"
-    -- Load the buffer contents from disk
-    local ok = pcall(vim.fn.bufload, inst.new_buf)
-    -- Restore the original shortmess setting
-    vim.o.shortmess = saved_shm
-    if not ok then
-      -- If buffer loading failed, abort without showing diff
-      return
+    local existing_buf = vim.fn.bufnr(abs_path)
+    if existing_buf ~= -1 and api.nvim_buf_is_loaded(existing_buf) then
+      new_lines = api.nvim_buf_get_lines(existing_buf, 0, -1, false)
+    else
+      local f = io.open(abs_path, "r")
+      if f then
+        local content = f:read("*a")
+        f:close()
+        new_lines = vim.split(content, "\n", { plain = true })
+        if new_lines[#new_lines] == "" then
+          new_lines[#new_lines] = nil
+        end
+      end
+    end
+    inst.new_buf = api.nvim_create_buf(false, true)
+    vim.bo[inst.new_buf].buftype = "nofile"
+    vim.bo[inst.new_buf].bufhidden = "wipe"
+    vim.bo[inst.new_buf].swapfile = false
+    if new_lines then
+      api.nvim_buf_set_lines(inst.new_buf, 0, -1, false, new_lines)
+    end
+    vim.bo[inst.new_buf].modifiable = false
+    if ft ~= "" then
+      vim.bo[inst.new_buf].filetype = ft
     end
   end
 
@@ -238,8 +250,8 @@ end
 -- with empty buffers, then deletes the diff buffers.
 ---@param inst table The diffview instance to clear
 function M.clear(inst)
-  -- Iterate over all windows to find and clean up ones showing our buffers
-  for _, win in ipairs(api.nvim_list_wins()) do
+  -- Iterate over windows in the current tab page only (avoid replacing buffers in other tabs)
+  for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
     if api.nvim_win_is_valid(win) then
       -- Get the buffer currently displayed in this window
       local buf = api.nvim_win_get_buf(win)
@@ -256,16 +268,11 @@ function M.clear(inst)
     end
   end
 
-  -- Delete the old buffer if it still exists
   if inst.old_buf and api.nvim_buf_is_valid(inst.old_buf) then
     api.nvim_buf_delete(inst.old_buf, { force = true })
   end
-  -- Delete the new buffer only if it's a scratch buffer (not a real file buffer)
   if inst.new_buf and api.nvim_buf_is_valid(inst.new_buf) then
-    -- Only delete scratch buffers, not real file buffers from the working tree
-    if vim.bo[inst.new_buf].buftype == "nofile" then
-      api.nvim_buf_delete(inst.new_buf, { force = true })
-    end
+    api.nvim_buf_delete(inst.new_buf, { force = true })
   end
   -- Delete the unified diff buffer if it still exists
   if inst.unified_buf and api.nvim_buf_is_valid(inst.unified_buf) then
