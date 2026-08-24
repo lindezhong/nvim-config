@@ -242,8 +242,10 @@ local function open_float(items, display_lines, opts, source_win)
     local file_buf = buf_utils.ensure_loaded(item.filename)
     -- Switch preview window buffer (no flicker)
     vim.api.nvim_win_set_buf(preview_win, file_buf)
-    -- Position cursor at target line
-    vim.api.nvim_win_set_cursor(preview_win, { item.lnum, 0 })
+    -- Position cursor at target line (clamp to buffer line count)
+    local line_count = vim.api.nvim_buf_line_count(file_buf)
+    local target_line = math.min(item.lnum, line_count)
+    vim.api.nvim_win_set_cursor(preview_win, { math.max(1, target_line), 0 })
     -- Center the target line vertically in preview
     vim.api.nvim_win_call(preview_win, function()
       vim.cmd("normal! zz")
