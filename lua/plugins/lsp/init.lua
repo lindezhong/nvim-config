@@ -117,7 +117,7 @@ return {
       -- Show LSP loading progress in the command line only during initial workspace
       -- initialization. Once all progress tokens for a client complete, subsequent
       -- progress events (e.g. from opening new files) are suppressed. Messages are
-      -- recorded in :messages and auto-cleared from the command line after 60 seconds.
+      -- display-only (not recorded in :messages) and auto-cleared after 60 seconds.
       -- State is reset on LspDetach so restarted servers show progress again.
 
       --- @type table<integer, table<string|integer, boolean>>
@@ -136,8 +136,8 @@ return {
       --- Each call resets the timer so only the last message triggers the clear.
       --- @param msg string  The message to display
       local function lsp_echo(msg)
-        -- Show the message and record it in :messages history
-        vim.api.nvim_echo({{ msg }}, true, {})
+        -- Show the message without recording it in :messages history
+        vim.api.nvim_echo({{ msg }}, false, {})
         -- Reset the auto-clear timer (single-shot, 60 seconds)
         lsp_clear_timer:stop()
         lsp_clear_timer:start(60000, 0, vim.schedule_wrap(function()
