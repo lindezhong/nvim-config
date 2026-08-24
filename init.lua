@@ -37,6 +37,11 @@ vim.opt.cindent = true
 vim.opt.wrap = false
 -- Hide right-bottom cursor position display
 vim.opt.ruler = false
+-- Disable mouse capture so the terminal handles mouse natively (allows copy).
+-- Options: "a" = all modes, "n"/"v"/"i"/"c" = specific modes, "" = disabled.
+-- Even with mouse disabled, holding Shift + mouse click/drag in most terminals
+-- temporarily bypasses application mouse capture for native selection.
+vim.opt.mouse = "a"
 -- Faster CursorHold events (default 4000ms is too slow for LSP)
 vim.opt.updatetime = 300
 -- Don't show completion messages in cmdline (e.g. "match 1 of 2")
