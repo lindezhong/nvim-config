@@ -28,6 +28,11 @@ function M.create()
   self.old_buf = nil
   -- Buffer handle for the new (target) version of the file
   self.new_buf = nil
+  -- Ownership of new_buf:
+  --   "scratch"  = we created it (deletable)
+  --   "loaded"   = we loaded a file buffer via bufadd (delete if unmodified, unlist otherwise)
+  --   "external" = user's pre-existing buffer (don't touch)
+  self.new_buf_owned = "scratch"
   -- Buffer handle for the unified diff output
   self.unified_buf = nil
   -- Return the initialized diffview instance
@@ -87,12 +92,11 @@ function M.show_vimdiff(inst, opts)
   end
 
   -- Determine the content for the new (right) side of the diff
-  local new_lines
   if opts.ref2 then
-    -- If ref2 is given, retrieve that specific version from git
-    new_lines = git.file_content(opts.ref2, opts.path)
+    local new_lines = git.file_content(opts.ref2, opts.path)
     -- Create a scratch buffer for the new version
     inst.new_buf = api.nvim_create_buf(false, true)
+    inst.new_buf_owned = "scratch"
     -- Mark as non-file scratch buffer
     vim.bo[inst.new_buf].buftype = "nofile"
     -- Wipe when hidden
@@ -111,33 +115,21 @@ function M.show_vimdiff(inst, opts)
     end
   else
     -- No ref2 means compare against the working tree file.
-    -- Read content from the in-memory buffer (captures unsaved edits) or disk.
+    -- Use the real file buffer so edits are possible.
     local root = git.root() or ""
     local abs_path = root .. "/" .. opts.path
     local existing_buf = vim.fn.bufnr(abs_path)
-    if existing_buf ~= -1 and api.nvim_buf_is_loaded(existing_buf) then
-      new_lines = api.nvim_buf_get_lines(existing_buf, 0, -1, false)
+    if existing_buf ~= -1 and api.nvim_buf_is_loaded(existing_buf)
+        and vim.bo[existing_buf].buflisted then
+      inst.new_buf = existing_buf
+      inst.new_buf_owned = "external"
     else
-      local f = io.open(abs_path, "r")
-      if f then
-        local content = f:read("*a")
-        f:close()
-        new_lines = vim.split(content, "\n", { plain = true })
-        if new_lines[#new_lines] == "" then
-          new_lines[#new_lines] = nil
-        end
+      if existing_buf == -1 then
+        existing_buf = vim.fn.bufadd(abs_path)
       end
-    end
-    inst.new_buf = api.nvim_create_buf(false, true)
-    vim.bo[inst.new_buf].buftype = "nofile"
-    vim.bo[inst.new_buf].bufhidden = "wipe"
-    vim.bo[inst.new_buf].swapfile = false
-    if new_lines then
-      api.nvim_buf_set_lines(inst.new_buf, 0, -1, false, new_lines)
-    end
-    vim.bo[inst.new_buf].modifiable = false
-    if ft ~= "" then
-      vim.bo[inst.new_buf].filetype = ft
+      vim.fn.bufload(existing_buf)
+      inst.new_buf = existing_buf
+      inst.new_buf_owned = "loaded"
     end
   end
 
@@ -272,7 +264,15 @@ function M.clear(inst)
     api.nvim_buf_delete(inst.old_buf, { force = true })
   end
   if inst.new_buf and api.nvim_buf_is_valid(inst.new_buf) then
-    api.nvim_buf_delete(inst.new_buf, { force = true })
+    if inst.new_buf_owned == "scratch" then
+      api.nvim_buf_delete(inst.new_buf, { force = true })
+    elseif inst.new_buf_owned == "loaded" then
+      if vim.bo[inst.new_buf].modified then
+        vim.bo[inst.new_buf].buflisted = false
+      else
+        api.nvim_buf_delete(inst.new_buf, { force = true })
+      end
+    end
   end
   -- Delete the unified diff buffer if it still exists
   if inst.unified_buf and api.nvim_buf_is_valid(inst.unified_buf) then
@@ -281,6 +281,7 @@ function M.clear(inst)
   -- Reset all buffer handles to nil
   inst.old_buf = nil
   inst.new_buf = nil
+  inst.new_buf_owned = "scratch"
   inst.unified_buf = nil
 end
 
