@@ -27,6 +27,14 @@
 --   R             - refresh file list from git
 --   (cursor move) - preview diff for file under cursor (debounced)
 --
+-- Diff view (vimdiff panes, working tree mode):
+--   do            - (diffget) revert hunk at cursor from old side
+--   dp            - (diffput) push hunk at cursor to new side
+--   ]c            - jump to next change
+--   [c            - jump to previous change
+--   The new (right) pane is the real file buffer; edits and :w are supported.
+--   Known issue: closing with unsaved edits triggers E37; save first.
+--
 -- Log view (commit list panel):
 --   <CR>          - open diff view for the selected commit
 --   q             - close the log window
