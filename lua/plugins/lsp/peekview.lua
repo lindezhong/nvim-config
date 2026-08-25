@@ -35,7 +35,6 @@
 ---@field max_width_ratio? number maximum float window width as fraction of screen (0-1)
 ---@field max_height_ratio? number maximum list height as fraction of screen (0-1)
 ---@field split_height? integer list window height in split mode (rows)
----@field show_numbers? boolean whether to show line numbers in preview window
 
 -- Keybinding configuration
 ---@class PeekViewKeys
@@ -79,7 +78,6 @@ local default_layout = {
   max_width_ratio = 0.8,  -- max 80% of screen width
   max_height_ratio = 0.3, -- list max 30% of screen height
   split_height = 10,      -- split mode 10 rows
-  show_numbers = true,    -- show line numbers in preview
 }
 
 -- Default keybindings
@@ -215,16 +213,19 @@ local function open_float(items, display_lines, opts, source_win)
     height = list_height,
     row = start_row,
     col = start_col,
-    style = "minimal",    -- no line numbers, fold column, etc.
     -- Use global winborder if set, otherwise default to rounded (required for title)
     border = (vim.o.winborder ~= "" and vim.o.winborder ~= "none") and vim.o.winborder or "rounded",
     title = " " .. opts.title .. " ",
     title_pos = "center",
   })
+  vim.wo[list_win].number = vim.go.number
+  vim.wo[list_win].signcolumn = "no"
+  vim.wo[list_win].foldcolumn = "0"
+  vim.wo[list_win].spell = false
   -- Show cursor line highlight bar
   vim.wo[list_win].cursorline = true
   -- Override window highlight groups: background uses float, cursor line uses select
-  vim.wo[list_win].winhighlight = "NormalFloat:" .. hl.float .. ",FloatBorder:" .. hl.float .. ",CursorLine:" .. hl.select
+  vim.wo[list_win].winhighlight = "NormalFloat:" .. hl.float .. ",FloatBorder:" .. hl.float .. ",CursorLine:" .. hl.select .. ",CursorLineNr:LineNr"
 
   -- Open preview float window (unfocused, initially shows list_buf as placeholder)
   local preview_win = vim.api.nvim_open_win(list_buf, false, {
@@ -233,14 +234,15 @@ local function open_float(items, display_lines, opts, source_win)
     height = preview_height,
     row = start_row + list_height + 2,  -- below list window (content + top/bottom border)
     col = start_col,
-    style = "minimal",
     -- Use global winborder if set, otherwise default to rounded (required for title)
     border = (vim.o.winborder ~= "" and vim.o.winborder ~= "none") and vim.o.winborder or "rounded",
     title = " " .. (opts.preview_title or "Preview") .. " ",
     title_pos = "center",
   })
-  -- Show line numbers in preview for orientation
-  vim.wo[preview_win].number = layout.show_numbers
+  vim.wo[preview_win].number = vim.go.number
+  vim.wo[preview_win].signcolumn = "no"
+  vim.wo[preview_win].foldcolumn = "0"
+  vim.wo[preview_win].spell = false
   -- Preview window background color
   vim.wo[preview_win].winhighlight = "NormalFloat:" .. hl.float .. ",FloatBorder:" .. hl.float
 
