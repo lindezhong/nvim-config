@@ -7,7 +7,7 @@
 --   <C-b>/<C-j>/<C-Down>  go to definition (peek if multiple)
 --   <C-k>/<C-Up>          find references (floating picker)
 --   <S-b>                 go to type definition
---   <C-A-b>              go to implementation
+--   <A-j>                go to implementation (peek if multiple)
 --   <C-t>                 search workspace symbols
 --   <leader>o             document outline (right-side panel)
 --
