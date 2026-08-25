@@ -124,11 +124,32 @@ end
 ---@param word string? keyword to highlight (optional)
 ---@param hl_group string highlight group name to use
 local function add_highlight(buf, item, word, hl_group)
-  -- Convert col to 0-indexed
+  local line_idx = item.lnum - 1
+  if not word then
+    vim.api.nvim_buf_set_extmark(buf, ns, line_idx, 0, {
+      end_row = line_idx, end_col = 0, hl_eol = true, hl_group = hl_group, priority = 200,
+    })
+    return
+  end
+  -- Try item.col first; if the word doesn't match there, search the line
+  local lines = vim.api.nvim_buf_get_lines(buf, line_idx, line_idx + 1, false)
+  if #lines == 0 then return end
+  local line = lines[1]
   local start_col = item.col - 1
-  -- With word: highlight [col, col+len); without: -1 means end of line
-  local end_col = word and (start_col + #word) or -1
-  vim.api.nvim_buf_add_highlight(buf, ns, hl_group, item.lnum - 1, start_col, end_col)
+  if line:sub(start_col + 1, start_col + #word) ~= word then
+    local found = line:find(word, 1, true)
+    if found then
+      start_col = found - 1
+    else
+      vim.api.nvim_buf_set_extmark(buf, ns, line_idx, 0, {
+        end_row = line_idx, end_col = 0, hl_eol = true, hl_group = hl_group, priority = 200,
+      })
+      return
+    end
+  end
+  vim.api.nvim_buf_set_extmark(buf, ns, line_idx, start_col, {
+    end_col = start_col + #word, hl_group = hl_group, priority = 200,
+  })
 end
 
 -- Internal resolved options (all fields guaranteed non-nil after merging defaults)
@@ -250,7 +271,7 @@ local function open_float(items, display_lines, opts, source_win)
     vim.api.nvim_win_call(preview_win, function()
       vim.cmd("normal! zz")
     end)
-    -- Highlight the target keyword (or entire line)
+    -- Highlight the target keyword in the preview window
     add_highlight(file_buf, item, opts.word, hl.preview)
     -- Remember this buffer for next cleanup
     prev_buf = file_buf
