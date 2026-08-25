@@ -213,15 +213,12 @@ local function open_float(items, display_lines, opts, source_win)
     height = list_height,
     row = start_row,
     col = start_col,
-    -- Use global winborder if set, otherwise default to rounded (required for title)
+    style = "minimal",
     border = (vim.o.winborder ~= "" and vim.o.winborder ~= "none") and vim.o.winborder or "rounded",
     title = " " .. opts.title .. " ",
     title_pos = "center",
   })
   vim.wo[list_win].number = vim.go.number
-  vim.wo[list_win].signcolumn = "no"
-  vim.wo[list_win].foldcolumn = "0"
-  vim.wo[list_win].spell = false
   -- Show cursor line highlight bar
   vim.wo[list_win].cursorline = true
   -- Override window highlight groups: background uses float, cursor line uses select
@@ -234,15 +231,12 @@ local function open_float(items, display_lines, opts, source_win)
     height = preview_height,
     row = start_row + list_height + 2,  -- below list window (content + top/bottom border)
     col = start_col,
-    -- Use global winborder if set, otherwise default to rounded (required for title)
+    style = "minimal",
     border = (vim.o.winborder ~= "" and vim.o.winborder ~= "none") and vim.o.winborder or "rounded",
     title = " " .. (opts.preview_title or "Preview") .. " ",
     title_pos = "center",
   })
   vim.wo[preview_win].number = vim.go.number
-  vim.wo[preview_win].signcolumn = "no"
-  vim.wo[preview_win].foldcolumn = "0"
-  vim.wo[preview_win].spell = false
   -- Preview window background color
   vim.wo[preview_win].winhighlight = "NormalFloat:" .. hl.float .. ",FloatBorder:" .. hl.float
 
