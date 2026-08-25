@@ -18,6 +18,13 @@ function M.ensure_loaded(filename)
   if vim.fn.bufloaded(buf) == 0 then
     vim.fn.bufload(buf)
   end
+  -- bufload doesn't always trigger filetype detection; detect explicitly
+  if vim.bo[buf].filetype == "" then
+    local ft = vim.filetype.match({ buf = buf, filename = filename })
+    if ft then
+      vim.bo[buf].filetype = ft
+    end
+  end
   return buf
 end
 

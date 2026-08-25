@@ -128,6 +128,13 @@ function M.show_vimdiff(inst, opts)
         existing_buf = vim.fn.bufadd(abs_path)
       end
       vim.fn.bufload(existing_buf)
+      -- bufload doesn't always trigger filetype detection; detect explicitly
+      if vim.bo[existing_buf].filetype == "" then
+        local detected = vim.filetype.match({ buf = existing_buf, filename = abs_path })
+        if detected then
+          vim.bo[existing_buf].filetype = detected
+        end
+      end
       inst.new_buf = existing_buf
       inst.new_buf_owned = "loaded"
     end
