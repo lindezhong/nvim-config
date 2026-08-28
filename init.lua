@@ -64,6 +64,10 @@ vim.opt.writebackup = false
 --   infocmp -x | sed 's|rmcup=\\E\[?1049l\\E\[23;0;0t|rmcup=\\E[?1049l\\E[23;0;0t\\E[2 q|' | tic -x -
 -- Rollback: rm -rf ~/.terminfo/
 vim.opt.guicursor = "a:block-blinkon0"
+-- Jumplist behaves like browser back/forward (new jump after back clears forward history)
+vim.opt.jumpoptions = "stack"
+-- Per-directory shada file so each project has its own jumplist/marks
+vim.opt.shadafile = vim.fn.stdpath("state") .. "/shada/" .. vim.fn.getcwd():gsub("/", "_") .. ".shada"
 -- Only show statusline when multiple windows are open
 vim.opt.laststatus = 1
 -- Fill characters for separators and folds
