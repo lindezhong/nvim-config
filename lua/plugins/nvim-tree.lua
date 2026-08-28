@@ -40,6 +40,8 @@ return {
         -- Tree panel position and width
         view = { side = "left", width = 30 },
         renderer = {
+          -- Collapse single-child directories into one line (e.g. src/components/button)
+          group_empty = true,
           icons = {
             -- Disable file/folder/git icons (no nerd font), keep only folder arrows
             show = { file = false, folder = false, folder_arrow = true, git = false },
