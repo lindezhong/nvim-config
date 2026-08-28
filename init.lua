@@ -133,6 +133,8 @@ require("dict").setup({
 
 -- ===== Modules =====
 
+-- Machine-local options and data (lua/local.lua, gitignored)
+require("local-config")
 -- Global keybindings: buffer/window navigation, save, jumplist, scroll, etc.
 require("keymaps")
 -- Directory-level session auto save/load with plugin hook interface
