@@ -148,8 +148,8 @@ local function try_incoming_calls(item, req)
       table.insert(children, make_call_node(call.from, rng))
     end
   end
-  -- Return nil (not empty table) to signal "no results" for fallback logic
-  return #children > 0 and children or nil
+  -- {} = no callers (definitive, no fallback); nil (above) = error (fallback)
+  return children
 end
 
 --- Execute a textDocument/references request at a given position.
@@ -218,8 +218,9 @@ end
 ---@param req table request context from lsp.start_request
 ---@return table[]? children array of child nodes, or nil/empty
 local function expand_incoming(node, req)
-  -- Re-prepare at definition position (required for some servers)
-  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
+  -- Reuse original CallHierarchyItem directly; re-prepare at selectionRange
+  -- can return the wrong item on some servers (e.g., jdtls).
+  local item = node.item or lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
   -- Try primary method: callHierarchy/incomingCalls
   local children = try_incoming_calls(item, req)
   if children then return children end
@@ -268,8 +269,9 @@ end
 ---@param req table request context from lsp.start_request
 ---@return table[]? children array of child nodes, or nil
 local function expand_outgoing(node, req)
-  -- Re-prepare at definition position (required for some servers)
-  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
+  -- Reuse original CallHierarchyItem directly; re-prepare at selectionRange
+  -- can return the wrong item on some servers (e.g., jdtls).
+  local item = node.item or lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
   return try_outgoing_calls(item, req)
 end
 
