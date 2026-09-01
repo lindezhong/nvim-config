@@ -26,6 +26,17 @@
 --               Path must be absolute; ~ is expanded to $HOME (Unix only)
 --               Omit path (e.g. shell://) to use Neovim's cwd
 --               shell:/// uses / as working directory
+--   Shell SSH:  bash://user@host/remote/path
+--               bash://user:pass@host:port/remote/path
+--               zsh://admin@10.0.0.1/home/admin/scripts
+--               pwsh://admin@winhost/tmp
+--               cmd://admin@winhost/C:/scripts
+--               cmd SSH limitation: lines joined with ' & ', multi-line
+--               if/for/^ constructs in .bat files will break
+--               Omit path → remote home directory
+--               ~ in path expanded on remote (e.g. bash://user@host/~/proj)
+--               Password in URL uses SSH_ASKPASS (no sshpass needed)
+--               First-time host trust handled via StrictHostKeyChecking=accept-new
 --   Full URL syntax: :h dadbod-adapters (need run :DBUI first to load help)
 --
 -- Sidebar keybindings (inside DBUI drawer):
@@ -40,6 +51,13 @@
 --   <Leader>w  save query to file
 --   <Leader>e  execute SQL or re-edit bind params (normal) / execute selection (visual)
 --   <Leader>r  toggle expanded result view (like MySQL \G)
+--
+-- Working directory override (:DBCd):
+--   Temporarily override the working directory for the current buffer.
+--   Only affects shell adapters (shell, bash, zsh, cmd, powershell, pwsh).
+--   :DBCd /tmp          set working directory to /tmp
+--   :DBCd ~/projects    set to ~/projects (~ expanded locally or remotely)
+--   :DBCd               reset to URL path (default behavior)
 --
 -- Buffer binding (:DBBind):
 --   Bind any file buffer to a DBUI connection so <Leader>e executes it.
@@ -76,7 +94,7 @@ return {
       { "tpope/vim-dadbod", lazy = true },
       { "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true },
     },
-    cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer", "DBBind" },
+    cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer", "DBBind", "DBCd" },
     init = function()
       -- All vim.g settings must be set BEFORE the plugin loads
 
@@ -90,15 +108,146 @@ return {
       vim.g.db_adapter_powershell = "DbPwsh_"
       vim.g.db_adapter_pwsh = "DbPwsh_"
       vim.cmd([[
-        " --- shared: resolve working directory from URL ---
+        " --- shared: path quoting and working directory ---
+
+        " Quote a path for POSIX shell, keeping ~ outside quotes for expansion.
+        " @param path string  filesystem path (may start with ~)
+        " @return string  shell-safe quoted path
+        function! s:sh_quote(path) abort
+          if a:path ==# '~'
+            return '~'
+          endif
+          if a:path =~# '^\~/'
+            return '~/' . shellescape(a:path[2:])
+          endif
+          return shellescape(a:path)
+        endfunction
+
+        " Returns local working directory for the given adapter URL.
+        " For no-path URLs (scheme://), falls back to Neovim's cwd.
+        " @param url string  adapter URL
+        " @return string  directory path (may contain ~)
         function! s:resolve_dir(url) abort
+          if exists('b:db_cwd') && !empty(b:db_cwd)
+            return b:db_cwd
+          endif
           " scheme:// and scheme:/// both parse to path="/",
           " use raw URL to distinguish: no trailing path → Neovim cwd
           if a:url =~# '^[^:]\+://\%([?#]\|$\)'
             return getcwd()
           endif
-          let dir = db#url#file_path(a:url)
-          return substitute(dir, '^\~', $HOME, '')
+          return db#url#file_path(a:url)
+        endfunction
+
+        " --- shared: SSH remote execution helpers ---
+
+        " Check if URL targets a remote host (has host component).
+        " @param parsed dict  result of db#url#parse()
+        " @return boolean  1 if remote, 0 if local
+        function! s:is_remote(parsed) abort
+          return has_key(a:parsed, 'host') && !empty(a:parsed.host)
+        endfunction
+
+        " Build 'ssh [opts] user@host' prefix as a string.
+        " Includes -o StrictHostKeyChecking=accept-new for first-time trust,
+        " and ControlMaster/ControlPersist for connection reuse (avoids
+        " repeated TCP handshake + key exchange on every query execution).
+        " @param parsed dict  result of db#url#parse()
+        " @return string  ssh command prefix (e.g. 'ssh -o ... -p 22 admin@host')
+        function! s:ssh_prefix(parsed) abort
+          let parts = ['ssh',
+                \ '-o', 'StrictHostKeyChecking=accept-new',
+                \ '-o', 'ConnectTimeout=5',
+                \ '-o', 'ControlMaster=auto',
+                \ '-o', 'ControlPath=/tmp/dbui-ssh-%r@%h:%p',
+                \ '-o', 'ControlPersist=600']
+          if has_key(a:parsed, 'port') && !empty(a:parsed.port)
+            call extend(parts, ['-p', a:parsed.port])
+          endif
+          let target = (has_key(a:parsed, 'user') && !empty(a:parsed.user) ? a:parsed.user . '@' : '') . a:parsed.host
+          call add(parts, target)
+          return join(map(parts, 'shellescape(v:val)'), ' ')
+        endfunction
+
+        " Resolve remote working directory from b:db_cwd or URL path.
+        " @param url string  raw adapter URL (used to distinguish no-path from '/')
+        " @param parsed dict  result of db#url#parse()
+        " @return string  resolved path (may contain ~), or '' for home dir
+        function! s:resolve_remote_path(url, parsed) abort
+          if exists('b:db_cwd') && !empty(b:db_cwd)
+            let path = b:db_cwd
+          else
+            let path = get(a:parsed, 'path', '')
+            if empty(path)
+              return ''
+            endif
+            " No explicit path after authority (e.g. bash://user@host:22)
+            " db#url#parse returns '/' for both this and bash://user@host:22/
+            if path ==# '/' && a:url =~# '://[^/]*$'
+              return ''
+            endif
+          endif
+          " /~/foo → ~/foo (let remote shell expand ~)
+          if path =~# '^/\~'
+            let path = path[1:]
+          endif
+          return path
+        endfunction
+
+        " Build remote 'cd /path && ' prefix for Unix shells (sh/bash/zsh/pwsh).
+        " Returns empty string when path is empty (use remote home dir).
+        " Path '/' generates 'cd / && ' (root directory).
+        " ~ is kept outside quotes so the remote shell expands it.
+        " @param url string  raw adapter URL
+        " @param parsed dict  result of db#url#parse()
+        " @return string  'cd /path && ' or ''
+        function! s:remote_cd(url, parsed) abort
+          let path = s:resolve_remote_path(a:url, a:parsed)
+          if empty(path)
+            return ''
+          endif
+          return 'cd ' . s:sh_quote(path) . ' && '
+        endfunction
+
+        " Build remote 'cd /d "path" && ' prefix for cmd.exe.
+        " Uses double quotes (cmd.exe does not recognize single quotes).
+        " Warns if path contains ~ (cmd.exe cannot expand it).
+        " @param url string  raw adapter URL
+        " @param parsed dict  result of db#url#parse()
+        " @return string  'cd /d "path" && ' or ''
+        function! s:remote_cd_cmd(url, parsed) abort
+          let path = s:resolve_remote_path(a:url, a:parsed)
+          if empty(path)
+            return ''
+          endif
+          if path =~# '\~'
+            echohl WarningMsg | echomsg 'DBCd: cmd.exe does not support ~ in paths' | echohl None
+          endif
+          " /C:/scripts → C:/scripts (URL path has leading / before drive letter)
+          if path =~# '^/[A-Za-z]:'
+            let path = path[1:]
+          endif
+          return 'cd /d "' . substitute(path, '"', '', 'g') . '" && '
+        endfunction
+
+        " Wrap an SSH command with SSH_ASKPASS for password-based auth.
+        " Creates a temp askpass script, runs the command, cleans up.
+        " When no password is present, returns the command unchanged.
+        " @param parsed dict  result of db#url#parse()
+        " @param ssh_cmd string  full SSH command string
+        " @return string  command with ASKPASS wrapper (or unchanged)
+        function! s:wrap_askpass(parsed, ssh_cmd) abort
+          if !has_key(a:parsed, 'password') || empty(a:parsed.password)
+            return a:ssh_cmd
+          endif
+          let askpass = tempname() . '.askpass.sh'
+          call writefile(['#!/bin/sh', 'echo ' . shellescape(a:parsed.password)], askpass)
+          call setfperm(askpass, 'rwx------')
+          let rm = 'rm -f ' . shellescape(askpass)
+          return 'trap ' . shellescape(rm) . ' EXIT INT TERM HUP; '
+                \ . 'SSH_ASKPASS=' . shellescape(askpass)
+                \ . ' SSH_ASKPASS_REQUIRE=force '
+                \ . a:ssh_cmd
         endfunction
 
         " --- Unix shells (sh/bash/zsh) ---
@@ -108,11 +257,24 @@ return {
         function! DbShell_input_extension(...) abort
           return 'sh'
         endfunction
+        " Build command to execute input file via sh/bash/zsh.
+        " Local: runs interpreter directly on the temp file.
+        " Remote: pipes temp file via stdin to 'ssh ... interpreter -s'.
+        " @param url string  adapter URL
+        " @param in string  path to local temp file with script content
+        " @return list|string  command for dadbod to execute
         function! DbShell_input(url, in) abort
-          let scheme = get(db#url#parse(a:url), 'scheme', 'shell')
+          let parsed = db#url#parse(a:url)
+          let scheme = get(parsed, 'scheme', 'shell')
           let sh = scheme ==# 'shell' ? 'sh' : scheme
+          if s:is_remote(parsed)
+            let remote_cmd = s:remote_cd(a:url, parsed) . sh . ' -s'
+            let ssh_cmd = s:ssh_prefix(parsed) . ' ' . shellescape(remote_cmd)
+                  \ . ' < ' . shellescape(a:in)
+            return ['sh', '-c', s:wrap_askpass(parsed, ssh_cmd)]
+          endif
           let dir = s:resolve_dir(a:url)
-          return [sh, '-c', 'cd ' . shellescape(dir) . ' && ' . shellescape(sh) . ' ' . shellescape(a:in)]
+          return [sh, '-c', 'cd ' . s:sh_quote(dir) . ' && ' . shellescape(sh) . ' ' . shellescape(a:in)]
         endfunction
         function! DbShell_auth_input() abort
           return v:false
@@ -122,7 +284,20 @@ return {
         function! DbCmd_input_extension(...) abort
           return 'bat'
         endfunction
+        " Build command to execute input file via cmd.exe.
+        " Local: runs cmd /c on the temp file.
+        " Remote: inlines script content into SSH command (cmd has no stdin mode).
+        " @param url string  adapter URL
+        " @param in string  path to local temp file with script content
+        " @return list|string  command for dadbod to execute
         function! DbCmd_input(url, in) abort
+          let parsed = db#url#parse(a:url)
+          if s:is_remote(parsed)
+            let content = join(readfile(a:in), ' & ')
+            let remote_cmd = s:remote_cd_cmd(a:url, parsed) . content
+            let ssh_cmd = s:ssh_prefix(parsed) . ' ' . shellescape(remote_cmd)
+            return ['sh', '-c', s:wrap_askpass(parsed, ssh_cmd)]
+          endif
           let dir = s:resolve_dir(a:url)
           return ['cmd', '/c', 'cd /d ' . shellescape(dir) . ' && cmd /c ' . shellescape(a:in)]
         endfunction
@@ -134,12 +309,25 @@ return {
         function! DbPwsh_input_extension(...) abort
           return 'ps1'
         endfunction
+        " Build command to execute input file via powershell/pwsh.
+        " Local: runs interpreter with -Command on the temp file.
+        " Remote: pipes temp file via stdin to 'ssh ... pwsh -Command -'.
+        " @param url string  adapter URL
+        " @param in string  path to local temp file with script content
+        " @return list|string  command for dadbod to execute
         function! DbPwsh_input(url, in) abort
-          let scheme = get(db#url#parse(a:url), 'scheme', 'pwsh')
+          let parsed = db#url#parse(a:url)
+          let scheme = get(parsed, 'scheme', 'pwsh')
           let sh = scheme ==# 'powershell' ? 'powershell' : 'pwsh'
+          if s:is_remote(parsed)
+            let remote_cmd = s:remote_cd(a:url, parsed) . sh . ' -NoProfile -Command -'
+            let ssh_cmd = s:ssh_prefix(parsed) . ' ' . shellescape(remote_cmd)
+                  \ . ' < ' . shellescape(a:in)
+            return ['sh', '-c', s:wrap_askpass(parsed, ssh_cmd)]
+          endif
           let dir = s:resolve_dir(a:url)
           return [sh, '-NoProfile', '-Command',
-                \ 'Set-Location ' . shellescape(dir) . '; & ' . shellescape(a:in)]
+                \ 'Set-Location ' . s:sh_quote(dir) . '; & ' . shellescape(a:in)]
         endfunction
         function! DbPwsh_auth_input() abort
           return v:false
@@ -230,6 +418,22 @@ return {
           db_bind(choice)
         end)
       end, { desc = "Bind buffer to DBUI connection" })
+
+      vim.api.nvim_create_user_command("DBCd", function(opts)
+        if opts.args == "" then
+          vim.b.db_cwd = nil
+          vim.notify("DBCd: reset to URL path", vim.log.levels.INFO)
+        else
+          vim.b.db_cwd = opts.args
+          vim.notify("DBCd: " .. opts.args, vim.log.levels.INFO)
+        end
+      end, {
+        nargs = "?",
+        desc = "Override working directory for current buffer",
+        complete = function(arg_lead)
+          return vim.fn.getcompletion(arg_lead, "dir")
+        end,
+      })
 
       -- nvim-cmp integration: add dadbod completion source for SQL filetypes
       vim.api.nvim_create_autocmd("FileType", {
