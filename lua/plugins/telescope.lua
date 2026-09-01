@@ -28,6 +28,7 @@ return {
     "nvim-telescope/telescope.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim", -- required utility library for telescope
+      "nvim-telescope/telescope-ui-select.nvim", -- vim.ui.select via telescope
     },
     config = function()
       local telescope = require("telescope")
@@ -175,6 +176,9 @@ return {
           },
         },
       })
+
+      -- Override vim.ui.select with telescope picker
+      telescope.load_extension("ui-select")
 
       -- File search (normal + insert mode)
       -- Passes ignore_default explicitly to include toggleable exclusions;

@@ -51,7 +51,7 @@
 --     - 0 connected, 1 saved  → auto-bind from saved
 --     - 0 connected, N saved  → pick from all saved connections
 --   Example workflow:
---     1. Open a .sh or .sql file
+--     1. Open a .sql file
 --     2. :DBBind          (select or auto-bind a connection)
 --     3. <Leader>e        (execute the file against the bound connection)
 --
