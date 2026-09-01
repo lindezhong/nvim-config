@@ -16,6 +16,16 @@
 --   SQLite:     sqlite:///path/to/file.db
 --   Redis:      redis://user:pass@host:port
 --   MongoDB:    mongodb://user:pass@host:port/dbname
+--   Shell:      shell:///path/to/dir    (uses sh)
+--               bash:///path/to/dir     (uses bash)
+--               zsh:///path/to/dir      (uses zsh)
+--               cmd:///C:/path/to/dir   (uses cmd.exe, Windows)
+--               powershell:///path      (uses powershell, Windows)
+--               pwsh:///path            (uses pwsh, cross-platform)
+--               e.g. shell:///~/projects
+--               Path must be absolute; ~ is expanded to $HOME (Unix only)
+--               Omit path (e.g. shell://) to use Neovim's cwd
+--               shell:/// uses / as working directory
 --   Full URL syntax: :h dadbod-adapters (need run :DBUI first to load help)
 --
 -- Sidebar keybindings (inside DBUI drawer):
@@ -55,6 +65,72 @@ return {
     cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer" },
     init = function()
       -- All vim.g settings must be set BEFORE the plugin loads
+
+      -- Register shell adapters for executing commands via DBUI
+      -- Unix: shell→sh, bash→bash, zsh→zsh
+      vim.g.db_adapter_shell = "DbShell_"
+      vim.g.db_adapter_bash = "DbShell_"
+      vim.g.db_adapter_zsh = "DbShell_"
+      -- Windows: cmd→cmd.exe, powershell→powershell, pwsh→pwsh
+      vim.g.db_adapter_cmd = "DbCmd_"
+      vim.g.db_adapter_powershell = "DbPwsh_"
+      vim.g.db_adapter_pwsh = "DbPwsh_"
+      vim.cmd([[
+        " --- shared: resolve working directory from URL ---
+        function! s:resolve_dir(url) abort
+          " scheme:// and scheme:/// both parse to path="/",
+          " use raw URL to distinguish: no trailing path → Neovim cwd
+          if a:url =~# '^[^:]\+://\%([?#]\|$\)'
+            return getcwd()
+          endif
+          let dir = db#url#file_path(a:url)
+          return substitute(dir, '^\~', $HOME, '')
+        endfunction
+
+        " --- Unix shells (sh/bash/zsh) ---
+        function! DbShell_canonicalize(url) abort
+          return substitute(a:url, '^\([^:]\+:///\)\~', '\1' . $HOME, '')
+        endfunction
+        function! DbShell_input_extension(...) abort
+          return 'sh'
+        endfunction
+        function! DbShell_input(url, in) abort
+          let scheme = get(db#url#parse(a:url), 'scheme', 'shell')
+          let sh = scheme ==# 'shell' ? 'sh' : scheme
+          let dir = s:resolve_dir(a:url)
+          return [sh, '-c', 'cd ' . shellescape(dir) . ' && ' . shellescape(sh) . ' ' . shellescape(a:in)]
+        endfunction
+        function! DbShell_auth_input() abort
+          return v:false
+        endfunction
+
+        " --- Windows cmd.exe ---
+        function! DbCmd_input_extension(...) abort
+          return 'bat'
+        endfunction
+        function! DbCmd_input(url, in) abort
+          let dir = s:resolve_dir(a:url)
+          return ['cmd', '/c', 'cd /d ' . shellescape(dir) . ' && cmd /c ' . shellescape(a:in)]
+        endfunction
+        function! DbCmd_auth_input() abort
+          return v:false
+        endfunction
+
+        " --- PowerShell (powershell/pwsh) ---
+        function! DbPwsh_input_extension(...) abort
+          return 'ps1'
+        endfunction
+        function! DbPwsh_input(url, in) abort
+          let scheme = get(db#url#parse(a:url), 'scheme', 'pwsh')
+          let sh = scheme ==# 'powershell' ? 'powershell' : 'pwsh'
+          let dir = s:resolve_dir(a:url)
+          return [sh, '-NoProfile', '-Command',
+                \ 'Set-Location ' . shellescape(dir) . '; & ' . shellescape(a:in)]
+        endfunction
+        function! DbPwsh_auth_input() abort
+          return v:false
+        endfunction
+      ]])
 
       -- Don't auto-execute SQL on :w (default, explicit for clarity)
       vim.g.db_ui_execute_on_save = 0
