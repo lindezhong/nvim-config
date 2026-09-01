@@ -83,6 +83,11 @@ local function keep_display_cols(str, cols)
   return str:sub(1, pos - 1)
 end
 
+--- @type string Cached tabline output, returned during transient unlisted states
+local last_result = ""
+--- Timer for deferred re-render after unlisted buffer gains focus
+local unlisted_timer = vim.uv.new_timer()
+
 --- Build the tabline string from all listed buffers.
 --- Uses vim-buftabline algorithm: center on current buffer, split screen into
 --- halves, donate surplus from underflowing side, trim whole tabs from outer
@@ -91,6 +96,22 @@ end
 local function render()
   local columns = vim.o.columns
   local current = vim.api.nvim_get_current_buf()
+
+  -- When focus is on an unlisted buffer (DBUI result, nvim-tree, help, etc.),
+  -- return cached output to avoid flicker from transient focus changes.
+  -- Schedule a deferred re-render: if focus stays unlisted (nvim-tree),
+  -- the timer fires and renders normally; if focus returns to a listed
+  -- buffer quickly (e.g. a command that transiently focuses an unlisted
+  -- buffer), the timer is cancelled — no flash.
+  if vim.fn.buflisted(current) == 0 and last_result ~= "" then
+    unlisted_timer:stop()
+    unlisted_timer:start(10, 0, vim.schedule_wrap(function()
+      last_result = ""
+      vim.cmd.redrawtabline()
+    end))
+    return last_result
+  end
+  unlisted_timer:stop()
 
   -- Collect listed buffers
   --- @type {buf: number, name: string, fullpath: string}[]
@@ -119,7 +140,8 @@ local function render()
   end
 
   if #tabs == 0 then
-    return "%#" .. hl.fill .. "#"
+    last_result = "%#" .. hl.fill .. "#"
+    return last_result
   end
 
   -- Resolve center buffer index (sticky across renders)
@@ -288,7 +310,8 @@ local function render()
     table.insert(parts, "%#" .. hl.fill .. "# " .. tostring(#tabs - last) .. "\u{bb}")
   end
 
-  return table.concat(parts) .. "%#" .. hl.fill .. "#"
+  last_result = table.concat(parts) .. "%#" .. hl.fill .. "#"
+  return last_result
 end
 
 --- Define highlight groups for the tabline using cterm attributes.
