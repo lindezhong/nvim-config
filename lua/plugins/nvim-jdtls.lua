@@ -41,6 +41,14 @@ return {
       local mason_path = vim.fn.stdpath("data") .. "/mason"
       --- @type string Path to the jdtls Mason package (contains bin/jdtls launcher)
       local jdtls_path = mason_path .. "/packages/jdtls"
+      --- @type string Path to the lombok agent JAR bundled with the Mason jdtls package
+      local lombok_jar = jdtls_path .. "/lombok.jar"
+      if not vim.uv.fs_stat(lombok_jar) then
+        vim.notify(
+          "jdtls: lombok.jar not found. Lombok annotations will not work.\nRun :MasonInstall jdtls to reinstall.",
+          vim.log.levels.WARN
+        )
+      end
 
       -- Collect debug/test extension JARs that jdtls loads as "bundles".
       -- These enable DAP support inside jdtls (java-debug-adapter provides the
@@ -81,10 +89,13 @@ return {
         local workspace_dir = vim.fn.stdpath("cache") .. "/jdtls/workspace/" .. project_name
         return {
           -- Command to launch jdtls; "-data" points to the per-project workspace
-          cmd = {
+          cmd = vim.list_extend({
             jdtls_path .. "/bin/jdtls",
             "-data", workspace_dir,
-          },
+          }, vim.uv.fs_stat(lombok_jar)
+            and { "--jvm-arg=-javaagent:" .. lombok_jar }
+            or {}
+          ),
           -- Project root directory (jdtls uses this for classpath resolution)
           root_dir = root,
           settings = {
