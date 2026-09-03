@@ -162,15 +162,17 @@ return {
 
       -- Auto-insert "()" as snippet after confirming a Function/Method completion
       -- from LSP servers that don't provide snippet-style calls (e.g., pyright).
-      -- Same approach as coc-pyright: insert `($1)$0` so cursor lands inside parens.
       -- Skips when the server already inserted parens (vtsls/clangd/lua_ls with snippets).
+      -- Skips for filetypes where functions don't use () (shell commands).
       local Kind = require("cmp.types").lsp.CompletionItemKind
       local paren_kinds = {
         [Kind.Function] = true,
         [Kind.Method] = true,
         [Kind.Constructor] = true,
       }
+      local no_auto_paren_ft = { sh = true, bash = true, zsh = true }
       cmp.event:on("confirm_done", function(evt)
+        if no_auto_paren_ft[vim.bo.filetype] then return end
         local item = evt.entry:get_completion_item()
         if not paren_kinds[item.kind] then return end
         -- Skip if server already inserted parens (snippet or insertText contains "(")
