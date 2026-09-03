@@ -122,6 +122,13 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 vim.api.nvim_create_autocmd("VimLeave", {
   callback = function()
+    -- Wipe unlisted buffers before saving so mksession skips them
+    -- (plugin drawers, results, help, etc. that aren't in buftabline)
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_valid(buf) and vim.fn.buflisted(buf) == 0 then
+        pcall(vim.api.nvim_buf_delete, buf, { force = true })
+      end
+    end
     M.save()
   end,
 })
