@@ -28,19 +28,6 @@ for _, spec in ipairs(require("local-config").extra_lsp) do
   ensure.addLsp(spec)
 end
 
--- Servers skipped from Mason need explicit vim.lsp.enable() to be picked up
--- from system PATH (automatic_enable only scans Mason-installed packages).
--- Only enable if the binary is actually available to avoid startup errors.
-local skip = {}
-for _, name in ipairs(require("local-config").skip_mason) do
-  skip[name] = true
-end
-for _, entry in ipairs(ensure.lsp_servers) do
-  if skip[entry.name] and vim.fn.executable(entry.name) == 1 then
-    vim.lsp.enable(entry.name)
-  end
-end
-
 return {
   -- Core LSP configuration (server settings, capabilities, keymaps)
   {
@@ -248,6 +235,24 @@ return {
           vim.notify("[" .. client.name .. "] " .. status, vim.log.levels.INFO)
         end
       end, { desc = "Show LSP indexing status" })
+
+      -- Enable skip_mason servers found on system PATH.
+      -- Must run inside config (after lspconfig loads) so vim.lsp.config[name].cmd
+      -- is populated — the cmd[1] gives the real binary name (e.g. "lua-language-server"
+      -- for lspconfig name "lua_ls").
+      local skip = {}
+      for _, name in ipairs(require("local-config").skip_mason) do
+        skip[name] = true
+      end
+      for _, entry in ipairs(ensure.lsp_servers) do
+        if skip[entry.name] then
+          local cfg = vim.lsp.config[entry.name]
+          local bin = cfg and cfg.cmd and cfg.cmd[1] or entry.name
+          if vim.fn.executable(bin) == 1 then
+            vim.lsp.enable(entry.name)
+          end
+        end
+      end
 
       -- ===== Internal modules (lua/plugins/lsp/*) =====
 
