@@ -1,5 +1,14 @@
 -- Machine-local config reader.
 -- Reads lua/local.lua (gitignored) and merges into default structure.
+--
+-- Example lua/local.lua:
+--   return {
+--     java_runtimes = {
+--       { name = "JavaSE-17", path = "/usr/lib/jvm/java-17-openjdk" },
+--     },
+--     skip_mason = { "clangd" },
+--     extra_lsp = { "gopls" },
+--   }
 
 ---@class JavaRuntime
 ---@field name "JavaSE-1.8"|"JavaSE-9"|"JavaSE-10"|"JavaSE-11"|"JavaSE-12"|"JavaSE-13"|"JavaSE-14"|"JavaSE-15"|"JavaSE-16"|"JavaSE-17"|"JavaSE-18"|"JavaSE-19"|"JavaSE-20"|"JavaSE-21"|"JavaSE-22"|"JavaSE-23" Eclipse ExecutionEnvironment name, must match project's target Java version
