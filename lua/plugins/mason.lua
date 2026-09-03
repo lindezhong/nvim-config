@@ -9,6 +9,13 @@
 --   require("mason-ensure").addLsp("server-name")       LSP servers, latest version
 --   require("mason-ensure").addLsp("server-name@1.0")   LSP servers, pinned version
 
+-- Packages listed in local-config skip_mason are excluded from Mason installation
+-- but remain enabled (LSP servers are still activated via vim.lsp.enable in lsp/init.lua).
+local skip = {}
+for _, name in ipairs(require("local-config").skip_mason) do
+  skip[name] = true
+end
+
 --- @type LazyPluginSpec[]
 return {
   -- Mason core: package manager for external tools
@@ -32,9 +39,11 @@ return {
         registry.refresh(function()
           -- Iterate over each registered tool and install if not already present
           for _, entry in ipairs(tools) do
-            local ok, pkg = pcall(registry.get_package, entry.name)
-            if ok and not pkg:is_installed() and not pkg:is_installing() then
-              pkg:install({ version = entry.version })
+            if not skip[entry.name] then
+              local ok, pkg = pcall(registry.get_package, entry.name)
+              if ok and not pkg:is_installed() and not pkg:is_installing() then
+                pkg:install({ version = entry.version })
+              end
             end
           end
         end)
@@ -57,12 +66,12 @@ return {
         -- Build ensure_installed list in "name@version" format for mason-lspconfig
         local ensure_installed = {}
         for _, entry in ipairs(servers) do
-          if entry.version then
-            -- Pin to specific version: "vtsls@0.2.6"
-            table.insert(ensure_installed, entry.name .. "@" .. entry.version)
-          else
-            -- Install latest: "vtsls"
-            table.insert(ensure_installed, entry.name)
+          if not skip[entry.name] then
+            if entry.version then
+              table.insert(ensure_installed, entry.name .. "@" .. entry.version)
+            else
+              table.insert(ensure_installed, entry.name)
+            end
           end
         end
         -- Auto-install listed servers and enable them for matching filetypes
@@ -70,6 +79,7 @@ return {
           ensure_installed = ensure_installed,
         })
       end
+
     end,
   },
 }

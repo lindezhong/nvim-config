@@ -18,7 +18,7 @@
 --- @class MasonEnsure
 --- @field tools MasonEnsureEntry[] List of generic Mason tools
 --- @field lsp_servers MasonEnsureEntry[] List of LSP servers in lspconfig format
-local M = { tools = {}, lsp_servers = {} }
+local M = { tools = {}, lsp_servers = {}, _seen_tools = {}, _seen_lsp = {} }
 
 --- Parse "name@version" format into name and version components.
 --- If no "@" is present, version is nil (install latest).
@@ -44,8 +44,9 @@ end
 --- available versions are the release tags of that upstream repo.
 --- @param spec string Mason registry package name, optionally with @version
 function M.add(spec)
-  -- Parse spec into name and version, then store as structured entry
   local name, version = parse(spec)
+  if M._seen_tools[name] then return end
+  M._seen_tools[name] = true
   table.insert(M.tools, { name = name, version = version })
 end
 
@@ -58,8 +59,9 @@ end
 --- in mason-registry for the upstream repo; available versions are that repo's release tags.
 --- @param spec string lspconfig server name, optionally with @version
 function M.addLsp(spec)
-  -- Parse spec into name and version, then store as structured entry
   local name, version = parse(spec)
+  if M._seen_lsp[name] then return end
+  M._seen_lsp[name] = true
   table.insert(M.lsp_servers, { name = name, version = version })
 end
 

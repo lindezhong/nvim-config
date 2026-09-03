@@ -3,7 +3,7 @@
 -- Plugin declarations and server setup:
 -- 1. Server configs: vtsls, jsonls, lua_ls, pyright, clangd, bashls,
 --    html, cssls, yamlls, lemminx (Java handled by nvim-jdtls plugin)
--- 2. Servers are auto-installed via mason-ensure and auto-enabled via mason-lspconfig
+-- 2. Servers are auto-installed via mason-ensure, enabled via vim.lsp.enable()
 -- 3. Semantic tokens disabled to prevent overriding syntax colors
 --
 -- :LspInfo    show attached LSP clients for current buffer
@@ -11,16 +11,35 @@
 
 -- Register LSP servers for auto-installation via Mason
 -- Uses lspconfig names; mason-lspconfig maps them to Mason package names
-require("mason-ensure").addLsp("vtsls")     -- TypeScript/JavaScript
-require("mason-ensure").addLsp("jsonls")    -- JSON
-require("mason-ensure").addLsp("lua_ls")    -- Lua
-require("mason-ensure").addLsp("pyright")   -- Python
-require("mason-ensure").addLsp("clangd")    -- C/C++
-require("mason-ensure").addLsp("bashls")    -- Shell (Bash/Sh)
-require("mason-ensure").addLsp("html")      -- HTML
-require("mason-ensure").addLsp("cssls")     -- CSS/SCSS/Less
-require("mason-ensure").addLsp("yamlls")    -- YAML
-require("mason-ensure").addLsp("lemminx")   -- XML
+local ensure = require("mason-ensure")
+ensure.addLsp("vtsls")     -- TypeScript/JavaScript
+ensure.addLsp("jsonls")    -- JSON
+ensure.addLsp("lua_ls")    -- Lua
+ensure.addLsp("pyright")   -- Python
+ensure.addLsp("clangd")    -- C/C++
+ensure.addLsp("bashls")    -- Shell (Bash/Sh)
+ensure.addLsp("html")      -- HTML
+ensure.addLsp("cssls")     -- CSS/SCSS/Less
+ensure.addLsp("yamlls")    -- YAML
+ensure.addLsp("lemminx")   -- XML
+
+-- Machine-local LSP servers from lua/local.lua
+for _, spec in ipairs(require("local-config").extra_lsp) do
+  ensure.addLsp(spec)
+end
+
+-- Servers skipped from Mason need explicit vim.lsp.enable() to be picked up
+-- from system PATH (automatic_enable only scans Mason-installed packages).
+-- Only enable if the binary is actually available to avoid startup errors.
+local skip = {}
+for _, name in ipairs(require("local-config").skip_mason) do
+  skip[name] = true
+end
+for _, entry in ipairs(ensure.lsp_servers) do
+  if skip[entry.name] and vim.fn.executable(entry.name) == 1 then
+    vim.lsp.enable(entry.name)
+  end
+end
 
 return {
   -- Core LSP configuration (server settings, capabilities, keymaps)

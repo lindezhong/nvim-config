@@ -7,6 +7,8 @@
 
 ---@class LocalConfig
 ---@field java_runtimes JavaRuntime[] Local JDK installations registered to jdtls so it can compile projects targeting different Java versions (used by plugins/nvim-jdtls.lua → settings.java.configuration.runtimes)
+---@field skip_mason string[] Mason package names (or lspconfig server names) to skip installing, for environments where certain packages fail to build (e.g. {"clangd"})
+---@field extra_lsp string[] Additional LSP servers to register on this machine (e.g. {"gopls"}), installed via Mason and enabled like built-in servers; if a server also appears in skip_mason, it will be enabled but not installed via Mason (useful for system-installed servers)
 
 local ok, cfg = pcall(require, "local")
 if not ok then cfg = {} end
@@ -14,4 +16,6 @@ if not ok then cfg = {} end
 ---@type LocalConfig
 return {
   java_runtimes = cfg.java_runtimes or {},
+  skip_mason = cfg.skip_mason or {},
+  extra_lsp = cfg.extra_lsp or {},
 }
