@@ -7,7 +7,16 @@
 --       { name = "JavaSE-17", path = "/usr/lib/jvm/java-17-openjdk" },
 --     },
 --     skip_mason = { "clangd" },
---     extra_lsp = { "gopls" },
+--     extra_lsp = {
+--       { lsp = "gopls" },
+--       { lsp = "rust_analyzer", settings = {
+--           ["rust-analyzer"] = {
+--             cargo = { allFeatures = true },
+--             checkOnSave = { command = "clippy" },
+--           },
+--         },
+--       },
+--     },
 --   }
 
 ---@class JavaRuntime
@@ -17,7 +26,7 @@
 ---@class LocalConfig
 ---@field java_runtimes JavaRuntime[] Local JDK installations registered to jdtls so it can compile projects targeting different Java versions (used by plugins/nvim-jdtls.lua → settings.java.configuration.runtimes)
 ---@field skip_mason string[] Mason package names (or lspconfig server names) to skip installing, for environments where certain packages fail to build (e.g. {"clangd"}); skipped LSP servers are still enabled if the binary is found on system PATH
----@field extra_lsp string[] Additional LSP servers to register on this machine (e.g. {"gopls"}), installed via Mason and enabled like built-in servers; if also in skip_mason, Mason installation is skipped but the server is still enabled if the binary is found on system PATH
+---@field extra_lsp { lsp: string, [string]: any }[] Additional LSP servers as { lsp = "name", ...config }; installed via Mason and enabled like built-in servers; config fields are passed to vim.lsp.config(); if also in skip_mason, Mason installation is skipped but the server is still enabled if the binary is found on system PATH
 
 local ok, cfg = pcall(require, "local")
 if not ok then cfg = {} end

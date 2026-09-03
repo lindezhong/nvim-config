@@ -12,16 +12,34 @@
 -- Register LSP servers for auto-installation via Mason
 -- Uses lspconfig names; mason-lspconfig maps them to Mason package names
 local ensure = require("mason-ensure")
-ensure.addLsp("vtsls")     -- TypeScript/JavaScript
-ensure.addLsp("jsonls")    -- JSON
-ensure.addLsp("lua_ls")    -- Lua
-ensure.addLsp("pyright")   -- Python
-ensure.addLsp("clangd")    -- C/C++
-ensure.addLsp("bashls")    -- Shell (Bash/Sh)
-ensure.addLsp("html")      -- HTML
-ensure.addLsp("cssls")     -- CSS/SCSS/Less
-ensure.addLsp("yamlls")    -- YAML
-ensure.addLsp("lemminx")   -- XML
+ensure.addLsp({ lsp = "vtsls", settings = (function() -- TypeScript/JavaScript
+  local s = {
+    typescript = { suggest = { completeFunctionCalls = true } },
+    javascript = { suggest = { completeFunctionCalls = true } },
+  }
+  local tsdk = vim.fn.glob(
+    vim.fn.stdpath("data") .. "/mason/packages/vtsls/**/typescript/lib", false, true
+  )[1]
+  if tsdk then s.typescript.tsdk = tsdk end
+  return s
+end)() })
+ensure.addLsp({ lsp = "jsonls" })    -- JSON
+ensure.addLsp({ lsp = "lua_ls", settings = { -- Lua
+  Lua = {
+    runtime = { version = "LuaJIT" },
+    workspace = {
+      library = { vim.env.VIMRUNTIME },
+      checkThirdParty = false,
+    },
+  },
+} })
+ensure.addLsp({ lsp = "pyright" })   -- Python
+ensure.addLsp({ lsp = "clangd" })   -- C/C++
+ensure.addLsp({ lsp = "bashls" })   -- Shell (Bash/Sh)
+ensure.addLsp({ lsp = "html" })     -- HTML
+ensure.addLsp({ lsp = "cssls" })    -- CSS/SCSS/Less
+ensure.addLsp({ lsp = "yamlls" })   -- YAML
+ensure.addLsp({ lsp = "lemminx" })  -- XML
 
 -- Machine-local LSP servers from lua/local.lua
 for _, spec in ipairs(require("local-config").extra_lsp) do
@@ -88,36 +106,12 @@ return {
         end,
       })
 
-      -- vtsls: auto-insert function call snippets with parameter placeholders,
-      -- and use bundled TypeScript lib for go-to-definition on built-in types
-      local vtsls_settings = {
-        typescript = { suggest = { completeFunctionCalls = true } },
-        javascript = { suggest = { completeFunctionCalls = true } },
-      }
-      local vtsls_tsdk = vim.fn.glob(
-        vim.fn.stdpath("data") .. "/mason/packages/vtsls/**/typescript/lib", false, true
-      )[1]
-      if vtsls_tsdk then
-        vtsls_settings.typescript.tsdk = vtsls_tsdk
+      -- Apply LSP configs registered via addLsp
+      for _, entry in ipairs(ensure.lsp_servers) do
+        if entry.config then
+          vim.lsp.config(entry.name, entry.config)
+        end
       end
-      vim.lsp.config("vtsls", { settings = vtsls_settings })
-
-      -- Configure lua_ls to recognize Neovim runtime API
-      -- (vim.*, vim.api.*, etc. for plugin/config development)
-      vim.lsp.config("lua_ls", {
-        settings = {
-          Lua = {
-            -- Use LuaJIT runtime (Neovim's embedded Lua engine)
-            runtime = { version = "LuaJIT" },
-            workspace = {
-              -- Add Neovim runtime files to workspace library for API completion
-              library = { vim.env.VIMRUNTIME },
-              -- Disable third-party library detection prompts
-              checkThirdParty = false,
-            },
-          },
-        },
-      })
 
       -- ===== LSP progress notifications =====
       -- Show LSP loading progress in the command line only during initial workspace

@@ -4,10 +4,11 @@
 -- into ~/.local/share/nvim/mason/ without polluting system PATH.
 --
 -- Other plugins declare dependencies at the top of their spec files:
---   require("mason-ensure").add("tool-name")           generic tools, latest version
---   require("mason-ensure").add("tool-name@1.0.0")     generic tools, pinned version
---   require("mason-ensure").addLsp("server-name")       LSP servers, latest version
---   require("mason-ensure").addLsp("server-name@1.0")   LSP servers, pinned version
+--   require("mason-ensure").add("tool-name")                    generic tools, latest version
+--   require("mason-ensure").add("tool-name@1.0.0")              generic tools, pinned version
+--   require("mason-ensure").addLsp({ lsp = "server-name" })     LSP servers, latest version
+--   require("mason-ensure").addLsp({ lsp = "server-name@1.0" }) LSP servers, pinned version
+--   require("mason-ensure").addLsp({ lsp = "server-name", settings = { ... } })  with config
 
 -- Packages listed in local-config skip_mason are excluded from Mason installation
 -- but remain enabled (LSP servers are still activated via vim.lsp.enable in lsp/init.lua).
