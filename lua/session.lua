@@ -15,10 +15,7 @@ local session_dir = vim.fn.stdpath("data") .. "/sessions"
 local session_file = nil
 
 -- Directories excluded from session management
-local exclude_dirs = {
-  vim.fn.expand("~") .. "/db_ui",
-  vim.fn.expand("~") .. "/.local/share/db_ui",
-}
+local exclude_dirs = {}
 
 -- Plugin hooks: other modules can register save/load callbacks
 M.hooks = {
