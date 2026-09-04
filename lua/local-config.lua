@@ -1,7 +1,23 @@
 -- Machine-local config reader.
 -- Reads lua/local.lua (gitignored) and merges into default structure.
+-- local.lua supports native vim configuration (vim.g, vim.opt, autocmds, etc.)
+-- in addition to returning a config table.
 --
 -- Example lua/local.lua:
+--   -- Native vim configuration (executed when local.lua is loaded)
+--   vim.g.clipboard = {
+--     name = "OSC 52",
+--     copy = {
+--       ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+--       ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+--     },
+--     paste = {
+--       ["+"] = function() return 0 end,
+--       ["*"] = function() return 0 end,
+--     },
+--   }
+--
+--   -- Config table returned for structured settings
 --   return {
 --     java_runtimes = {
 --       { name = "JavaSE-17", path = "/usr/lib/jvm/java-17-openjdk" },
