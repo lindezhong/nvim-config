@@ -4,9 +4,10 @@
 -- symbol under cursor.
 --
 -- Incoming strategy:
---   1. Primary: callHierarchy/incomingCalls
---   2. Fallback: textDocument/references — captures usage patterns not covered
---      by call hierarchy
+--   1. Primary: callHierarchy/incomingCalls (re-prepare item each time for full data)
+--   2. Fallback: textDocument/references when incomingCalls fails, is unsupported, or empty
+--      (any enclosing symbol; root-level refs as leaves)
+--   If prepareCallHierarchy fails, builds a references-only root from cursor.
 --
 -- Outgoing strategy:
 --   1. callHierarchy/outgoingCalls only (no fallback needed)
@@ -49,17 +50,32 @@ vim.g.call_hierarchy_icons = vim.tbl_extend("keep", vim.g.call_hierarchy_icons o
   ref_prefix = "*",  -- prefix for reference-based nodes (vs call-based)
 })
 
---- SymbolKind values that represent callable containers.
+--- SymbolKind values that represent scope-creating containers.
 --- Controls two behaviors:
 ---   1. Nodes with kind NOT in this set are marked as leaf (unexpandable)
----   2. References fallback (incoming only): only references inside these kinds become nodes
+---   2. References fallback: only references inside these kinds become nodes
 ---@type table<integer, boolean>
 local container_kinds = {
   [5] = true,   -- Class
   [6] = true,   -- Method
   [9] = true,   -- Constructor
+  [10] = true,  -- Enum
+  [11] = true,  -- Interface
   [12] = true,  -- Function
+  [23] = true,  -- Struct
 }
+
+--- Start an LSP request, selecting the best client for call hierarchy operations.
+--- Client selection only: prefers a call-hierarchy-capable client, falls back to a
+--- references-capable client (e.g., lua_ls). Request-level fallback (incomingCalls
+--- empty/failed → references) is handled inside expand_incoming, not here.
+local function start_lsp_request(bufnr, timeout, fn, on_error)
+  local client = lsp.start_request(bufnr, "textDocument/prepareCallHierarchy", timeout, fn, on_error)
+  if not client then
+    client = lsp.start_request(bufnr, "textDocument/references", timeout, fn, on_error)
+  end
+  return client
+end
 
 --------------------------------------------------------------------------
 -- Node construction (shared by both directions)
@@ -85,7 +101,7 @@ local function make_call_node(item, call_range, call_uri)
   local jump_uri = call_uri or item.uri
   return {
     name = item.name,             -- display name of the function
-    item = item,                  -- original CallHierarchyItem (for direct reuse)
+    item = item,                  -- original CallHierarchyItem (fallback when re-prepare fails)
     uri = item.uri,               -- file URI of this symbol (for expansion via prepareCallHierarchy)
     def_lnum = def_lnum,          -- definition line (1-indexed, for prepareCallHierarchy)
     def_col = def_col,            -- definition column (1-indexed, for prepareCallHierarchy)
@@ -118,7 +134,7 @@ local function make_ref_node(ref_uri, ref_pos, sym)
     filename = vim.uri_to_fname(ref_uri),  -- file path (for jump-to)
     lnum = lnum,                  -- reference line (1-indexed, for jump-to)
     col = col,                    -- reference column (1-indexed, for jump-to)
-    is_leaf = false,              -- reference nodes are always expandable
+    is_leaf = not container_kinds[sym.kind],  -- only callable containers are expandable
     is_ref = true,                -- this is a reference node (shown with ref_prefix icon)
   }
 end
@@ -134,9 +150,7 @@ end
 ---@return table[]? children array of call nodes, or nil if no results
 local function try_incoming_calls(item, req)
   if not item then return nil end
-  -- Ensure the file is loaded so the server can process the request
   local target_bufnr = req.ensure_buf_attached(item.uri)
-  -- Request incoming calls from the LSP server
   local err, result = req.request(target_bufnr, "callHierarchy/incomingCalls", {
     item = item,
   })
@@ -148,8 +162,8 @@ local function try_incoming_calls(item, req)
       table.insert(children, make_call_node(call.from, rng))
     end
   end
-  -- {} = no callers (definitive, no fallback); nil (above) = error (fallback)
-  return children
+  -- nil (not {}) on empty: lets expand_incoming fall back to references
+  return #children > 0 and children or nil
 end
 
 --- Execute a textDocument/references request at a given position.
@@ -173,8 +187,7 @@ end
 --- For each reference location:
 ---   1. Get documentSymbol for the file (cached)
 ---   2. Find the smallest enclosing symbol matching container_kinds
----   3. Create a ref node if a valid container is found
---- References in module scope (no enclosing container) are silently skipped.
+---   3. Create a ref node; root-level references become leaf nodes with file name
 ---@param uri string file URI of the symbol to find references for
 ---@param lnum integer 1-indexed line of the symbol
 ---@param col integer 1-indexed column of the symbol
@@ -195,12 +208,24 @@ local function try_references(uri, lnum, col, req)
     local symbols = lsp.get_doc_symbols(ref_uri, req)
     -- Convert to Neovim coordinates for find_enclosing
     local ref_lnum, ref_col = lsp.to_vim_pos(ref_pos)
-    -- Find the smallest enclosing container (function/method/class/constructor)
     local sym = lsp.find_enclosing(symbols, ref_lnum, ref_col, container_kinds)
     if sym then
       table.insert(children, make_ref_node(ref_uri, ref_pos, sym))
+    else
+      local fname = vim.uri_to_fname(ref_uri)
+      table.insert(children, {
+        name = vim.fn.fnamemodify(fname, ":t"),
+        item = nil,
+        uri = ref_uri,
+        def_lnum = ref_lnum,
+        def_col = ref_col,
+        filename = fname,
+        lnum = ref_lnum,
+        col = ref_col,
+        is_leaf = true,
+        is_ref = true,
+      })
     end
-    -- If sym is nil, reference is in module scope — skip it
   end
   return children
 end
@@ -218,13 +243,11 @@ end
 ---@param req table request context from lsp.start_request
 ---@return table[]? children array of child nodes, or nil/empty
 local function expand_incoming(node, req)
-  -- Reuse original CallHierarchyItem directly; re-prepare at selectionRange
-  -- can return the wrong item on some servers (e.g., jdtls).
-  local item = node.item or lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
-  -- Try primary method: callHierarchy/incomingCalls
+  -- Re-prepare for fresh server data; fall back to node.item for servers where
+  -- re-prepare at selectionRange may return the wrong item (e.g., jdtls)
+  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req) or node.item
   local children = try_incoming_calls(item, req)
   if children then return children end
-  -- Fallback: textDocument/references with enclosing symbol resolution
   return try_references(node.uri, node.def_lnum, node.def_col, req)
 end
 
@@ -241,9 +264,7 @@ end
 ---@return table[]? children array of call nodes, or nil if no results
 local function try_outgoing_calls(item, req)
   if not item then return nil end
-  -- Ensure the file is loaded so the server can process the request
   local target_bufnr = req.ensure_buf_attached(item.uri)
-  -- Request outgoing calls from the LSP server
   local err, result = req.request(target_bufnr, "callHierarchy/outgoingCalls", {
     item = item,
   })
@@ -269,9 +290,8 @@ end
 ---@param req table request context from lsp.start_request
 ---@return table[]? children array of child nodes, or nil
 local function expand_outgoing(node, req)
-  -- Reuse original CallHierarchyItem directly; re-prepare at selectionRange
-  -- can return the wrong item on some servers (e.g., jdtls).
-  local item = node.item or lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
+  -- Re-prepare for fresh server data; fall back to node.item (see expand_incoming)
+  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req) or node.item
   return try_outgoing_calls(item, req)
 end
 
@@ -290,6 +310,7 @@ local function open_call_hierarchy(direction)
   local source_win = vim.api.nvim_get_current_win()    -- window to jump back to on select
   local timeout = vim.g.call_hierarchy_timeout         -- operation timeout
   local icons = vim.g.call_hierarchy_icons             -- icon configuration
+  local cword = vim.fn.expand("<cword>")               -- capture before async
 
   -- Select expand function and UI labels based on direction
   local expand_fn = direction == "outgoing" and expand_outgoing or expand_incoming
@@ -298,28 +319,42 @@ local function open_call_hierarchy(direction)
 
   -- Start async LSP operation. req.source captures cursor position automatically.
   -- The root fetch happens BEFORE creating the treeview — panel only shows on success.
-  lsp.start_request(bufnr, "textDocument/prepareCallHierarchy", timeout, function(req)
-    -- Prepare CallHierarchyItem at cursor position
+  start_lsp_request(bufnr, timeout, function(req)
     local item = lsp.prepare_call_hierarchy(req.source.uri, req.source.lnum, req.source.col, req)
-    if not item then
+    if not item and direction == "outgoing" then
       vim.notify("[call_hierarchy] No call hierarchy item at cursor", vim.log.levels.WARN)
       return
     end
 
-    -- Build root node from the prepared item
-    local def_lnum, def_col = lsp.to_vim_pos(item.selectionRange.start)
-    local root_nodes = { {
-      name = item.name,
-      item = item,
-      uri = item.uri,
-      def_lnum = def_lnum,
-      def_col = def_col,
-      filename = vim.uri_to_fname(item.uri),
-      lnum = def_lnum,   -- root node: jump-to position = definition position
-      col = def_col,
-      is_leaf = false,    -- root is always expandable
-      is_ref = false,     -- root is always a call node
-    } }
+    local root_nodes
+    if item then
+      local def_lnum, def_col = lsp.to_vim_pos(item.selectionRange.start)
+      root_nodes = { {
+        name = item.name,
+        item = item,
+        uri = item.uri,
+        def_lnum = def_lnum,
+        def_col = def_col,
+        filename = vim.uri_to_fname(item.uri),
+        lnum = def_lnum,
+        col = def_col,
+        is_leaf = false,
+        is_ref = false,
+      } }
+    else
+      root_nodes = { {
+        name = cword,
+        item = nil,
+        uri = req.source.uri,
+        def_lnum = req.source.lnum,
+        def_col = req.source.col,
+        filename = vim.uri_to_fname(req.source.uri),
+        lnum = req.source.lnum,
+        col = req.source.col,
+        is_leaf = false,
+        is_ref = false,
+      } }
+    end
 
     --- TreeDataProvider implementation.
     --- Roots are pre-fetched (synchronous callback), children are async via LSP.
@@ -339,7 +374,7 @@ local function open_call_hierarchy(direction)
           return
         end
         -- Expand non-leaf: start a new LSP request chain with direction-specific logic
-        local client = lsp.start_request(bufnr, "textDocument/prepareCallHierarchy", timeout, function(r)
+        local client = start_lsp_request(bufnr, timeout, function(r)
           callback(expand_fn(element, r) or {})
         end, function(err)
           vim.notify("[call_hierarchy] " .. err, vim.log.levels.WARN)

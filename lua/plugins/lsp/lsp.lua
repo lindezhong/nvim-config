@@ -259,9 +259,8 @@ function M.start_request(source_bufnr, method, timeout_ms, fn, on_error)
         resume(err, result)
       end)
     end, target_bufnr)
-    -- If request failed to send (client shut down), error immediately
     if not ok then
-      error("request failed: " .. req_method)
+      return req_method .. " not supported by " .. client.name, nil
     end
     request_id = rid
     -- Set up timeout timer to cancel the request if server is too slow
