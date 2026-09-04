@@ -1,5 +1,5 @@
 -- Singleton StarDict dictionary reader with async chunked loading and
--- configurable HTML rendering via tree-sitter.
+-- configurable HTML rendering via built-in Lua HTML parser.
 --
 -- Reads StarDict binary format (.idx required; .ifo/.dict/.dict.dz optional)
 -- and provides prefix search with case-insensitive matching. Supports dictzip
@@ -11,7 +11,7 @@
 -- content_type metadata (defaults to plain text if absent), .dict.dz/.dict
 -- provide definition data (read_definition returns the word itself if absent).
 --
--- The HTML renderer uses tree-sitter to walk the DOM and applies user-defined
+-- The HTML renderer uses a built-in Lua HTML parser to walk the DOM and applies user-defined
 -- actions (skip/replace/before/wrap/transform) matched by CSS-like selectors.
 -- The html_map uses an ordered array format (not a hash table) because Lua
 -- tables have no guaranteed key iteration order.
@@ -43,6 +43,7 @@
 
 --- @type uv  libuv binding (vim.uv in nvim 0.10+, vim.loop in older)
 local uv = vim.uv or vim.loop
+local ts_html = require("tree_sitter_html")
 
 -- LuaJIT FFI binding to zlib for dictzip (.dict.dz) random-access decompression.
 -- Neovim links zlib at build time, so the library is always present in-process.
@@ -154,10 +155,6 @@ function M.setup(opts)
       M._use_dictzip = false
       M.dict_path = uv.fs_stat(dict_path) and dict_path or nil
     end
-  end
-  -- Warn if HTML renderer is needed but tree-sitter html parser is missing
-  if M.content_type == "h" and not pcall(vim.treesitter.language.inspect, "html") then
-    vim.notify("dict: HTML dictionary requires tree-sitter html parser (:TSInstall html)", vim.log.levels.WARN)
   end
   -- :Translate [word] — print definition to messages
   vim.api.nvim_create_user_command("Translate", function(cmd)
@@ -587,31 +584,24 @@ function M._apply_actions(actions, parts, walk_children)
   end
 end
 
---- Extract tag name, class list, and id from a tree-sitter start_tag or
---- self_closing_tag node by iterating its child nodes.
---- @param node userdata  tree-sitter node of type "start_tag" or "self_closing_tag"
---- @param buf integer  buffer handle containing the HTML source
+--- Extract tag name, class list, and id from a start_tag or self_closing_tag node.
+--- @param node table  node of type "start_tag" or "self_closing_tag"
 --- @return string|nil tag  the element's tag name
 --- @return string[]|nil classes  list of class names (split on whitespace)
 --- @return string|nil id  the element's id attribute value
-function M._extract_tag_info(node, buf)
+function M._extract_tag_info(node)
   local tag, classes, id
   for child in node:iter_children() do
     if child:type() == "tag_name" then
-      -- Extract tag name text (e.g. "span", "div")
-      tag = vim.treesitter.get_node_text(child, buf)
+      tag = ts_html.get_node_text(child)
     elseif child:type() == "attribute" then
-      -- Attribute node structure: name_node, "=", value_node
       local name_node = child:child(0)
       if name_node then
-        local attr_name = vim.treesitter.get_node_text(name_node, buf)
-        -- Value node is the 3rd child (index 2): quoted_attribute_value
+        local attr_name = ts_html.get_node_text(name_node)
         local val_node = child:child(2)
         if val_node then
-          -- Strip both single and double quotes from the raw value text
-          local val = vim.treesitter.get_node_text(val_node, buf):gsub('["\']', "")
+          local val = ts_html.get_node_text(val_node):gsub('["\']', "")
           if attr_name == "class" then
-            -- Split on whitespace to support multi-class attributes
             classes = vim.split(val, "%s+", { trimempty = true })
           elseif attr_name == "id" then
             id = val
@@ -623,55 +613,33 @@ function M._extract_tag_info(node, buf)
   return tag, classes, id
 end
 
---- Convert HTML dictionary content to plain text using tree-sitter parsing.
---- Creates a temporary buffer, parses with the HTML grammar, walks the tree
---- applying matched actions, then cleans up. Falls back to regex tag stripping
---- if tree-sitter is unavailable or parsing fails.
+--- Convert HTML dictionary content to plain text using the built-in Lua HTML parser.
+--- Walks the parsed tree applying matched actions. Falls back to regex tag
+--- stripping if parsing fails.
 --- @param html string  raw HTML content from the .dict file
 --- @return string  rendered plain text
 function M:_html_to_text(html)
-  -- Create an unlisted scratch buffer to hold HTML for tree-sitter parsing
-  local buf = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(html, "\n"))
-
-  -- Attempt to get the HTML tree-sitter parser for this buffer
-  local ok, parser = pcall(vim.treesitter.get_parser, buf, "html")
-  if not ok or not parser then
-    -- Fallback: strip all HTML tags with regex if parser unavailable
-    vim.api.nvim_buf_delete(buf, { force = true })
+  local ok, tree = pcall(ts_html.parse, html)
+  if not ok or not tree then
     return (html:gsub("<[^>]+>", ""))
   end
+  local root = tree:root()
 
-  -- Parse the buffer; handle empty/invalid HTML returning no trees
-  local trees = parser:parse()
-  if not trees[1] then
-    vim.api.nvim_buf_delete(buf, { force = true })
-    return (html:gsub("<[^>]+>", ""))
-  end
-  local root = trees[1]:root()
-
-  --- Recursively walk the tree-sitter AST, collecting text into parts.
-  --- @param node userdata  current tree-sitter node
-  --- @param parts string[]  output accumulator
   local function walk(node, parts)
     local ntype = node:type()
-    -- Leaf nodes: plain text content and HTML entities (e.g. &amp; &lt;)
     if ntype == "text" or ntype == "entity" then
-      local text = vim.treesitter.get_node_text(node, buf)
+      local text = ts_html.get_node_text(node)
       if text and text ~= "" then
         parts[#parts + 1] = text
       end
       return
     end
-    -- Self-closing tags (e.g. <br/>, <img/>): no children to recurse into
     if ntype == "self_closing_tag" then
-      local tag, classes, id = M._extract_tag_info(node, buf)
+      local tag, classes, id = M._extract_tag_info(node)
       local actions = self:_match_selectors(tag, classes, id)
-      -- Check for skip first (consistent with _apply_actions priority)
       for _, a in ipairs(actions) do
         if a.type == "skip" then return end
       end
-      -- Only "replace" is meaningful for self-closing tags (no children)
       for _, a in ipairs(actions) do
         if a.type == "replace" then
           parts[#parts + 1] = a.value
@@ -679,19 +647,16 @@ function M:_html_to_text(html)
       end
       return
     end
-    -- Regular elements: match selectors on start_tag, apply actions
     if ntype == "element" then
       local start_tag = node:child(0)
       if start_tag and start_tag:type() == "start_tag" then
-        local tag, classes, id = M._extract_tag_info(start_tag, buf)
+        local tag, classes, id = M._extract_tag_info(start_tag)
         local actions = self:_match_selectors(tag, classes, id)
         if #actions > 0 then
-          -- Apply composed actions; walk_children skips start_tag/end_tag nodes
           M._apply_actions(actions, parts, function(target)
             target = target or parts
             for child in node:iter_children() do
               local ct = child:type()
-              -- Skip structural nodes that don't contain renderable content
               if ct ~= "start_tag" and ct ~= "end_tag" then
                 walk(child, target)
               end
@@ -701,26 +666,19 @@ function M:_html_to_text(html)
         end
       end
     end
-    -- Generic fallthrough: recurse into all children (handles document, fragment, etc.)
     for child in node:iter_children() do
       walk(child, parts)
     end
   end
 
-  -- Wrap walk in pcall to guarantee buffer cleanup on any error
   local ok2, result = pcall(function()
     local parts = {}
     walk(root, parts)
     local text = table.concat(parts)
-    -- Collapse multiple consecutive newlines into one
     text = text:gsub("\n\n+", "\n")
-    -- Trim leading and trailing whitespace
     text = text:gsub("^%s+", ""):gsub("%s+$", "")
     return text
   end)
-  -- Always delete the temporary buffer regardless of success/failure
-  vim.api.nvim_buf_delete(buf, { force = true })
-  -- On error, fall back to regex tag stripping
   if not ok2 then return (html:gsub("<[^>]+>", "")) end
   return result
 end
