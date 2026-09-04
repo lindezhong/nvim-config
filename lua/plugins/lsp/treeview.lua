@@ -5,7 +5,7 @@
 --   - Side panel creation and lifecycle management
 --   - Tree rendering (indent, icons, expand/collapse states)
 --   - Keyboard navigation and interaction
---   - viewId-based singleton management (same viewId replaces existing panel)
+--   - viewId-based singleton management (same viewId reuses panel, swaps provider)
 --   - Auto-expand on initial show
 --   - Event system for external listeners
 --
@@ -41,7 +41,7 @@
 ---@field leaf? string icon for leaf node (default " ")
 
 ---@class TreeViewOpts
----@field viewId? string unique id; same viewId replaces existing instance (singleton pattern)
+---@field viewId? string unique id; same viewId reuses existing instance (swaps provider, no flicker)
 ---@field title? string panel title shown in statusline
 ---@field provider TreeDataProvider data source for the tree
 ---@field on_select? fun(element: any) called when user activates a node (Enter)
@@ -56,18 +56,21 @@ local M = {}
 
 --- Global registry for viewId-based singleton management.
 --- Maps viewId → TreeView instance. When creating with an existing viewId,
---- the previous instance is disposed first to avoid duplicate panels.
+--- the existing instance is reused (provider swapped) to avoid flicker.
 ---@type table<string, table>
 local registry = {}
 
 --- Create a new TreeView instance.
---- If opts.viewId matches an existing instance, the old one is disposed first.
+--- If opts.viewId matches an existing instance, reuses it with the new provider.
 ---@param opts TreeViewOpts creation options
 ---@return table TreeView the view handle with show/hide/refresh/dispose methods
 function M.create(opts)
-  -- Dispose existing instance with same viewId (singleton pattern)
+  -- Reuse existing instance with same viewId (avoids dispose+recreate flicker);
+  -- swap provider so new data loads without closing/reopening the window
   if opts.viewId and registry[opts.viewId] then
-    registry[opts.viewId].dispose()
+    local existing = registry[opts.viewId]
+    existing.set_provider(opts.provider, opts.on_select)
+    return existing
   end
 
   -- Extract options with defaults
@@ -401,43 +404,43 @@ function M.create(opts)
   -- Public API (TreeView handle)
   --------------------------------------------------------------------------
 
-  --- Show the tree panel. If already visible, refreshes content.
-  --- Creates buffer + window on first call, fetches root children.
+  --- Show the tree panel and load data.
+  --- Reuses the window if already open (no flicker); creates it otherwise.
+  --- Always re-fetches root children when data has been invalidated.
   function view.show()
     if disposed then return end
-    -- If window still valid, just refresh the content
-    if tree_win and vim.api.nvim_win_is_valid(tree_win) then
-      render()
-      return
+
+    -- Create window only when needed; focus it either way
+    local win_valid = tree_win and vim.api.nvim_win_is_valid(tree_win)
+    local buf_valid = tree_buf and vim.api.nvim_buf_is_valid(tree_buf)
+    if win_valid and buf_valid then
+      vim.api.nvim_set_current_win(tree_win)
+    else
+      if win_valid then vim.api.nvim_win_close(tree_win, true) end
+      tree_buf = create_buf()
+      vim.cmd(split_cmd())
+      tree_win = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_set_buf(tree_win, tree_buf)
+      vim.wo[tree_win].number = false
+      vim.wo[tree_win].relativenumber = false
+      vim.wo[tree_win].signcolumn = "no"
+      vim.wo[tree_win].wrap = false
+      vim.wo[tree_win].statusline = opts.title and (" " .. opts.title) or " "
+      setup_keymaps()
+      setup_cursor_tracking()
+      fire("visibility", true)
     end
-    -- Create buffer and open split window
-    tree_buf = create_buf()
-    vim.cmd(split_cmd())
-    tree_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(tree_win, tree_buf)
-    -- Configure window appearance (minimal chrome)
-    vim.wo[tree_win].number = false
-    vim.wo[tree_win].relativenumber = false
-    vim.wo[tree_win].signcolumn = "no"
-    vim.wo[tree_win].wrap = false
-    vim.wo[tree_win].statusline = opts.title and (" " .. opts.title) or " "
 
-    setup_keymaps()
-    setup_cursor_tracking()
-
-    -- Fetch root children if not already loaded
+    -- Fetch root children if not loaded (fresh create OR after set_provider)
     local root_state = get_state(nil)
     if not root_state.children then
       provider.get_children(nil, function(children)
         root_state.children = children or {}
-        -- Auto-expand root children to configured depth
         auto_expand(root_state.children, 1)
       end)
     else
-      render()  -- roots already cached, just render
+      render()
     end
-
-    fire("visibility", true)
   end
 
   --- Hide the tree panel (close window, keep state for re-show).
@@ -488,6 +491,25 @@ function M.create(opts)
     listeners = { expand = {}, collapse = {}, selection = {}, visibility = {} }
   end
 
+  --- Replace the data provider and on_select callback.
+  --- Clears cached tree state so the next show() re-fetches from the new provider.
+  ---@param new_provider TreeDataProvider
+  ---@param new_on_select? fun(element: any)
+  function view.set_provider(new_provider, new_on_select)
+    if disposed then return end
+    provider = new_provider
+    opts.on_select = new_on_select
+    node_states = {}
+    visible_nodes = {}
+    prev_element = nil
+    render()
+    if provider.on_did_change_tree_data then
+      provider.on_did_change_tree_data(function(element)
+        view.refresh(element)
+      end)
+    end
+  end
+
   --------------------------------------------------------------------------
   -- Event registration methods
   --------------------------------------------------------------------------
@@ -515,10 +537,6 @@ function M.create(opts)
   function view.on_did_change_visibility(callback)
     table.insert(listeners.visibility, callback)
   end
-
-  --------------------------------------------------------------------------
-  -- Data provider change subscription
-  --------------------------------------------------------------------------
 
   -- If provider supports change notifications, subscribe to auto-refresh
   if provider.on_did_change_tree_data then
