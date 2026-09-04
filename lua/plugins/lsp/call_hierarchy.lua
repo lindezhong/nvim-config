@@ -4,9 +4,10 @@
 -- symbol under cursor.
 --
 -- Incoming strategy:
---   1. Primary: callHierarchy/incomingCalls (re-prepare item each time for full data)
+--   1. Primary: callHierarchy/incomingCalls with original item first;
+--      re-prepare only on error (jdtls re-prepare can return wrong overload)
 --   2. Fallback: textDocument/references when incomingCalls fails, is unsupported, or empty
---      (any enclosing symbol; root-level refs as leaves)
+--      (enclosing container via documentSymbol; root-level refs as leaves; self excluded)
 --   If prepareCallHierarchy fails, builds a references-only root from cursor.
 --
 -- Outgoing strategy:
@@ -92,7 +93,8 @@ end
 local function make_call_node(item, call_range, call_uri)
   -- call_range.start = position of the actual call expression
   local lnum, col = lsp.to_vim_pos(call_range.start)
-  -- selectionRange.start = position of the symbol name (for prepareCallHierarchy)
+  -- selectionRange.start = symbol name position (may be inaccurate for some servers;
+  -- expand_incoming corrects via documentSymbol before references fallback)
   local def_lnum, def_col = lsp.to_vim_pos(item.selectionRange.start)
   -- Non-container symbols (variables, properties) can't be expanded further
   local is_leaf = not container_kinds[item.kind]
@@ -147,7 +149,7 @@ end
 --- Returns nil if the item is nil, server errors, or no results.
 ---@param item any? CallHierarchyItem (from prepareCallHierarchy)
 ---@param req table request context from lsp.start_request
----@return table[]? children array of call nodes, or nil if no results
+---@return table[]? children array of call nodes; {} = no callers (definitive), nil = error
 local function try_incoming_calls(item, req)
   if not item then return nil end
   local target_bufnr = req.ensure_buf_attached(item.uri)
@@ -155,15 +157,13 @@ local function try_incoming_calls(item, req)
     item = item,
   })
   if err or not result then return nil end
-  -- Each incoming call can have multiple fromRanges (same function calls target N times)
   local children = {}
   for _, call in ipairs(result) do
     for _, rng in ipairs(call.fromRanges) do
       table.insert(children, make_call_node(call.from, rng))
     end
   end
-  -- nil (not {}) on empty: lets expand_incoming fall back to references
-  return #children > 0 and children or nil
+  return children
 end
 
 --- Execute a textDocument/references request at a given position.
@@ -234,21 +234,40 @@ end
 --- Called by the TreeDataProvider's get_children when a node is expanded.
 ---
 --- Strategy:
----   1. Re-prepare CallHierarchyItem at the node's definition position
----      (needed because some servers don't return full data in incomingCalls)
----   2. Try incomingCalls — if results, return them
----   3. Otherwise fall back to references
+---   1. Try incomingCalls with original item (jdtls: re-prepare can return wrong item)
+---   2. On error (nil): re-prepare and retry (tsserver: call.from may be incomplete)
+---   3. On empty or all failed: fall back to references
 ---
 ---@param node table tree node to expand (has uri, def_lnum, def_col)
 ---@param req table request context from lsp.start_request
 ---@return table[]? children array of child nodes, or nil/empty
 local function expand_incoming(node, req)
-  -- Re-prepare for fresh server data; fall back to node.item for servers where
-  -- re-prepare at selectionRange may return the wrong item (e.g., jdtls)
-  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req) or node.item
-  local children = try_incoming_calls(item, req)
-  if children then return children end
-  return try_references(node.uri, node.def_lnum, node.def_col, req)
+  -- try_incoming_calls returns {} = empty (definitive), nil = error.
+  -- Only re-prepare on error; empty skips re-prepare to avoid jdtls wrong-item issue.
+  local children = try_incoming_calls(node.item, req)
+  if children == nil then
+    local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
+    children = try_incoming_calls(item, req)
+  end
+  if children and #children > 0 then return children end
+  -- call.from.selectionRange may point to call site instead of method name (jdtls).
+  -- Use documentSymbol to find the correct enclosing symbol position.
+  -- Only for call-hierarchy nodes (node.item); synthetic roots and ref nodes already
+  -- have correct def_lnum/def_col from cursor or documentSymbol respectively.
+  local ref_lnum, ref_col = node.def_lnum, node.def_col
+  if node.item then
+    local symbols = lsp.get_doc_symbols(node.uri, req)
+    local sym = lsp.find_enclosing(symbols, node.def_lnum, node.def_col, container_kinds)
+    if sym then
+      local sel = sym.selectionRange or sym.range
+      ref_lnum, ref_col = lsp.to_vim_pos(sel.start)
+    end
+  end
+  local refs = try_references(node.uri, ref_lnum, ref_col, req)
+  -- Exclude self: references whose enclosing container is the node itself
+  return vim.tbl_filter(function(child)
+    return not (child.uri == node.uri and child.def_lnum == ref_lnum and child.def_col == ref_col)
+  end, refs)
 end
 
 --------------------------------------------------------------------------
@@ -261,7 +280,7 @@ end
 --- return overlapping ranges for the same call site.
 ---@param item any? CallHierarchyItem (from prepareCallHierarchy)
 ---@param req table request context from lsp.start_request
----@return table[]? children array of call nodes, or nil if no results
+---@return table[]? children array of call nodes; {} = no callees (definitive), nil = error
 local function try_outgoing_calls(item, req)
   if not item then return nil end
   local target_bufnr = req.ensure_buf_attached(item.uri)
@@ -282,17 +301,21 @@ local function try_outgoing_calls(item, req)
       end
     end
   end
-  return #children > 0 and children or nil
+  return children
 end
 
 --- Expand a node for outgoing direction: outgoingCalls only (no fallback).
 ---@param node table tree node to expand (has uri, def_lnum, def_col)
 ---@param req table request context from lsp.start_request
----@return table[]? children array of child nodes, or nil
+---@return table[]? children array of child nodes, or nil/empty
 local function expand_outgoing(node, req)
-  -- Re-prepare for fresh server data; fall back to node.item (see expand_incoming)
-  local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req) or node.item
-  return try_outgoing_calls(item, req)
+  -- Original item first, re-prepare only on error (no references fallback for outgoing)
+  local children = try_outgoing_calls(node.item, req)
+  if children == nil then
+    local item = lsp.prepare_call_hierarchy(node.uri, node.def_lnum, node.def_col, req)
+    children = try_outgoing_calls(item, req)
+  end
+  return children
 end
 
 --------------------------------------------------------------------------
