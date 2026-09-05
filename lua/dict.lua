@@ -21,6 +21,7 @@
 --   <leader>t (normal)  show definition in floating window for word under cursor
 --   <leader>t (visual)  show definition in floating window for selected text
 --   S-j / S-k           scroll the floating window without entering it
+--   (scrollbar)         nvim-cmp style thumb overlay on the right border
 --   <leader>t again     enter the floating window for full navigation
 --
 -- Usage:
@@ -328,17 +329,30 @@ function M:show_translate(word)
     -- Second press: enter existing floating window for full navigation
     local win = self._translate_win
     local float_buf = vim.api.nvim_win_get_buf(win)
-    self._translate_win = nil
     pcall(vim.api.nvim_del_augroup_by_name, "dict_translate")
     pcall(vim.keymap.del, "n", "<S-j>", { buffer = self._translate_src_buf })
     pcall(vim.keymap.del, "n", "<S-k>", { buffer = self._translate_src_buf })
     self._translate_src_buf = nil
-    self._translate_win = win
     vim.api.nvim_set_current_win(win)
+    local update_sb = self._update_scrollbar
+    local grp = vim.api.nvim_create_augroup("dict_translate_float", { clear = true })
+    if update_sb then
+      vim.api.nvim_create_autocmd("WinScrolled", {
+        group = grp,
+        buffer = float_buf,
+        callback = function()
+          update_sb()
+        end,
+      })
+    end
     vim.api.nvim_create_autocmd("WinLeave", {
+      group = grp,
       buffer = float_buf,
       once = true,
       callback = function()
+        pcall(vim.api.nvim_del_augroup_by_name, "dict_translate_float")
+        self:_close_scrollbar()
+        self._update_scrollbar = nil
         pcall(vim.api.nvim_win_close, win, true)
         self._translate_win = nil
       end,
@@ -363,26 +377,119 @@ function M:show_translate(word)
     width = math.max(width, vim.fn.strdisplaywidth(l))
   end
   local height = math.min(#lines, 20)
+  local total_lines = #lines
+  local scrollable = total_lines > height
+  local content_width = math.max(1, math.min(width, vim.o.columns - 4))
   local lines_below = vim.o.lines - vim.fn.screenrow() - 1
   local row = lines_below >= height and 1 or -height
   local win = vim.api.nvim_open_win(buf, false, {
     relative = "cursor",
     row = row,
     col = 0,
-    width = math.max(1, math.min(width, vim.o.columns - 4)),
+    width = content_width,
     height = height,
     style = "minimal",
   })
   self._translate_win = win
+  self._translate_sbar_win = nil
+  self._translate_thumb_win = nil
+  self._update_scrollbar = nil
+
+  -- Detect border from vim.o.winborder (nvim 0.11+); skips sbar when border is visible
+  local has_border = false
+  local win_cfg = vim.api.nvim_win_get_config(win)
+  if win_cfg.border then
+    local b = win_cfg.border
+    if type(b) == "string" then
+      has_border = b ~= "" and b ~= "none"
+    elseif type(b) == "table" then
+      for _, v in ipairs(b) do
+        local ch = type(v) == "table" and v[1] or v
+        if ch and ch ~= "" and ch ~= " " then
+          has_border = true
+          break
+        end
+      end
+    end
+  end
+
+  local function update_scrollbar()
+    if not self._translate_thumb_win or not vim.api.nvim_win_is_valid(self._translate_thumb_win) then return end
+    if not vim.api.nvim_win_is_valid(win) then return end
+    local wi = vim.fn.getwininfo(win)[1]
+    if not wi then return end
+    local actual_h = vim.api.nvim_win_get_height(win)
+    local actual_w = vim.api.nvim_win_get_width(win)
+    local topline = wi.topline
+    local denom = total_lines - actual_h + 1
+    if denom <= 0 then return end
+    local thumb_h = math.max(1, math.floor(actual_h * (actual_h / total_lines)))
+    local scroll_ratio = topline / denom
+    local thumb_offset_raw = (actual_h - thumb_h) * scroll_ratio
+    local thumb_offset = math.floor(thumb_offset_raw)
+    if topline > 1 and thumb_offset_raw + 0.5 >= thumb_offset + 1 then
+      thumb_offset = thumb_offset + 1
+    end
+    thumb_offset = math.min(thumb_offset, actual_h - thumb_h)
+    vim.api.nvim_win_set_config(self._translate_thumb_win, {
+      relative = "win",
+      win = win,
+      row = thumb_offset,
+      col = actual_w,
+      width = 1,
+      height = thumb_h,
+    })
+  end
+
+  if scrollable then
+    local actual_h = vim.api.nvim_win_get_height(win)
+    local actual_w = vim.api.nvim_win_get_width(win)
+    if not has_border then
+      local sbar_buf = vim.api.nvim_create_buf(false, true)
+      vim.bo[sbar_buf].bufhidden = "wipe"
+      self._translate_sbar_win = vim.api.nvim_open_win(sbar_buf, false, {
+        relative = "win",
+        win = win,
+        row = 0,
+        col = actual_w,
+        width = 1,
+        height = actual_h,
+        style = "minimal",
+        zindex = 51,
+        focusable = false,
+        border = "none",
+      })
+      vim.api.nvim_set_option_value("winhighlight", "EndOfBuffer:PmenuSbar,NormalFloat:PmenuSbar", { win = self._translate_sbar_win })
+    end
+    local thumb_h = math.max(1, math.floor(actual_h * (actual_h / total_lines)))
+    local thumb_buf = vim.api.nvim_create_buf(false, true)
+    vim.bo[thumb_buf].bufhidden = "wipe"
+    self._translate_thumb_win = vim.api.nvim_open_win(thumb_buf, false, {
+      relative = "win",
+      win = win,
+      row = 0,
+      col = actual_w,
+      width = 1,
+      height = thumb_h,
+      style = "minimal",
+      zindex = 52,
+      focusable = false,
+      border = "none",
+    })
+    vim.api.nvim_set_option_value("winhighlight", "EndOfBuffer:PmenuThumb,NormalFloat:PmenuThumb", { win = self._translate_thumb_win })
+    self._update_scrollbar = update_scrollbar
+  end
+
   local src_buf = vim.api.nvim_get_current_buf()
   self._translate_src_buf = src_buf
   local group = vim.api.nvim_create_augroup("dict_translate", { clear = true })
-  -- S-j/S-k scroll the floating window without entering it
   vim.keymap.set("n", "<S-j>", function()
     vim.api.nvim_win_call(win, function() vim.cmd([[execute "normal! \<C-f>"]]) end)
+    update_scrollbar()
   end, { buffer = src_buf })
   vim.keymap.set("n", "<S-k>", function()
     vim.api.nvim_win_call(win, function() vim.cmd([[execute "normal! \<C-b>"]]) end)
+    update_scrollbar()
   end, { buffer = src_buf })
   local cursor_pos = vim.api.nvim_win_get_cursor(0)
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter" }, {
@@ -417,6 +524,18 @@ function M:show_translate(word)
   })
 end
 
+--- Close scrollbar overlay windows (sbar + thumb).
+function M:_close_scrollbar()
+  if self._translate_sbar_win and vim.api.nvim_win_is_valid(self._translate_sbar_win) then
+    vim.api.nvim_win_close(self._translate_sbar_win, true)
+  end
+  self._translate_sbar_win = nil
+  if self._translate_thumb_win and vim.api.nvim_win_is_valid(self._translate_thumb_win) then
+    vim.api.nvim_win_close(self._translate_thumb_win, true)
+  end
+  self._translate_thumb_win = nil
+end
+
 --- Close the translate floating window and clean up all associated state.
 function M:_close_translate_float()
   local win = self._translate_win
@@ -425,6 +544,8 @@ function M:_close_translate_float()
   if vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_close(win, true)
   end
+  self:_close_scrollbar()
+  self._update_scrollbar = nil
   pcall(vim.api.nvim_del_augroup_by_name, "dict_translate")
   pcall(vim.keymap.del, "n", "<S-j>", { buffer = self._translate_src_buf })
   pcall(vim.keymap.del, "n", "<S-k>", { buffer = self._translate_src_buf })
