@@ -21,13 +21,14 @@
 --   <leader>t (normal)  show definition in floating window for word under cursor
 --   <leader>t (visual)  show definition in floating window for selected text
 --   S-j / S-k           scroll the floating window without entering it
---   (scrollbar)         nvim-cmp style thumb overlay on the right border
+--   (scrollbar)         thumb overlay on the right border when content overflows
 --   <leader>t again     enter the floating window for full navigation
 --
 -- Usage:
 --   local dict = require("dict")
 --   dict.setup({
 --     path = "/path/to/dict.ifo",  -- or .idx / .dict / .dict.dz
+--     scrollbar = true,             -- show scrollbar on translate float (default true)
 --     html_map = {
 --       -- Selectors: "tag", ".class", "#id", "tag.class", "tag#id"
 --       { ".ad",        { type = "skip" } },                    -- discard element and children
@@ -89,6 +90,7 @@ local ENTRIES_PER_CHUNK = 20000
 --- @field idx_path string  absolute path to .idx binary index file
 --- @field dict_path string|nil  path to .dict/.dict.dz file, nil if no definition data
 --- @field _selectors { tag: string|nil, cls: string|nil, id: string|nil, action: table }[]  pre-compiled selector rules
+--- @field scrollbar boolean  whether to show scrollbar on translate float (default true)
 --- @field _loading boolean  true while async loading is in progress (prevents duplicate setup)
 --- @field _on_ready_cbs function[]  callbacks queued before ready, fired once on load completion
 local M = {}
@@ -104,6 +106,8 @@ M.content_type = nil
 M._selectors = {}
 --- Pending callbacks registered via on_ready() before loading completes.
 M._on_ready_cbs = {}
+--- Whether to show scrollbar on translate floating window.
+M.scrollbar = true
 --- Whether we're reading from a dictzip (.dict.dz) file.
 M._use_dictzip = false
 --- Uncompressed bytes per dictzip chunk (typically 58315).
@@ -117,7 +121,7 @@ M._dz_offsets = {}
 M._renderers = {}
 
 --- Configure and start loading the dictionary.
---- @param opts { path: string, html_map?: table }
+--- @param opts { path: string, html_map?: table, scrollbar?: boolean }
 function M.setup(opts)
   -- Require a valid path in opts
   if not opts or not opts.path then return end
@@ -141,6 +145,7 @@ function M.setup(opts)
   end
 
   M._show_word_header = opts.show_word_header ~= false
+  M.scrollbar = opts.scrollbar ~= false
 
   -- Pre-compile selector rules from the ordered html_map array
   M._selectors = M._parse_html_map(opts.html_map or {})
@@ -441,7 +446,7 @@ function M:show_translate(word)
     })
   end
 
-  if scrollable then
+  if scrollable and self.scrollbar then
     local actual_h = vim.api.nvim_win_get_height(win)
     local actual_w = vim.api.nvim_win_get_width(win)
     if not has_border then
