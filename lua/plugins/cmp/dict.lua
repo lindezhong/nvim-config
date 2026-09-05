@@ -1,20 +1,22 @@
 -- nvim-cmp source adapter for StarDict dictionaries.
 -- Thin layer over lua/dict.lua (singleton StarDict reader).
 --
--- Fuzzy matching: when the prefix search result count is below the threshold,
--- isIncomplete is set to false so that cmp caches the candidates and applies
--- its own fuzzy matching on subsequent keystrokes. This allows typo tolerance
--- (e.g. "helo" still finds "hello") as long as the error occurs after the
--- caching point.
+-- Fuzzy matching: always returns isIncomplete=true so cmp re-queries every
+-- keystroke (prevents stale cache when user deletes and retypes at same offset).
+-- Source-side caching: when prefix search yields fewer than FUZZY_THRESHOLD
+-- results, subsequent keystrokes that extend the cached prefix skip the binary
+-- search and return cached items directly. cmp's built-in fuzzy matcher then
+-- handles typo tolerance (e.g. "helo" still finds "hello").
 --
--- vim.g.dict_fuzzy_threshold (default 1000): maximum candidate count at which
--- the source switches from isIncomplete=true (re-query each keystroke) to
--- isIncomplete=false (cmp caches and fuzzy-filters). Higher values improve
--- typo coverage for short prefixes but increase per-keystroke filter cost.
+-- vim.g.dict_fuzzy_threshold (default 1000): when result count is below this
+-- value, source caches results internally. Higher values improve typo coverage
+-- for shorter prefixes but increase per-keystroke fuzzy-filter cost.
 
 local dict = require("dict")
 
 local source = {}
+source._cache_prefix = nil
+source._cache_items = nil
 
 local FUZZY_THRESHOLD = vim.g.dict_fuzzy_threshold or 1000
 
@@ -29,14 +31,27 @@ source.is_available = function()
 end
 
 --- Return completion candidates for the current prefix.
---- Results are capped at FUZZY_THRESHOLD; when the full set fits within that
---- limit, isIncomplete=false lets cmp cache and fuzzy-filter on later input.
+--- Always returns isIncomplete=true so cmp re-queries every keystroke (avoids
+--- stale cache when the user deletes and retypes a different word at the same
+--- offset). Source-side caching kicks in when result count < FUZZY_THRESHOLD:
+--- subsequent keystrokes that extend the cached prefix reuse the cached items,
+--- and cmp's fuzzy matcher handles typo tolerance on the cached set.
 --- @param params cmp.SourceCompletionApiParams
 --- @param callback fun(response: lsp.CompletionList)
 source.complete = function(self, params, callback)
   local prefix = params.context.cursor_before_line:sub(params.offset)
   if #prefix < 1 then
+    self._cache_prefix = nil
+    self._cache_items = nil
     callback({ items = {}, isIncomplete = true })
+    return
+  end
+
+  local prefix_lower = prefix:lower()
+
+  if self._cache_items and self._cache_prefix
+      and vim.startswith(prefix_lower, self._cache_prefix) then
+    callback({ items = self._cache_items, isIncomplete = true })
     return
   end
 
@@ -44,17 +59,23 @@ source.complete = function(self, params, callback)
   local items = {}
 
   for _, r in ipairs(results) do
-    local insert_text = prefix .. r.word:sub(#prefix + 1)
     items[#items + 1] = {
       label = r.word,
-      insertText = insert_text,
+      insertText = prefix .. r.word:sub(#prefix + 1),
       filterText = r.word:lower(),
       data = { idx = r.index },
     }
   end
 
-  local is_incomplete = #results == 0 or #results >= FUZZY_THRESHOLD
-  callback({ items = items, isIncomplete = is_incomplete })
+  if #results > 0 and #results < FUZZY_THRESHOLD then
+    self._cache_prefix = prefix_lower
+    self._cache_items = items
+  else
+    self._cache_prefix = nil
+    self._cache_items = nil
+  end
+
+  callback({ items = items, isIncomplete = true })
 end
 
 --- Lazily fetch the full definition when the user highlights a candidate.
