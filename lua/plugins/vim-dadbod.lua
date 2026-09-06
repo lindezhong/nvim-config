@@ -344,6 +344,8 @@ return {
       vim.g.db_ui_auto_execute_table_helpers = 1
       -- Suppress info-level notifications (only show warnings/errors)
       vim.g.db_ui_disable_info_notifications = 1
+      -- Disable query execution progress bar in result buffer
+      vim.g.db_ui_disable_progress_bar = 1
 
       -- Custom table helpers: quick queries available per table in the sidebar
       vim.g.db_ui_table_helpers = {
