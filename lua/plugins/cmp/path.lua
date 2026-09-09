@@ -1,15 +1,22 @@
 -- Custom filesystem path completion source for nvim-cmp.
 --
--- Replaces the external hrsh7th/cmp-path plugin with a built-in implementation.
--- Path recognition logic follows coc.nvim's native file source (getLastPart + path
--- classification); only the completion interface adapts to nvim-cmp's source API.
+-- As the user types a filesystem path into a buffer or the command line, the
+-- entries of the directory it points at are offered as completions, with a
+-- documentation preview of file contents.
 --
 -- Supported path kinds:
 --   absolute:  /usr/local/bin/
 --   relative:  ./src/  or  src/
 --   parent:    ../lib/
---   home:      ~/docs/  or  $HOME/docs/
---   env:       $GOPATH/src/
+--   home:      ~/docs/
+--   drive:     C:/Users/   (treated as a drive root only on Windows)
+-- A path is recognised anywhere in the line, including inside a colon-separated
+-- list such as PATH=.:/usr/bin:/usr/li, where completion applies to the entry
+-- after the nearest colon.  Environment variable references are expanded before
+-- matching, in the POSIX shell forms $VAR and ${VAR} plus the cmd.exe form
+-- %VAR%, so $HOME/docs and ${JAVA_HOME}/bin complete like plain absolute paths.
+-- Filenames and directories containing spaces are handled with shell-style "\ "
+-- escaping.
 
 --- @type cmp  nvim-cmp core module (provides lsp.CompletionItemKind, lsp.MarkupKind)
 local cmp = require("cmp")
@@ -17,18 +24,115 @@ local cmp = require("cmp")
 --- @class cmp_path.Source  Custom nvim-cmp source for filesystem path completion.
 local source = {}
 
---- Characters that terminate the backwards path scan.
---- When scanning the line leftward to find where the path begins, hitting any of
---- these characters stops the scan (the path starts after the character).
---- Ported from coc.nvim's file source invalid-character set.
+--- Whether this is a Windows host.  The platform is consulted in four places,
+--- all of them about drive/UNC path flavour or the backslash separator:
+--- PATH_RE's "[a-zA-Z]:" drive-letter alternative, get_trigger_characters' "\"
+--- auto-trigger, is_absolute's "C:\" and "\\" absolute forms, and _get_root's
+--- drive-letter branch.  Everywhere else "/" and "\" are accepted interchangeably
+--- regardless of platform, because a path typed into a buffer need not belong to
+--- the machine editing it.
+--- @type boolean
+local IS_WINDOWS = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
+
+--- Placeholder substituted for an environment variable reference that could not
+--- be resolved.  Listed in INVALID_CHARS below so it also acts as a hard
+--- boundary, and _get_path_option rejects the line outright when this is the
+--- character immediately before the PATH_RE match — see _resolve_env_variables
+--- for why leaving the reference in place would be a defect.
+--- SOH rather than the more obvious NUL: the expanded line is handed to
+--- vim.fn.matchlist(), and a Lua string containing a NUL reaches Vim as a Blob,
+--- which raises E976.  Any control character outside PATH_CLASS will do.
+--- @type string
+local UNRESOLVED = "\1"
+
+--- Characters that cannot appear in a path, used as hard boundaries when
+--- scanning; UNRESOLVED is included so it bounds a match too.
+--- Note what is *not* here: ":" and "\".  The colon boundary lives in PATH_RE's
+--- character class instead, which is what splits a colon-separated path list
+--- while still leaving room for a drive letter — see PATH_RE.
 --- @type table<string, boolean>
 local INVALID_CHARS = {
-  ["#"] = true, ["<"] = true, ["+"] = true,
+  ["#"] = true, ["<"] = true, ["+"] = true, ["$"] = true,
   ["%"] = true, [">"] = true, ["!"] = true, ["`"] = true,
   ["&"] = true, ["*"] = true, ["'"] = true, ["|"] = true,
   ["{"] = true, ["?"] = true, ['"'] = true, ["="] = true,
   ["}"] = true, ["@"] = true,
+  [UNRESOLVED] = true,
 }
+
+--- Characters allowed in a path segment, as the body of a Vim regex collection.
+--- Vim collections do not accept "\w", so its word characters are spelled out.
+--- Written with "\uXXXX" escapes so this file stays pure ASCII — a literal U+00A0
+--- here is invisible on screen, and if anything downgrades it to U+0020 the range
+--- silently widens to U+0020-U+024F, which admits ":" and breaks the path-list
+--- splitting PATH_RE relies on.  Keep "-" last in every collection built from
+--- this, where it is literal.
+--- @type string
+local SEGMENT_CHARS = "\\u4e00-\\u9fa5\\u00a0-\\u024f0-9A-Za-z_.@()"
+
+--- Collection matching one character of a path segment.  Includes a space,
+--- which is why PATH_RE must be applied to a space-bounded slice of the line
+--- rather than the whole line — see step 3 of _get_path_option.
+--- @type string
+local PATH_CLASS = "[" .. SEGMENT_CHARS .. " -]"
+
+--- Collection for the *first* segment of a relative path, i.e. everything left
+--- of the first separator in "lua/plu".  Same as PATH_CLASS minus the space.
+--- It must admit CJK and accented names and dot directories: an ASCII-only "\w"
+--- could not start a path with a CJK or accented name, nor with a dot directory,
+--- so for "中文目录/x" and ".git/HEAD" the prefix would fail to match, and since
+--- the regex is end-anchored the match would then slide right to the interior
+--- separator and yield "/x" — a confidently wrong root of "/" rather than no
+--- completion at all.
+--- @type string
+local BARE_CLASS = "[" .. SEGMENT_CHARS .. "-]"
+
+--- The path recogniser: a prefix, a separator, then segments to end of string.
+--- In PCRE notation the pattern is:
+---   /(?:\.{0,2}|~|([\w]+)|[a-zA-Z]:|)(\/|\\+)
+---    (?:[<class>]+(\/|\\+))*(?:[<class>])*$/
+--- Read it right-to-left: the text must *end* in a path, so matching finds the
+--- leftmost position from which everything up to the cursor is path-shaped.  No
+--- leftward terminator scan is involved; a character absent from PATH_CLASS
+--- (":", "=") bounds the match implicitly, which is what splits a path list.
+--- Submatch 1 is the bare first segment ("lua" in "lua/plu"), which _get_root
+--- probes for.
+---
+--- Three details each prevent a *wrong* directory from being reported:
+---
+--- 1. A negative lookbehind pins the left edge.  End-anchoring alone does not
+---    fail when no prefix matches — it slides right to the next separator and
+---    matches from there, so "http://exa" yields "/exa" and completes from "/",
+---    and "/tmp/a//b" yields "/b".  Requiring that the character before the
+---    match be neither a path character nor a separator removes both.  It must
+---    be a zero-width assertion and not a hand-written byte test: PATH_CLASS
+---    spans multi-byte characters, so inspecting the single preceding byte reads
+---    a UTF-8 continuation byte and lets CJK through.
+---
+--- 2. BARE_CLASS, not an ASCII-only "\w", matches the first segment; see there.
+---
+--- 3. The "[a-zA-Z]:" drive-letter alternative is Windows-only, because _get_root
+---    only ever consults a drive letter on Windows.  Enabling it everywhere would
+---    mis-fire on the commonest shape of the very input this source exists to
+---    handle:
+---      PATH=/usr/bin:/usr/li
+---    Matching leftmost-first, the "n" of "bin" is taken as a drive letter,
+---    pathstr becomes "n:/usr/li", _get_root falls through to cwd, and the
+---    non-existent "cwd/n:/usr" makes the whole line yield nothing.  Any list
+---    entry ending in a letter triggers it, which is the usual shape.  Restricting
+---    the alternative to Windows costs only "C:/Us" typed on Linux, which then
+---    reads as the absolute "/Us" — meaningless input either way.
+---
+--- There is deliberately no "$"-prefixed alternative: step 1 expands every env
+--- reference before matching and a bare "$" is in INVALID_CHARS, so no "$" can
+--- reach this regex.  With no case-sensitive literal left in the pattern,
+--- 'ignorecase' cannot change what matches, so no "\C" override is needed either.
+--- @type string
+local PATH_RE = [[\%(]] .. PATH_CLASS .. [[\|[/\\]\)\@<!]]
+  .. [[\%(\.\{0,2}\|\~\|\(]] .. BARE_CLASS .. [[\+\)]]
+  .. (IS_WINDOWS and [[\|[a-zA-Z]:]] or "")
+  .. [[\|\)\%(/\|\\\+\)]]
+  .. [[\%(]] .. PATH_CLASS .. [[\+\%(/\|\\\+\)\)*\%(]] .. PATH_CLASS .. [[\)*$]]
 
 --- Maximum number of lines shown in the documentation preview popup.
 --- @type integer
@@ -62,8 +166,15 @@ end
 
 --- Return characters that should trigger path completion automatically.
 --- "/" starts a new path segment; "." may start a hidden file or "./" prefix.
+--- "\" is offered only on Windows — one of the few places that consult the
+--- platform (see IS_WINDOWS).  Parsing still accepts "\" everywhere; this only
+--- controls *auto*-triggering, where a backslash on a POSIX host is far more
+--- often an escape than a separator.
 --- @return string[]
 source.get_trigger_characters = function()
+  if IS_WINDOWS then
+    return { "/", ".", "\\" }
+  end
   return { "/", "." }
 end
 
@@ -97,7 +208,7 @@ source.complete = function(self, params, callback)
   local include_hidden = input:sub(1, 1) == "."
   -- 0-based line number (LSP protocol)
   local cursor_line = params.context.cursor.row - 1
-  -- 0-based byte column of cursor (cursor_before_line length is always 0-based)
+  -- 0-based byte column of cursor: equal to the byte length of the text before it
   local cursor_col = #params.context.cursor_before_line
   -- Byte column where the typed input (filename part) begins
   local input_start = cursor_col - #input
@@ -143,12 +254,78 @@ source.resolve = function(self, completion_item, callback)
   callback(completion_item)
 end
 
---- Scan the line text backwards to extract the rightmost path-like substring.
---- Stops at any INVALID_CHARS character or an unescaped space.
---- Mirrors coc.nvim's `getLastPart()` function.
+--- Expand every environment variable reference in the text, in three forms:
+--- %VAR%, ${VAR} and $VAR.  Runs before any path parsing, so later steps only
+--- ever see literal paths.
+---
+--- A single left-to-right walk rather than one gsub per form.  Substituted text
+--- is appended to the output and never revisited, so a value that happens to
+--- contain a "$" or a "%" cannot be expanded a second time.
+---
+--- A reference to an unset or empty variable becomes the UNRESOLVED placeholder
+--- rather than being left in place.  Leaving it would let the variable *name*
+--- survive as literal path text — "$lua/plu" would read as the relative path
+--- "lua/plu" and complete, from a real directory the user never named.
 --- @param _ cmp_path.Source  (unused self)
---- @param text string  The text to scan (typically cursor_before_line)
---- @return string  The extracted trailing segment that may contain a path
+--- @param text string  The text to expand (typically cursor_before_line)
+--- @return string  The text with references replaced by values or UNRESOLVED
+source._resolve_env_variables = function(_, text)
+  local out, i = {}, 1
+  while true do
+    local sigil = text:find("[%%$]", i)
+    if not sigil then break end
+    table.insert(out, text:sub(i, sigil - 1))
+
+    --- @type string|nil, integer|nil
+    local name, after
+    if text:sub(sigil, sigil) == "%" then
+      -- %VAR%: anything between two percent signs, as in cmd.exe
+      local close = text:find("%%", sigil + 1)
+      if close and close > sigil + 1 then
+        name, after = text:sub(sigil + 1, close - 1), close + 1
+      end
+    elseif text:sub(sigil + 1, sigil + 1) == "{" then
+      local close = text:find("}", sigil + 2, true)
+      if close and close > sigil + 2 then
+        name, after = text:sub(sigil + 2, close - 1), close + 1
+      end
+    else
+      -- $VAR: a name that does not start with a digit
+      local n, stop = text:match("^([%a_][%w_]*)()", sigil + 1)
+      name, after = n, stop
+    end
+
+    if name then
+      local value = vim.fn.getenv(name)
+      -- getenv() yields vim.NIL for an unset variable, and never errors even on
+      -- a name that could not legally be exported
+      table.insert(out, (value == vim.NIL or value == "") and UNRESOLVED or value)
+      i = after
+    else
+      -- Not a reference after all, so the sigil is ordinary text
+      table.insert(out, text:sub(sigil, sigil))
+      i = sigil + 1
+    end
+  end
+  table.insert(out, text:sub(i))
+  return table.concat(out)
+end
+
+--- Scan the text backwards for the rightmost run of path-legal characters,
+--- stopping at any INVALID_CHARS character or an unescaped space.
+---
+--- This does *not* classify the path — PATH_RE does.  Its two jobs are to bound
+--- the subject PATH_RE is matched against (step 3 of _get_path_option) and to
+--- reject a tail ending in a separator pair.  Note that the separator-pair check
+--- stops "http://" only at the moment the second slash is typed; what keeps
+--- "http://exa" from completing one keystroke later is PATH_RE's lookbehind, not
+--- this.
+---
+--- We call it a second time, on the *un*expanded line, to recover the text the
+--- user literally typed; see step 5 of _get_path_option.
+--- @param _ cmp_path.Source  (unused self)
+--- @param text string  The text to scan
+--- @return string  The trailing run of path-legal characters ("" if none)
 source._get_last_part = function(_, text)
   local i = #text
   while i >= 1 do
@@ -167,118 +344,228 @@ source._get_last_part = function(_, text)
   return text
 end
 
---- Classify the extracted text into a path kind.
---- Returns the path string and its kind, or nil if it doesn't look like a path.
+--- Locate the trailing path in the text by matching PATH_RE.
 --- @param _ cmp_path.Source  (unused self)
---- @param part string  Text extracted by _get_last_part
---- @return string|nil pathstr  The path string (same as input if matched)
---- @return string|nil kind  One of: "parent","relative","home","env","absolute", or nil
-source._match_path = function(_, part)
-  -- Must contain at least one "/" to be a path
-  if not part:find("/") then return nil, nil end
-  -- Double slash ("//") is not a valid filesystem path (likely a URL or comment)
-  if part:find("//") then return nil, nil end
-  -- Reject URI schemes like "http:/", "ftp:/"
-  if part:match("^%a+:/") then return nil, nil end
-  -- Reject numeric prefixes like "123/" (likely a date or fraction)
-  if part:match("^%d+/") then return nil, nil end
-
-  -- Classify by prefix pattern (order matters: more specific patterns first)
-  if part:match("^%.%./") then return part, "parent" end    -- ../
-  if part:match("^%./") then return part, "relative" end    -- ./
-  if part:match("^~/") then return part, "home" end         -- ~/
-  if part:match("^%$HOME/") then return part, "home" end    -- $HOME/
-  if part:match("^%$%w+/") then return part, "env" end      -- $VARNAME/
-  if part:match("^/") then return part, "absolute" end      -- /
-  -- Bare name followed by slash: treat as relative path (e.g. "src/")
-  if part:match("^[%w_.%-]+/") then return part, "relative" end
-
-  return nil, nil
+--- @param text string  The text to search
+--- @return string|nil pathstr  The matched path text
+--- @return string|nil part  Submatch 1: the bare first segment, "" if absent
+--- @return integer|nil start  0-based byte offset where the match begins
+source._match_path = function(_, text)
+  local groups = vim.fn.matchlist(text, PATH_RE)
+  local pathstr = groups[1]
+  if not pathstr or pathstr == "" then return nil end
+  -- PATH_RE ends in "$", so the match always runs to the end of the text and its
+  -- start follows from the lengths.  matchlist() reports a group that did not
+  -- participate as "", which is the value we want for part.
+  return pathstr, groups[2] or "", #text - #pathstr
 end
 
---- Resolve the root directory to scan, based on the classified path kind.
+--- Whether pathstr is rooted, and so needs no base directory prepended.
+--- Recognises a leading "/" everywhere, plus the two Windows-only forms a drive
+--- path can take.  A single leading "\" is deliberately not accepted: that form
+--- cannot reach here, because PATH_RE only produces a backslash-led match for a
+--- UNC path.
+--- @param pathstr string
+--- @return boolean
+local function is_absolute(pathstr)
+  if IS_WINDOWS and (pathstr:match("^%a:[/\\]") or pathstr:match("^[/\\][/\\]")) then
+    return true
+  end
+  return pathstr:sub(1, 1) == "/"
+end
+
+--- Whether path names an existing directory.
+--- @param path string
+--- @return boolean
+local function is_dir(path)
+  local stat = vim.uv.fs_stat(path)
+  return stat ~= nil and stat.type == "directory"
+end
+
+--- Determine the base directory a *relative* pathstr resolves against.
+--- The rooted branches are inert, since _get_directory ignores the root for
+--- anything is_absolute accepts.
+---
+--- When the bare-segment branch finds that neither candidate directory exists it
+--- returns nil, so the caller declines outright rather than resolving against a
+--- non-existent root.
 --- @param _ cmp_path.Source  (unused self)
 --- @param pathstr string  The path text from _match_path
---- @param kind string  The path kind from _match_path
---- @param params cmp.SourceCompletionApiParams  Completion context
---- @param option cmp_path.Option  Validated source options
---- @return string|nil  Resolved absolute directory path, or nil if unresolvable
-source._resolve_root = function(_, pathstr, kind, params, option)
-  -- Base directory for resolving relative paths
-  local buf_dirname = option.get_cwd(params)
-  -- In command-line mode, use cwd instead of buffer directory
-  if vim.api.nvim_get_mode().mode == "c" then
-    buf_dirname = vim.fn.getcwd()
+--- @param part string  Submatch 1 from _match_path: the bare first segment
+--- @param buf_dirname string  Directory of the buffer being completed in
+--- @param cwd string  Current working directory
+--- @return string|nil  Base directory, or nil if no plausible one exists
+source._get_root = function(_, pathstr, part, buf_dirname, cwd)
+  -- "./x", "../x" and ".git/x" are relative to the buffer, falling back to cwd
+  if pathstr:sub(1, 1) == "." then
+    return buf_dirname ~= "" and buf_dirname or cwd
   end
 
-  --- @type string|nil
-  local dirname
-  if kind == "absolute" then
-    -- "/usr/lib/" → use directly; "/usr/lib/foo" → parent dir "/usr/lib"
-    dirname = pathstr:match("/$") and pathstr or vim.fn.fnamemodify(pathstr, ":h")
-  elseif kind == "home" then
-    -- Expand ~ or $HOME to the user's home directory
-    local home = vim.fn.expand("~")
-    --- @type string
-    local expanded
-    if pathstr:sub(1, 1) == "~" then
-      -- "~/docs" → "/home/user/docs"
-      expanded = home .. pathstr:sub(2)
-    else
-      -- "$HOME/docs" → "/home/user/docs" (skip past "$HOME" prefix)
-      expanded = home .. pathstr:sub(#"$HOME" + 1)
+  -- "C:/x" is a drive path only where drives exist.  Off Windows PATH_RE never
+  -- produces one, so this branch is simply unreachable there.
+  if IS_WINDOWS and pathstr:match("^%w+:") then
+    return pathstr:match("[/\\]$") and pathstr or vim.fn.fnamemodify(pathstr, ":h")
+  end
+
+  if not IS_WINDOWS and pathstr:sub(1, 1) == "/" then
+    return pathstr:sub(-1) == "/" and pathstr or vim.fn.fnamemodify(pathstr, ":h")
+  end
+
+  -- Bare first segment, as in "lua/plu": accept the path as relative only if that
+  -- segment really is a directory, next to the buffer or under cwd.  This is the
+  -- test that keeps "on 12/25" and "a/b" from completing.  A *file* of the same
+  -- name must not count, or it would win here and block the cwd fallback.
+  if part ~= "" then
+    if buf_dirname ~= "" and is_dir(vim.fs.joinpath(buf_dirname, part)) then
+      return buf_dirname
     end
-    dirname = expanded:match("/$") and expanded or vim.fn.fnamemodify(expanded, ":h")
-  elseif kind == "env" then
-    -- Extract the variable name and expand it
-    local var = pathstr:match("^%$(%w+)")
-    local val = vim.fn.getenv(var)
-    -- Bail if the env var is unset or empty
-    if val == vim.NIL or val == "" then return nil end
-    -- Replace "$VAR" prefix with its value
-    local expanded = val .. pathstr:sub(#var + 2)
-    dirname = expanded:match("/$") and expanded or vim.fn.fnamemodify(expanded, ":h")
-  elseif kind == "parent" or kind == "relative" then
-    -- Prepend the buffer's directory to make an absolute path
-    local full = buf_dirname .. "/" .. pathstr
-    dirname = full:match("/$") and full or vim.fn.fnamemodify(full, ":h")
+    if is_dir(vim.fs.joinpath(cwd, part)) then
+      return cwd
+    end
+    return nil
   end
 
-  -- If none of the branches matched (shouldn't happen), bail
-  if not dirname then return nil end
-  -- Resolve symlinks to get the canonical path
-  local resolved = vim.fn.resolve(dirname)
-  -- Only return if the resolved path is an actual existing directory
-  if vim.fn.isdirectory(resolved) == 1 then
-    return resolved
-  end
-  return nil
+  return cwd
 end
 
---- Pipeline: _get_last_part → _match_path → _resolve_root.
---- Extracts and resolves a path from the cursor line.
+--- Reduce pathstr to the directory whose entries should be offered.
+--- @param _ cmp_path.Source  (unused self)
+--- @param pathstr string  The path text from _match_path
+--- @param root string  Base directory from _get_root
+--- @return string  Directory path, not yet checked for existence
+source._get_directory = function(_, pathstr, root)
+  -- A trailing separator means the user is inside that directory already;
+  -- otherwise the tail is a partial name, so strip it
+  local dir_part = pathstr:match("[/\\]$") and pathstr or vim.fn.fnamemodify(pathstr, ":h")
+  if is_absolute(pathstr) then
+    return dir_part
+  end
+  -- normalize() collapses the "/./" and "/../" a relative part leaves behind.
+  -- expand_env is off because a directory really named "$foo" must survive;
+  -- nothing here is meant to be expanded twice.
+  return vim.fs.normalize(vim.fs.joinpath(root, dir_part), { expand_env = false })
+end
+
+--- Extract and resolve a path from the cursor line, returning the directory to
+--- scan and the filename prefix typed after the last separator.
 --- @param self cmp_path.Source
 --- @param line string  Text before cursor (cursor_before_line)
 --- @param params cmp.SourceCompletionApiParams  Completion context
 --- @param option cmp_path.Option  Validated source options
 --- @return string|nil root  Absolute directory path to scan
---- @return string|nil input  Filename prefix typed after the last "/" (for filtering)
+--- @return string|nil input  Filename prefix typed after the last separator
 source._get_path_option = function(self, line, params, option)
-  -- Step 1: extract the trailing segment that might be a path
-  local part = self:_get_last_part(line)
-  if not part or part == "" then return nil end
+  -- Step 1: expand $VAR / ${VAR} / %VAR% across the whole line, so the steps
+  -- below only ever deal with literal paths
+  local expanded_line = self:_resolve_env_variables(line)
 
-  -- Step 2: classify the segment into a path kind
-  local pathstr, kind = self:_match_path(part)
+  -- Step 2: isolate the trailing run of path-legal characters.  A trailing
+  -- separator pair is rejected outright: it is the one shape whose own left edge
+  -- is a separator, so PATH_RE's lookbehind cannot judge it.
+  local guard = self:_get_last_part(expanded_line)
+  if guard == "" then return nil end
+  if guard:sub(-2) == "//" or guard:sub(-2) == "\\\\" then return nil end
+
+  -- Step 3: locate the path inside that run.  PATH_RE is matched against guard,
+  -- the space-bounded slice, not the whole line: PATH_CLASS contains a space, so
+  -- matching the whole line would let one path swallow the one before it — a
+  -- line-leading "/etc/hosts /tmp/f" matches whole, _get_directory then takes the
+  -- head "/etc/hosts /tmp", finds no such directory and offers nothing.  (A
+  -- command prefix such as "cp /etc/hosts /tmp/f" does not swallow: the space
+  -- before "/etc" is itself in PATH_CLASS, so the lookbehind vetoes that start and
+  -- the whole line simply fails to match.)  guard is bounded at the first
+  -- unescaped space, so neither shape reaches here.
+  local pathstr, part, start = self:_match_path(guard)
   if not pathstr then return nil end
 
-  -- Step 3: resolve the directory to scan
-  local root = self:_resolve_root(pathstr, kind, params, option)
+  -- An unresolved variable reference sitting immediately before the match means
+  -- the path is rooted in something we could not expand, so whatever we resolved
+  -- would point somewhere the user did not name.  Declining beats guessing; see
+  -- _resolve_env_variables.  UNRESOLVED is in INVALID_CHARS, so it can only ever
+  -- be the character just before guard, never inside it.
+  local guard_start = #expanded_line - #guard
+  if start == 0 and guard_start >= 1
+    and expanded_line:sub(guard_start, guard_start) == UNRESOLVED
+  then
+    return nil
+  end
+
+  -- After step 1 the only thing left to expand is a leading "~", and it is
+  -- expanded by hand rather than through vim.fn.expand(), which would also act on
+  -- wildcards and on the "%" / "#" specials that happen to be sitting in this
+  -- text.
+  if pathstr:sub(1, 1) == "~" then
+    pathstr = vim.fn.expand("~") .. pathstr:sub(2)
+  end
+
+  -- Restore real spaces before any filesystem access.  The buffer carries the
+  -- shell-escaped "\ " — _get_last_part keeps it intact and PATH_RE matches it —
+  -- but a directory named "1 2" is "1 2" on disk, not "1\ 2", so every path built
+  -- below (_get_root's probes, _get_directory, isdirectory, the scan) needs the
+  -- literal space.  Only "\ " pairs are touched, so a Windows separator like the
+  -- "\" in "C:\Users" is left alone.  The Step 5 input is read from the original
+  -- line and stays escaped: it sizes a textEdit range against raw buffer bytes,
+  -- and _candidates emits the same escaped form so the two round-trip.
+  --
+  -- Known edge: this round-trip only covers absolute paths and the trailing
+  -- segments of relative ones.  A relative path whose *first* segment holds an
+  -- escaped space — "my\ dir/fi" — is split by PATH_RE on the backslash into
+  -- part="my", so _get_root probes a "my" that does not exist and declines.
+  -- Absolute "/my\ dir/fi" is unaffected (it never uses part).  Escaping the
+  -- whole leading path or using an absolute one both work.
+  pathstr = pathstr:gsub("\\ ", " ")
+  part = part:gsub("\\ ", " ")
+
+  -- Step 4: resolve the base directory (_get_root), then the directory to scan
+  -- (_get_directory)
+  local buf_dirname = option.get_cwd(params)
+  local cwd = vim.fn.getcwd()
+  -- On the command line there is no meaningful "buffer directory"
+  if vim.api.nvim_get_mode().mode == "c" then
+    buf_dirname = cwd
+  end
+  local root = self:_get_root(pathstr, part, buf_dirname, cwd)
   if not root then return nil end
 
-  -- The "input" is whatever comes after the last "/" — used for fuzzy filtering
-  local input = pathstr:match("[^/]*$") or ""
-  return root, input
+  local resolved = vim.fn.resolve(self:_get_directory(pathstr, root))
+  if vim.fn.isdirectory(resolved) ~= 1 then return nil end
+
+  -- Step 5: take the "input" (text after the last separator, used both for fuzzy
+  -- filtering and for sizing the caller's textEdit range) from the *original*
+  -- line, never from the expanded one.  The range is applied to the real buffer
+  -- line, so input must be text the user literally typed.
+  --
+  -- Scanning the original line is enough to guarantee that.  "$", "%", "{" and
+  -- "}" are all in INVALID_CHARS, so the tail _get_last_part returns can never
+  -- contain a variable reference; requiring a separator inside it then proves the
+  -- separator ahead of the input was typed literally too.  A bare "$HOME" with
+  -- no typed "/" has no such separator and is rejected here — as is "$nvim",
+  -- where the expanded tail happens to equal the variable name and a plain
+  -- string comparison against the line would have been fooled.
+  local typed = self:_get_last_part(line)
+  local sep = self:_last_separator(typed)
+  if not sep then return nil end
+
+  return resolved, typed:sub(sep + 1)
+end
+
+--- Byte index of the last path separator in text, or nil if it has none.
+--- A backslash that escapes a space is not a separator: _get_last_part keeps
+--- "my\ file" in one piece precisely so the space stays part of the name, and
+--- treating the backslash as a separator here would contradict it — the input
+--- would come back as " file", and since the caller sizes its replace range from
+--- the input's length, accepting a candidate would corrupt the line.
+--- @param _ cmp_path.Source  (unused self)
+--- @param text string
+--- @return integer|nil
+source._last_separator = function(_, text)
+  for i = #text, 1, -1 do
+    local ch = text:sub(i, i)
+    if ch == "/" or (ch == "\\" and text:sub(i + 1, i + 1) ~= " ") then
+      return i
+    end
+  end
+  return nil
 end
 
 --- Scan a directory and build nvim-cmp completion items.
@@ -312,7 +599,9 @@ source._candidates = function(_, dirname, include_hidden, option, callback)
       goto continue
     end
 
-    local path = dirname .. "/" .. name
+    -- joinpath rather than concatenation: dirname is "/" for a root-level path,
+    -- and "//name" is a UNC prefix on Windows
+    local path = vim.fs.joinpath(dirname, name)
     -- stat() follows symlinks; gives us the real file type and size
     local stat = vim.uv.fs_stat(path)
     --- @type uv.uv_fs_t|nil
@@ -330,24 +619,34 @@ source._candidates = function(_, dirname, include_hidden, option, callback)
       goto continue
     end
 
+    -- Shell-escape spaces in every field the user sees or that lands in the
+    -- buffer.  nvim-cmp matches the literal buffer text (which the user types as
+    -- "my\ file") against filterText, and on confirm replaces the range with
+    -- textEdit.newText (= insertText) verbatim — an unescaped space there would
+    -- read back as a path terminator and break continuation.  _get_path_option
+    -- restores the real space before touching the filesystem, so the two sides
+    -- round-trip.  data.path stays raw: it is a real filesystem path used by
+    -- resolve() for the preview.
+    local display = name:gsub(" ", "\\ ")
+
     --- @type lsp.CompletionItem
     local item = {
-      label = name,                              -- Display text in popup
-      filterText = name,                         -- Text nvim-cmp matches against
-      insertText = name,                         -- Text inserted on confirm
+      label = display,                           -- Display text in popup
+      filterText = display,                      -- Text nvim-cmp matches against
+      insertText = display,                      -- Text inserted on confirm
       kind = cmp.lsp.CompletionItemKind.File,    -- Icon/category hint
       data = { path = path, type = fs_type, stat = stat, lstat = lstat },
     }
     if fs_type == "directory" then
       item.kind = cmp.lsp.CompletionItemKind.Folder
       -- Show trailing "/" on label for visual distinction (configurable)
-      item.label = option.label_trailing_slash and (name .. "/") or name
+      item.label = option.label_trailing_slash and (display .. "/") or display
       -- Always insert "/" after directory name to allow continuous completion
-      item.insertText = name .. "/"
+      item.insertText = display .. "/"
       -- When trailing_slash is false, set word to bare name so "/" doesn't
       -- appear in the completed text when the user accepts without continuing
       if not option.trailing_slash then
-        item.word = name
+        item.word = display
       end
     end
     table.insert(items, item)
