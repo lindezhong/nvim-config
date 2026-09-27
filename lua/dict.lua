@@ -48,7 +48,9 @@ local uv = vim.uv or vim.loop
 local ts_html = require("tree_sitter_html")
 
 -- LuaJIT FFI binding to zlib for dictzip (.dict.dz) random-access decompression.
--- Neovim links zlib at build time, so the library is always present in-process.
+-- ffi.load resolves by file name, not by what the process already links: "z"/"libz.so"
+-- only exist when the zlib dev package is installed. Try versioned sonames first
+-- (always present at runtime), then the dev-symlink names.
 local ffi = require("ffi")
 pcall(ffi.cdef, [[
 typedef struct z_stream_s {
@@ -72,7 +74,17 @@ int inflateInit2_(z_stream *strm, int windowBits, const char *version, int strea
 int inflate(z_stream *strm, int flush);
 int inflateEnd(z_stream *strm);
 ]])
-local zlib_ok, zlib = pcall(ffi.load, ffi.os == "Windows" and "zlib1" or "z")
+local zlib_names = ({
+  Linux = { "libz.so.1", "libz.so", "z" },
+  OSX = { "libz.dylib", "libz.1.dylib", "z" },
+  BSD = { "libz.so", "z" },
+  Windows = { "zlib1", "zlib" },
+})[ffi.os] or { "z" }
+local zlib_ok, zlib = false, nil
+for _, name in ipairs(zlib_names) do
+  zlib_ok, zlib = pcall(ffi.load, name)
+  if zlib_ok then break end
+end
 
 --- Number of index entries to parse per chunk before yielding to the event loop.
 --- Lower values reduce per-frame blocking; higher values reduce total load time.
