@@ -47,8 +47,15 @@ return {
     -- Lazy-load: only activate on these commands or when opening markdown files
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
-    -- Download pre-built binary from GitHub releases on install/update
-    build = function() vim.fn["mkdp#util#install"]() end,
+    -- Download pre-built binary from GitHub releases on install/update.
+    -- During a fresh bootstrap lazy runs build BEFORE the plugin is added to
+    -- runtimepath, so the autoload function is unknown (E117) unless its dir
+    -- is prepended first (same idea as the README's minpac packloadall).
+    -- plugin.dir is lazy's resolved install path, passed to build functions.
+    build = function(plugin)
+        vim.opt.runtimepath:prepend(plugin.dir)
+        vim.fn["mkdp#util#install"]()
+    end,
     config = function()
         -- Custom CSS to override default page layout (full-width, no border)
         ---@type string
