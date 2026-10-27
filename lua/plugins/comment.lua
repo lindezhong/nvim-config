@@ -1,7 +1,6 @@
 -- Comment toggling (numToStr/Comment.nvim)
 --
--- Toggle comments with treesitter-aware context for mixed-language files
--- (e.g. JSX where JS uses // and HTML uses <!-- -->).
+-- Toggle comments with language-aware commentstring.
 --
 -- Key mappings (default):
 --   gcc       toggle line comment (normal)
@@ -16,24 +15,11 @@
 
 --- @type LazyPluginSpec[]
 return {
-  -- Treesitter-based commentstring detection for mixed-language files
-  {
-    "JoosepAlviste/nvim-ts-context-commentstring",
-    lazy = true,
-    opts = {
-      enable_autocmd = false,
-    },
-  },
-  -- Comment plugin
   {
     "numToStr/Comment.nvim",
     event = "VeryLazy",
-    dependencies = { "JoosepAlviste/nvim-ts-context-commentstring" },
     config = function()
-      require("Comment").setup({
-        -- Use treesitter to determine commentstring (handles JSX, Vue, etc.)
-        pre_hook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook(),
-      })
+      require("Comment").setup({})
     end,
   },
 }

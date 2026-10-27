@@ -69,12 +69,13 @@ local TOOLS = {
   -- (rustup is the ecosystem-standard installer; distro cargo works too)
   { exe = "cargo",   apt = "cargo",          purpose = "rust_analyzer on Cargo projects",
     alt = { pacman = "rust", winget = "Rustlang.Rustup", brew = "rust" } },
-  -- On macOS the compiler toolchain comes from Xcode CLT, not brew; on winget
-  -- there is no plain C compiler (MSVC Build Tools install is interactive).
-  -- Unmapped there. Aliases are gcc/clang/cl only: tree-sitter-cli invokes
-  -- a C compiler, never zig on its own.
+  -- clangd is a prebuilt binary and never compiles, but resolving #includes on
+  -- C/C++ projects needs system headers (libc6-dev, pulled in by build-essential).
+  -- On macOS the headers come from Xcode CLT, not brew; winget has no plain C
+  -- compiler (MSVC Build Tools install is interactive) — unmapped there.
+  -- Aliases are gcc/clang/cl: any of them implies the headers are present.
   { exe = "cc",      also = { "gcc", "clang", "cl" }, apt = "build-essential",
-    purpose = "tree-sitter parser compilation",
+    purpose = "clangd system headers on C projects",
     alt = { dnf = "gcc make", pacman = "base-devel", zypper = "gcc make",
             apk = "build-base", xbps = "base-devel" },
     mac_cmd = "xcode-select --install" },

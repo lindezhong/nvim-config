@@ -23,7 +23,7 @@ return {
   {
     "mason-org/mason.nvim",
     -- init runs before all plugin configs, making mason-installed binaries
-    -- available to subsequent plugins (e.g. nvim-treesitter checking tree-sitter)
+    -- available to subsequent plugins that shell out to Mason-installed tools
     init = function()
       -- Prepend Mason bin directory to PATH so mason-installed tools are found by executable()
       vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH

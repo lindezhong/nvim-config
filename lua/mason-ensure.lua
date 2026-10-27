@@ -23,7 +23,7 @@ local M = { tools = {}, lsp_servers = {}, _seen_tools = {}, _seen_lsp = {} }
 
 --- Parse "name@version" format into name and version components.
 --- If no "@" is present, version is nil (install latest).
---- @param spec string Package spec, e.g. "tree-sitter-cli" or "tree-sitter-cli@0.25.0"
+--- @param spec string Package spec, e.g. "debugpy" or "debugpy@2.0.0"
 --- @return string name Package name
 --- @return string|nil version Version constraint or nil for latest
 local function parse(spec)
@@ -37,11 +37,11 @@ local function parse(spec)
 end
 
 --- Register a generic Mason tool for auto-installation.
---- Supports optional version pinning with "@" syntax (e.g. "tree-sitter-cli@v0.26.11").
+--- Supports optional version pinning with "@" syntax (e.g. "debugpy@v2.0.0").
 --- Browse available packages: https://github.com/mason-org/mason-registry/tree/main/packages
 --- Or run :Mason in Neovim to search interactively.
 --- Version: check the source.id field in the package's package.yaml in mason-registry,
---- it points to the upstream repo (e.g. pkg:github/tree-sitter/tree-sitter@v0.26.12),
+--- it points to the upstream repo (e.g. pkg:github/microsoft/debugpy@v2.0.0),
 --- available versions are the release tags of that upstream repo.
 --- @param spec string Mason registry package name, optionally with @version
 function M.add(spec)

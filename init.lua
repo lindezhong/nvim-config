@@ -145,7 +145,7 @@ require("commands")
 require("buftabline")
 -- :Terminal command (fullscreen terminal with cleanup hooks)
 require("terminal")
--- Plugin configs from lua/plugins/ (LSP, completion, treesitter, etc.)
+-- Plugin configs from lua/plugins/ (LSP, completion, etc.)
 require("lazy").setup("plugins")
 -- Load colorscheme after plugins to prevent runtime from overriding hi! links
 vim.cmd.colorscheme("vim8-dark")
