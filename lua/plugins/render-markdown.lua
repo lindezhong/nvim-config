@@ -27,6 +27,13 @@
 --   - anti-conceal (cursor line reveals raw source) is DISABLED in normal mode
 --     (anti_conceal.disabled_modes), so decorations stay put while navigating.
 --     It still applies in visual mode, where the cursor line shows raw source.
+--   - Wide table rows fold to fit the window. A Marks:replace override (in
+--     config below) draws fold line 1 as overlay INSIDE the raw row, so the
+--     cursor resting on a folded row keeps the aligned grid instead of
+--     flipping to raw source (upstream behavior, hard-coded in core/ui.lua).
+--     If the folded row is the LAST line of the buffer the grid is drawn
+--     above it and the row itself becomes a blank line (see EXCEPTION in
+--     the override comment).
 --   - insert mode shows raw source everywhere; decorations re-render on
 --     leaving insert (default render_modes), keeping vim-table-mode usable.
 --   - html/latex/yaml support disabled: parsers are not installed (would only
@@ -121,6 +128,86 @@ return {
         -- Disabled: yaml treesitter parser is not installed.
         yaml = { enabled = false },
       })
+
+      -- Folded table rows without the cursor-row flip. Upstream folds a row
+      -- wider than the window via extmark 'conceal_lines' (zero screen
+      -- height) + virtual lines; when the cursor lands on such a row the
+      -- extmark is dropped wholesale (core/ui.lua hard-codes: "virtual row ->
+      -- no editable screen cells -> must hide"), revealing raw source and
+      -- breaking grid alignment. Instead the first grid line is drawn as an
+      -- 'overlay' virt_text inside the raw row itself (overlay survives on
+      -- the cursor line, same as the pipe borders; grid lines are built to
+      -- the window budget, so the overlay spans every visible cell) and the
+      -- remaining lines attach as virt_lines below. No zero-height row
+      -- exists, so the cursor always has screen cells: no flip, and j/down
+      -- move normally. Lives in this file, so plugin updates cannot lose it.
+      --
+      -- EXCEPTION for a folded row on the LAST buffer line: Neovim never
+      -- reserves rows below the last line (scrolloff is relaxed there), so
+      -- below-attached virt_lines clip once the window is scrolled to the
+      -- bottom. Draw the whole grid (all lines, bottom border included)
+      -- ABOVE the row instead and blank the row itself with an overlay of
+      -- spaces; the table ends in one blank screen row but always displays
+      -- in full. Only applies when there IS a continuation: a single-line
+      -- fold still draws onto the row, where it is always visible.
+      --
+      -- HACK: this overrides a plugin-internal method (lib.marks.replace,
+      -- written against v8.14.0) and may break after plugin updates - either
+      -- silently (the cursor flip returns) or with render errors on folded
+      -- tables; in both cases delete or re-adapt this block.
+      -- Quick revert: delete this whole block (both require() lines and the
+      -- marks:replace function below) - stock upstream behavior returns.
+      local marks = require("render-markdown.lib.marks")
+      local str = require("render-markdown.lib.str")
+      function marks:replace(config, node, lines)
+        local last_line = vim.api.nvim_buf_line_count(self.context.buf) - 1
+        local is_last_line = node.end_row >= last_line
+        if is_last_line and #lines > 1 then
+          self:insert(config, {
+            conceal = true,
+            start_row = node.start_row,
+            start_col = node.start_col,
+            opts = {
+              end_row = node.end_row,
+              end_col = node.end_col,
+              virt_text = { { (" "):rep(str.line_width(lines[1])) } },
+              virt_text_pos = "overlay",
+            },
+          })
+          self:insert(config, {
+            conceal = true,
+            start_row = node.start_row,
+            start_col = 0,
+            opts = {
+              virt_lines = lines,
+              virt_lines_above = true,
+            },
+          })
+          return
+        end
+        self:insert(config, {
+          conceal = true,
+          start_row = node.start_row,
+          start_col = node.start_col,
+          opts = {
+            end_row = node.end_row,
+            end_col = node.end_col,
+            virt_text = lines[1],
+            virt_text_pos = "overlay",
+          },
+        })
+        if #lines > 1 then
+          self:insert(config, {
+            conceal = true,
+            start_row = node.start_row,
+            start_col = 0,
+            opts = {
+              virt_lines = vim.list_slice(lines, 2),
+              virt_lines_above = false,
+            },
+          })
+        end
+      end
     end,
   },
 }
