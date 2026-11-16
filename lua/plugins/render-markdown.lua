@@ -96,6 +96,15 @@ return {
         -- in render_modes).
         anti_conceal = { disabled_modes = { "n" } },
 
+        -- Plugin default ('rendered = ""') reveals concealed text under the
+        -- cursor in every mode, which flips short (non-folded) table rows and
+        -- inline '**'/'`' markers back to raw source on the cursor line.
+        -- 'n' keeps them rendered in normal mode; visual mode still reveals.
+        -- The wide-table override below only covers folded rows, not these.
+        win_options = {
+          concealcursor = { rendered = "n" },
+        },
+
         heading = {
           -- Empty list disables the full-line background highlight
           -- (default RenderMarkdownH1Bg..H6Bg); border defaults to false,
