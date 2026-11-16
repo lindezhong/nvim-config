@@ -97,6 +97,10 @@ return {
         anti_conceal = { disabled_modes = { "n" } },
 
         heading = {
+          -- Empty list disables the full-line background highlight
+          -- (default RenderMarkdownH1Bg..H6Bg); border defaults to false,
+          -- so nothing replaces it. Hash-mark foregrounds stay.
+          backgrounds = {},
           -- Disable sign column marker: default '󰫎 ' is a nerd font glyph
           sign = false,
           -- Keep the original hash marks: zero-width offset (icon == raw width),
