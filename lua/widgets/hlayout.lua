@@ -1,11 +1,11 @@
--- vlayout.lua
--- Vertical (stacked) layout module for the git plugin.
--- Creates a column of horizontally-split windows arranged top-to-bottom,
--- each with an optional fixed height and an optional logical name for
+-- hlayout.lua
+-- Horizontal (side-by-side) layout module for the git plugin.
+-- Creates a row of vertically-split windows arranged left-to-right,
+-- each with an optional fixed width and an optional logical name for
 -- lookup via the shared layout registry.
 
 --- Import the base layout module for creating the underlying layout instance
-local layout = require("plugins.git.widgets.layout")
+local layout = require("widgets.layout")
 
 --- Neovim API shorthand for window/buffer operations
 local api = vim.api
@@ -13,10 +13,10 @@ local api = vim.api
 --- @type table Module table exported by this file
 local M = {}
 
---- Create a vertical layout with the specified child window definitions.
--- Opens a series of horizontal splits from top to bottom. Each child can
--- specify a fixed height and/or a logical name for registry lookup.
----@param children { height?: integer, name?: string }[] List of window specs (height and/or name)
+--- Create a horizontal layout with the specified child window definitions.
+-- Opens a series of vertical splits from left to right. Each child can
+-- specify a fixed width and/or a logical name for registry lookup.
+---@param children { width?: integer, name?: string }[] List of window specs (width and/or name)
 ---@param registry? table Shared registry from parent layout (nil creates a new root registry)
 ---@return table self The layout instance populated with created windows and buffers
 function M.create(children, registry)
@@ -28,25 +28,25 @@ function M.create(children, registry)
   -- Track windows as they are created for sequential split positioning
   local created_wins = {}
 
-  -- Iterate over each child spec to create a horizontal split window
+  -- Iterate over each child spec to create a vertical split window
   for i, child in ipairs(children) do
     local win
     if i == 1 then
-      -- First window: create a top-left horizontal split
-      vim.cmd("topleft split")
+      -- First window: create a top-left vertical split
+      vim.cmd("topleft vsplit")
       win = api.nvim_get_current_win()
     else
-      -- Subsequent windows: split below the previous window
+      -- Subsequent windows: split to the right of the previous window
       local prev_win = created_wins[#created_wins]
       api.nvim_set_current_win(prev_win)
-      vim.cmd("rightbelow split")
+      vim.cmd("rightbelow vsplit")
       win = api.nvim_get_current_win()
     end
 
-    -- Apply fixed height if specified in the child definition
-    if child.height then
-      api.nvim_win_set_height(win, child.height)
-      vim.wo[win].winfixheight = true  -- Prevent Vim from auto-resizing this window
+    -- Apply fixed width if specified in the child definition
+    if child.width then
+      api.nvim_win_set_width(win, child.width)
+      vim.wo[win].winfixwidth = true  -- Prevent Vim from auto-resizing this window
     end
     -- Create a new scratch buffer and assign it to the window
     local buf = api.nvim_create_buf(false, true)

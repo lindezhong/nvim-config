@@ -7,11 +7,11 @@
 --- @module plugins.git.diff.diffwindow
 
 -- Import the window manager for creating the overall window container
-local window = require("plugins.git.widgets.window")
+local window = require("widgets.window")
 -- Import horizontal layout module for arranging panes side by side
-local hlayout = require("plugins.git.widgets.hlayout")
+local hlayout = require("widgets.hlayout")
 -- Import the treeview widget for rendering the file tree
-local treeview = require("plugins.git.widgets.treeview")
+local treeview = require("widgets.treeview")
 -- Import diffview for rendering actual diff content in buffers
 local diffview = require("plugins.git.diff.diffview")
 -- Import the git module for file operations and status queries

@@ -3,7 +3,7 @@
 -- Used by the git plugin to present file trees and other nested structures.
 
 -- Import the base view module that provides event emitting and buffer management
-local view = require("plugins.git.widgets.view")
+local view = require("widgets.view")
 
 -- Alias for the Neovim API namespace
 local api = vim.api

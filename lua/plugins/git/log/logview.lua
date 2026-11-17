@@ -4,7 +4,7 @@
 -- The buffer is non-modifiable by default and uses the "git" filetype for syntax highlighting.
 
 -- Import the base view module for creating view instances
-local view = require("plugins.git.widgets.view")
+local view = require("widgets.view")
 
 -- Shortcut reference to the Neovim API
 local api = vim.api

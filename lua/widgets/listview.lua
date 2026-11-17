@@ -3,7 +3,7 @@
 -- optional highlight groups. Provides infinite scrolling via load_more callback.
 
 -- Import the base view module that provides event emitting and buffer management
-local view = require("plugins.git.widgets.view")
+local view = require("widgets.view")
 
 -- Alias for the Neovim API namespace
 local api = vim.api

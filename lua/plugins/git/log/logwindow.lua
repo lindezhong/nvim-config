@@ -6,11 +6,11 @@
 -- opens its diff in a separate diff window.
 
 -- Import the base window module for window lifecycle management
-local window = require("plugins.git.widgets.window")
+local window = require("widgets.window")
 -- Import horizontal layout utility for splitting the window
-local hlayout = require("plugins.git.widgets.hlayout")
+local hlayout = require("widgets.hlayout")
 -- Import the listview widget for rendering a selectable list of items
-local listview = require("plugins.git.widgets.listview")
+local listview = require("widgets.listview")
 -- Import the logview module for the detail pane buffer
 local logview = require("plugins.git.log.logview")
 -- Import the diff window module for viewing commit diffs

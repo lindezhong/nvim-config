@@ -7,7 +7,7 @@
 --- @module plugins.git.diff.diffview
 
 -- Import the base view module for creating view instances
-local view = require("plugins.git.widgets.view")
+local view = require("widgets.view")
 -- Import the git module for retrieving file contents and diffs
 local git = require("plugins.git.git")
 
