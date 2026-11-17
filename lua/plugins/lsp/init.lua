@@ -2,7 +2,8 @@
 --
 -- Plugin declarations and server setup:
 -- 1. Server configs: vtsls, jsonls, lua_ls, pyright, clangd, bashls,
---    html, cssls, yamlls, lemminx, rust_analyzer (Java handled by nvim-jdtls plugin)
+--    html, cssls, yamlls, lemminx, marksman, rust_analyzer
+--    (Java handled by nvim-jdtls plugin)
 -- 2. Servers are auto-installed via mason-ensure, enabled via vim.lsp.enable()
 -- 3. Semantic tokens disabled to prevent overriding syntax colors
 --
@@ -40,6 +41,7 @@ ensure.addLsp({ lsp = "html" })     -- HTML
 ensure.addLsp({ lsp = "cssls" })    -- CSS/SCSS/Less
 ensure.addLsp({ lsp = "yamlls" })   -- YAML
 ensure.addLsp({ lsp = "lemminx" })  -- XML
+ensure.addLsp({ lsp = "marksman" })  -- Markdown
 ensure.addLsp({ lsp = "rust_analyzer", settings = { -- Rust
   ["rust-analyzer"] = {
     cargo = { allFeatures = true },
