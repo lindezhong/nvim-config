@@ -273,11 +273,11 @@ function M.open(opts)
   -- Create the window with the appropriate layout based on mode
   local win = window.create(function()
     if mode == "vimdiff" then
-      -- Three-pane layout: tree (35 cols) | old | new
-      return hlayout.create({ { width = 35, name = "tree" }, { name = "old" }, { name = "new" } })
+      -- Three-pane layout: tree (30% width) | old | new
+      return hlayout.create({ { width = "30%", name = "tree" }, { name = "old" }, { name = "new" } })
     else
-      -- Two-pane layout: tree (35 cols) | diff
-      return hlayout.create({ { width = 35, name = "tree" }, { name = "diff" } })
+      -- Two-pane layout: tree (30% width) | diff
+      return hlayout.create({ { width = "30%", name = "tree" }, { name = "diff" } })
     end
   end)
   -- Open the window (makes it visible)
@@ -416,11 +416,11 @@ function M.toggle_mode()
   -- Rebuild the window layout for the new mode
   state.win:rebuild_layout(function()
     if new_mode == "vimdiff" then
-      -- Three-pane layout: tree | old | new
-      return hlayout.create({ { width = 35, name = "tree" }, { name = "old" }, { name = "new" } })
+      -- Three-pane layout: tree (30% width) | old | new
+      return hlayout.create({ { width = "30%", name = "tree" }, { name = "old" }, { name = "new" } })
     else
-      -- Two-pane layout: tree | diff
-      return hlayout.create({ { width = 35, name = "tree" }, { name = "diff" } })
+      -- Two-pane layout: tree (30% width) | diff
+      return hlayout.create({ { width = "30%", name = "tree" }, { name = "diff" } })
     end
   end)
   -- Get the newly created layout
