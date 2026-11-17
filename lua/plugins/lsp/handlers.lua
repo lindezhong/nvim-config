@@ -1,7 +1,7 @@
 -- Custom LSP interaction handlers
 --
 -- Functions used by keymaps that need logic beyond a single vim.lsp.buf call:
--- scroll_float, references (floating picker), document_outline (right panel)
+-- scroll_float, references (floating picker)
 
 local M = {}
 
@@ -17,17 +17,6 @@ function M.scroll_float(key)
     end
   end
   return false
-end
-
--- Show document symbols in a right-side location list panel
-function M.document_outline()
-  local lsp = require("plugins.lsp.lsp")
-  lsp.document_symbol({
-    on_list = function(options)
-      vim.fn.setloclist(0, {}, " ", options)
-      vim.cmd("vert botright lopen 40")
-    end,
-  })
 end
 
 return M

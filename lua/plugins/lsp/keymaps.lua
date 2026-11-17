@@ -104,8 +104,8 @@ function M.setup()
       vim.keymap.set("n", "<A-j>", implementation, opts)
       -- Workspace symbols: search symbols across the entire project
       vim.keymap.set("n", "<C-t>", lsp.workspace_symbol, opts)
-      -- Document outline: show file symbols in a right-side panel
-      vim.keymap.set("n", "<leader>o", handlers.document_outline, opts)
+      -- Document outline: show file symbols in a right-side tree panel
+      vim.keymap.set("n", "<leader>o", require("plugins.lsp.document_outline").open, opts)
       -- Selection range: progressively expand selection by syntax tree
       vim.keymap.set("n", "<C-s>", lsp.selection_range, opts)
       vim.keymap.set("x", "<C-s>", lsp.selection_range, opts)

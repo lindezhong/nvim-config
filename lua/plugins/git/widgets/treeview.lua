@@ -35,7 +35,7 @@ local ns = api.nvim_create_namespace("git_tree")
 ---@field toggle? string Key to toggle expand/collapse (default: "<Tab>")
 ---@field select? string Key to select/activate a node (default: "<CR>")
 
----@class TreeViewOpts
+---@class GitTreeViewOpts
 ---@field items any[] | fun(callback: fun(items: any[])) Tree root items, or async function that delivers them via callback
 ---@field get_tree_item fun(element: any): TreeItem Function to convert a raw element into a displayable TreeItem
 ---@field expand_level? integer How many levels to auto-expand on initial load (default: 0)
@@ -46,7 +46,7 @@ local ns = api.nvim_create_namespace("git_tree")
 --- Creates a new tree view widget.
 --- Returns a view object with a buffer (.buf) ready to be displayed in a window.
 --- Emits events: "select" (element), "toggle" (element), "cursor" (element).
----@param opts TreeViewOpts Configuration options for the tree view
+---@param opts GitTreeViewOpts Configuration options for the tree view
 ---@return table self The tree view instance with .buf, :refresh(), :toggle() methods
 function M.create(opts)
   -- Create the base view which provides event emitting via self:emit()
