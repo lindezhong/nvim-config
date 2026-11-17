@@ -36,6 +36,11 @@
 --     the override comment).
 --   - insert mode shows raw source everywhere; decorations re-render on
 --     leaving insert (default render_modes), keeping vim-table-mode usable.
+--   - scratch popups (buftype=nofile) skip rendering entirely; fences there
+--     are concealed by the builtin treesitter query in windows with
+--     conceallevel >= 2 (as LSP hover floats set), kept alive by the query
+--     rewrite in the config below - the plugin default would disable it
+--     globally, exposing raw fences in LSP hover floats.
 --   - html/latex/yaml support disabled: parsers are not installed (would only
 --     produce checkhealth warnings; latex rendering needs image converters too).
 --
@@ -105,6 +110,13 @@ return {
           concealcursor = { rendered = "n" },
         },
 
+        -- Skip rendering in scratch popups (buftype=nofile)
+        overrides = {
+          buftype = {
+            nofile = { enabled = false },
+          },
+        },
+
         heading = {
           -- Empty list disables the full-line background highlight
           -- (default RenderMarkdownH1Bg..H6Bg); border defaults to false,
@@ -141,6 +153,44 @@ return {
         -- Disabled: yaml treesitter parser is not installed.
         yaml = { enabled = false },
       })
+
+      -- Rewrite the builtin markdown highlights query with the line-level
+      -- conceal_lines directives removed, keeping the char-level
+      -- 'conceal ""' on the same patterns. Rationale: on first attach the
+      -- plugin looks up conceal_lines directives in this query and disables
+      -- the whole patterns globally - including for markdown buffers where
+      -- it does not render (the nofile override above), which exposes raw
+      -- fences in LSP hover floats. With the directives gone the disable
+      -- step finds nothing to do, so concealing survives everywhere, while
+      -- rendered buffers are unaffected (the plugin conceals fences itself).
+      -- Run at setup time, before any markdown buffer attaches.
+      -- HACK: matches the directive text of nvim 0.11's bundled query and
+      -- the plugin's directive lookup (core/ts.lua). Additional override
+      -- files are read and stripped the same way; if a directive's text
+      -- ever changes the verification below errors when the plugin loads
+      -- instead of silently re-breaking hover floats. Quick revert: delete
+      -- this whole block.
+      local parts = {}
+      for _, file in ipairs(vim.treesitter.query.get_files("markdown", "highlights")) do
+        local handle = assert(io.open(file, "r"))
+        parts[#parts + 1] = handle:read("*a")
+        handle:close()
+      end
+      -- query.get concatenates all files the same way (read_query_files),
+      -- so the rewrite must too; otherwise patterns from other files survive.
+      local source = table.concat(parts, "")
+      vim.treesitter.query.set(
+        "markdown",
+        "highlights",
+        (source:gsub('%(#set! conceal_lines ""%)', ""))
+      )
+      -- set() clears the query cache; get() re-derives from the explicit
+      -- query (no '; inherits' modelines -> runtime files are not prepended)
+      -- and parses it here, so syntax errors also surface when the plugin
+      -- loads rather than when the first buffer renders.
+      if vim.treesitter.query.get("markdown", "highlights").has_conceal_line then
+        error("render-markdown.lua: markdown highlights query still has conceal_lines")
+      end
 
       -- Folded table rows without the cursor-row flip. Upstream folds a row
       -- wider than the window via extmark 'conceal_lines' (zero screen
