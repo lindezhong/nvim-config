@@ -11,7 +11,7 @@
 --   vim.g.references_keys   - keybinding config table { jump = "<CR>", close = "q" }
 
 -- Load the generic location browser
-local peekview = require("plugins.lsp.peekview")
+local peekview = require("widgets.peekview")
 -- Load the shared jump utility
 local goto_loc = require("plugins.lsp.goto")
 

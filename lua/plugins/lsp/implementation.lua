@@ -5,7 +5,7 @@
 --   - Single implementation: jump directly
 --   - Multiple implementations: open peekview
 
-local peekview = require("plugins.lsp.peekview")
+local peekview = require("widgets.peekview")
 local goto_loc = require("plugins.lsp.goto")
 
 local function open_implementation()

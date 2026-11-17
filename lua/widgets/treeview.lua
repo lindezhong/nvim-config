@@ -1,173 +1,213 @@
--- Tree view widget for displaying hierarchical data in a Neovim buffer.
--- Provides collapsible tree nodes with icons, highlights, and keyboard navigation.
--- Used by the git plugin to present file trees and other nested structures.
+-- treeview.lua: Generic tree view component.
+--
+-- Implements the TreeView + TreeDataProvider pattern (coc.nvim / VS Code style).
+-- Shared by the git plugin (diff file tree) and LSP panels (outline, call hierarchy).
+--
+-- Two usage modes:
+--   - Panel mode: pass position (and optionally viewId/title/width) — the view
+--     creates and manages its own side panel (show/hide/dispose, viewId
+--     singleton reuse). "q" closes the panel.
+--   - Buffer mode: omit position — the view only creates .buf; the consumer
+--     places it into a window (e.g. via widgets.window/layout) and drives
+--     the lifecycle via :close().
+--
+-- Data source, either:
+--   - items: full tree upfront (table, or callback-style); children nested
+--     on element.children; requires get_tree_item
+--   - provider.get_children(element, callback): async lazy loading per node
+--
+-- Events (via :on): "select" (<CR>), "cursor" (CursorMoved), "toggle" (<Tab>),
+-- "expand", "collapse", "visibility".
 
--- Import the base view module that provides event emitting and buffer management
 local view = require("widgets.view")
 
--- Alias for the Neovim API namespace
 local api = vim.api
 
---- @type table Module table exported by this file
-local M = {}
-
---- Namespace for extmark highlights used by the tree view
-local ns = api.nvim_create_namespace("git_tree")
-
 ---@class TreeItemIcon
----@field text string The icon character(s) to display
----@field hlGroup string The highlight group to apply to the icon
+---@field text string icon text shown between the toggle indicator and the label
+---@field hlGroup? string highlight group for the icon
 
 ---@class TreeItem
----@field label string The display text for this tree node
----@field collapsible boolean Whether this node can be expanded/collapsed (i.e., it has children)
----@field icon? TreeItemIcon Optional icon displayed before the label
----@field label_hl? string Optional highlight group for the label text
----@field description? string Optional description text displayed after the label in parentheses
----@field description_hl? string Optional highlight group for the description text
+---@field label string display text for the node
+---@field collapsible boolean whether this node can have children (expandable)
+---@field icon? TreeItemIcon optional icon (kind/status marker), does not replace the toggle indicator
+---@field label_hl? string highlight group covering the line from indent to end
+---@field description? string secondary text shown after label in parentheses
+---@field description_hl? string highlight group for the description
 
----@class TreeViewIcons
----@field collapsed? string Icon shown for collapsed nodes (default: "▸")
----@field expanded? string Icon shown for expanded nodes (default: "▾")
----@field leaf? string Icon shown for leaf nodes (default: " ")
+---@class TreeDataProvider
+---@field get_children fun(element?: any, callback: fun(children: any[])) async fetch children; nil element = roots
+---@field get_tree_item fun(element: any): TreeItem convert domain element to display node
+---@field on_did_change_tree_data? fun(callback: fun(element?: any)) register listener for data changes
 
 ---@class TreeViewKeys
----@field toggle? string Key to toggle expand/collapse (default: "<Tab>")
----@field select? string Key to select/activate a node (default: "<CR>")
+---@field toggle? string key to expand/collapse node (default "<Tab>")
+---@field select? string key to activate/invoke action (default "<CR>")
+---@field close? string key to close panel (default "q", panel mode only)
 
----@class GitTreeViewOpts
----@field items any[] | fun(callback: fun(items: any[])) Tree root items, or async function that delivers them via callback
----@field get_tree_item fun(element: any): TreeItem Function to convert a raw element into a displayable TreeItem
----@field expand_level? integer How many levels to auto-expand on initial load (default: 0)
----@field icons? TreeViewIcons Custom icons for tree indicators
----@field keys? TreeViewKeys Custom key mappings
----@field current? any Element to place the cursor on after initial load
+---@class TreeViewIcons
+---@field collapsed? string icon for collapsed node (default "▸")
+---@field expanded? string icon for expanded node (default "▾")
+---@field leaf? string icon for leaf node (default " ")
 
---- Creates a new tree view widget.
---- Returns a view object with a buffer (.buf) ready to be displayed in a window.
---- Emits events: "select" (element), "toggle" (element), "cursor" (element).
----@param opts GitTreeViewOpts Configuration options for the tree view
----@return table self The tree view instance with .buf, :refresh(), :toggle() methods
+---@class TreeViewOpts
+---@field items? any[] | fun(callback: fun(items: any[])) full tree upfront; requires get_tree_item
+---@field get_tree_item? fun(element: any): TreeItem element → TreeItem (required with items)
+---@field provider? TreeDataProvider async lazy-loading data source
+---@field viewId? string unique id; same viewId reuses the panel instance (swaps provider)
+---@field title? string panel title shown in statusline
+---@field on_select? fun(element: any) called on <CR> (also emitted as "select")
+---@field expand_level? integer auto-expand depth on load (default 0)
+---@field current? any element to place the cursor on after load
+---@field width? integer panel width for left/right (default 40)
+---@field height? integer panel height for top/bottom (default 15)
+---@field position? "left"|"right"|"top"|"bottom" panel position; omit = buffer-only mode
+---@field keys? TreeViewKeys custom key bindings
+---@field icons? TreeViewIcons custom icons
+
+--- Global registry for viewId-based singleton management.
+---@type table<string, table>
+local registry = {}
+
+--- Namespace for extmark highlights
+local ns = api.nvim_create_namespace("widgets_tree")
+
+local M = {}
+
+--- Create a new TreeView instance.
+--- If opts.viewId matches an existing instance, reuses it with the new provider.
+---@param opts TreeViewOpts creation options
+---@return table tree the view handle with show/hide/refresh/toggle/close methods
 function M.create(opts)
-  -- Create the base view which provides event emitting via self:emit()
+  -- Reuse existing instance with same viewId (avoids dispose+recreate flicker)
+  if opts.viewId and registry[opts.viewId] then
+    local existing = registry[opts.viewId]
+    existing.set_provider(opts.provider, opts.on_select)
+    return existing
+  end
+
+  -- Event emitter and lifecycle base
   local self = view.create()
 
-  -- Merge user-provided icons with defaults, keeping user values if present
+  -- Normalize items → provider so rendering has a single data interface
+  local provider
+  if opts.items then
+    provider = {
+      get_children = function(element, callback)
+        if element then
+          callback(element.children or {})
+        elseif type(opts.items) == "function" then
+          opts.items(callback)
+        else
+          callback(opts.items)
+        end
+      end,
+      get_tree_item = opts.get_tree_item,
+    }
+  else
+    provider = opts.provider
+  end
+
+  local keys = vim.tbl_extend("keep", opts.keys or {}, {
+    toggle = "<Tab>",
+    select = "<CR>",
+    close = "q",
+  })
   local icons = vim.tbl_extend("keep", opts.icons or {}, {
     collapsed = "▸",
     expanded = "▾",
     leaf = " ",
   })
-
-  -- Merge user-provided key bindings with defaults
-  local keys = vim.tbl_extend("keep", opts.keys or {}, {
-    toggle = "<Tab>",
-    select = "<CR>",
-  })
-
-  -- Number of levels to auto-expand on load (0 means all collapsed)
+  local width = opts.width or 40
+  local height = opts.height or 15
+  local position = opts.position
   local expand_level = opts.expand_level or 0
 
-  -- Array mapping buffer line index to {element, depth} for cursor lookups
-  local visible_nodes = {}
+  --- Sentinel used as table key for root node state (nil cannot be a table key).
+  ---@type table
+  local ROOT = {}
 
-  -- Table mapping element references to their expand/collapse state
-  local node_states = {}
+  local tree_buf = nil       ---@type integer? buffer number
+  local tree_win = nil       ---@type integer? window id (panel mode only)
+  local visible_nodes = {}   ---@type {element: any, depth: integer}[] index = line number
+  local node_states = {}     ---@type table<any, {expanded: boolean, children: any[]?, loading: boolean}>
+  local disposed = false     ---@type boolean
+  local prev_element = nil   ---@type any? last element under the cursor (cursor event dedup)
 
-  --- Retrieves or initializes the expand/collapse state for a given element.
-  ---@param element any The tree element to look up
-  ---@return table state Table with an `expanded` boolean field
+  --- Get or create the state object for an element (ROOT sentinel for nil).
+  ---@param element any?
+  ---@return {expanded: boolean, children: any[]?, loading: boolean}
   local function get_state(element)
-    -- Initialize state lazily on first access, defaulting to collapsed
-    if not node_states[element] then
-      node_states[element] = { expanded = false }
+    local key = element or ROOT
+    if not node_states[key] then
+      node_states[key] = { expanded = false, children = nil, loading = false }
     end
-    return node_states[element]
+    return node_states[key]
   end
 
-  --- Renders the tree into the buffer by walking visible nodes and applying highlights.
-  --- Clears and rewrites the entire buffer content.
-  local function render()
-    -- Guard: do nothing if the buffer has been wiped or is invalid
-    if not self.buf or not api.nvim_buf_is_valid(self.buf) then
-      return
-    end
+  --------------------------------------------------------------------------
+  -- Rendering
+  --------------------------------------------------------------------------
 
-    -- Accumulator for the text lines to write into the buffer
+  --- Render the entire tree into the buffer.
+  local function render()
+    if not tree_buf or not vim.api.nvim_buf_is_valid(tree_buf) then return end
     local lines = {}
-    -- Reset the visible nodes mapping for this render cycle
     visible_nodes = {}
 
-    --- Recursively walks the tree elements and builds display lines.
-    ---@param elements any[] List of elements at the current depth
-    ---@param depth integer Current indentation depth (0-based)
+    --- Recursive walk: build display lines for elements at a given depth.
+    ---@param elements any[]
+    ---@param depth integer
     local function walk(elements, depth)
       for _, element in ipairs(elements) do
-        -- Convert the raw element to a displayable TreeItem
-        local item = opts.get_tree_item(element)
-        -- Get the expand/collapse state for this element
+        local item = provider.get_tree_item(element)
         local state = get_state(element)
-        -- Build indentation string (2 spaces per depth level)
         local indent = string.rep("  ", depth)
 
-        -- Determine the tree structure indicator icon based on node type and state
+        -- Toggle indicator column: leaf icon / expand state
         local tree_icon
         if not item.collapsible then
-          -- Leaf node: use leaf icon (typically a space for alignment)
           tree_icon = icons.leaf
         elseif state.expanded then
-          -- Expanded collapsible node: use expanded arrow
           tree_icon = icons.expanded
         else
-          -- Collapsed collapsible node: use collapsed arrow
           tree_icon = icons.collapsed
         end
 
-        -- Build the display line: indent + tree_icon + " " + [icon + " "] + label [+ " (description)"]
+        -- Line layout: [indent][tree_icon] [icon] [label] [(description)]
         local line = indent .. tree_icon .. " "
-        -- Append the optional item icon if provided
         if item.icon then
           line = line .. item.icon.text .. " "
         end
-        -- Append the main label text
         line = line .. item.label
-        -- Append optional description in parentheses
         if item.description then
           line = line .. " (" .. item.description .. ")"
         end
 
-        -- Add this line to the buffer content
         lines[#lines + 1] = line
-        -- Track which element corresponds to which buffer line
         visible_nodes[#visible_nodes + 1] = { element = element, depth = depth }
 
-        -- Recursively render children if this node is expanded
-        if state.expanded and element.children then
-          walk(element.children, depth + 1)
+        if state.expanded and state.children then
+          walk(state.children, depth + 1)
         end
       end
     end
 
-    -- Start the recursive walk from root elements if available
-    if self.roots then
-      walk(self.roots, 0)
+    local root_state = get_state(nil)
+    if root_state.children then
+      walk(root_state.children, 0)
     end
 
-    -- Write lines into the buffer (temporarily enable modifiable)
-    vim.bo[self.buf].modifiable = true
-    api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
-    vim.bo[self.buf].modifiable = false
+    vim.bo[tree_buf].modifiable = true
+    api.nvim_buf_set_lines(tree_buf, 0, -1, false, lines)
+    vim.bo[tree_buf].modifiable = false
 
-    -- Clear all existing highlight extmarks in this namespace
-    api.nvim_buf_clear_namespace(self.buf, ns, 0, -1)
-
-    -- Apply syntax highlights for each visible node
+    -- Apply highlights (extmarks), recomputing column offsets per line
+    api.nvim_buf_clear_namespace(tree_buf, ns, 0, -1)
     for i, node in ipairs(visible_nodes) do
-      local item = opts.get_tree_item(node.element)
-      -- Calculate byte offset for the indentation portion
+      local item = provider.get_tree_item(node.element)
       local indent_bytes = #string.rep("  ", node.depth)
 
-      -- Calculate byte length of the tree icon (collapsed/expanded/leaf)
       local tree_icon_bytes
       if not item.collapsible then
         tree_icon_bytes = #icons.leaf
@@ -176,34 +216,25 @@ function M.create(opts)
         tree_icon_bytes = st.expanded and #icons.expanded or #icons.collapsed
       end
 
-      -- Apply label highlight covering tree_icon through end of line (for directories, etc.)
       if item.label_hl and item.label_hl ~= "" then
-        local line_end = #lines[i]
-        api.nvim_buf_set_extmark(self.buf, ns, i - 1, indent_bytes, {
-          end_col = line_end,
+        api.nvim_buf_set_extmark(tree_buf, ns, i - 1, indent_bytes, {
+          end_col = #lines[i],
           hl_group = item.label_hl,
         })
       end
 
-      -- Apply icon-specific highlight to just the icon text portion
       if item.icon and item.icon.hlGroup and item.icon.hlGroup ~= "" then
-        -- Icon starts after indent + tree_icon + 1 space
         local icon_start = indent_bytes + tree_icon_bytes + 1
-        -- Icon ends after icon text characters
-        local icon_end = icon_start + #item.icon.text
-        api.nvim_buf_set_extmark(self.buf, ns, i - 1, icon_start, {
-          end_col = icon_end,
+        api.nvim_buf_set_extmark(tree_buf, ns, i - 1, icon_start, {
+          end_col = icon_start + #item.icon.text,
           hl_group = item.icon.hlGroup,
         })
       end
 
-      -- Apply description highlight if both description and its hl group are present
       if item.description and item.description_hl then
-        local line_str = lines[i]
-        -- Find the description text position using plain string search
-        local desc_start = line_str:find(item.description, 1, true)
+        local desc_start = lines[i]:find(item.description, 1, true)
         if desc_start then
-          api.nvim_buf_set_extmark(self.buf, ns, i - 1, desc_start - 1, {
+          api.nvim_buf_set_extmark(tree_buf, ns, i - 1, desc_start - 1, {
             end_col = desc_start - 1 + #item.description,
             hl_group = item.description_hl,
           })
@@ -212,171 +243,350 @@ function M.create(opts)
     end
   end
 
-  --- Automatically expands collapsible nodes up to the configured expand_level depth.
-  ---@param elements any[]|nil List of elements to auto-expand
-  ---@param depth integer Current depth level (starts at 1 for root)
-  local function auto_expand(elements, depth)
-    -- Stop recursion if we exceed the configured expand level or elements is nil
-    if expand_level < depth or not elements then
-      return
-    end
-    for _, element in ipairs(elements) do
-      local item = opts.get_tree_item(element)
-      -- Only expand nodes that are collapsible and actually have children
-      if item.collapsible and element.children then
-        local state = get_state(element)
-        -- Mark as expanded
-        state.expanded = true
-        -- Recurse into children at the next depth level
-        auto_expand(element.children, depth + 1)
-      end
-    end
-  end
-
-  --- Loads tree items either synchronously (from a table) or asynchronously (via callback).
-  ---@param callback fun(items: any[]) Function to call with the loaded items
-  local function load_items(callback)
-    if type(opts.items) == "function" then
-      -- Async mode: call the items function with our callback
-      opts.items(callback)
-    else
-      -- Sync mode: directly pass the items table to the callback
-      callback(opts.items)
-    end
-  end
-
-  --- Returns the tree element at the current cursor position in the buffer.
-  ---@return any|nil element The element at the cursor line, or nil if none
+  --- Get the element at the cursor in the tree window.
+  ---@return any?
   local function get_element_at_cursor()
-    -- Get the current cursor line number (1-based)
-    local line = api.nvim_win_get_cursor(0)[1]
-    -- Look up the node data for this line
-    local node = visible_nodes[line]
-    -- Return the element reference or nil
+    local win = tree_win
+    if not win or not vim.api.nvim_win_is_valid(win) then win = 0 end
+    local node = visible_nodes[api.nvim_win_get_cursor(win)[1]]
     return node and node.element or nil
   end
 
-  -- Create a scratch buffer for the tree view (unlisted, scratch)
-  self.buf = api.nvim_create_buf(false, true)
-  -- Configure buffer options for a non-file, disposable buffer
-  vim.bo[self.buf].buftype = "nofile"
-  vim.bo[self.buf].bufhidden = "wipe"
-  vim.bo[self.buf].swapfile = false
-  vim.bo[self.buf].filetype = "git_tree"
+  --------------------------------------------------------------------------
+  -- Node operations (expand/collapse/toggle)
+  --------------------------------------------------------------------------
 
-  -- Set up the "select" keymap to emit a "select" event for the element under cursor
-  vim.keymap.set("n", keys.select, function()
-    local element = get_element_at_cursor()
-    if element then
-      -- Emit the "select" event so consumers can react to item activation
-      self:emit("select", element)
-    end
-  end, { buffer = self.buf, silent = true })
-
-  -- Set up the "toggle" keymap to expand/collapse collapsible nodes
-  vim.keymap.set("n", keys.toggle, function()
-    local element = get_element_at_cursor()
-    if not element then
+  --- Expand a node: fetch children from the provider, then re-render.
+  local function expand(element)
+    local state = get_state(element)
+    if state.loading then return end
+    if state.children then
+      state.expanded = true
+      render()
+      self:emit("expand", element)
       return
     end
-    local item = opts.get_tree_item(element)
-    -- Only toggle if the node is collapsible (has children)
-    if item.collapsible then
-      -- Emit the "toggle" event before changing state
-      self:emit("toggle", element)
-      -- Flip the expanded state
+    state.loading = true
+    provider.get_children(element, function(children)
+      state.loading = false
+      state.children = children or {}
+      state.expanded = true
+      render()
+      self:emit("expand", element)
+    end)
+  end
+
+  --- Collapse a node without clearing its children cache.
+  local function collapse(element)
+    local state = get_state(element)
+    state.expanded = false
+    render()
+    self:emit("collapse", element)
+  end
+
+  --- Flip the expand state (expand() fetches children if not cached yet).
+  local function toggle_element(element)
+    local state = get_state(element)
+    if state.expanded then
+      collapse(element)
+    else
+      expand(element)
+    end
+  end
+
+  --- Toggle expand/collapse. Supports both tree.toggle(element) and tree:toggle(element).
+  ---@param a any element (dot call) or the view itself (colon call)
+  ---@param b any? element when called with a colon
+  function self.toggle(a, b)
+    local element = b or a
+    local item = provider.get_tree_item(element)
+    if not item.collapsible then return end
+    self:emit("toggle", element)
+    toggle_element(element)
+  end
+
+  --- Activate the node at the cursor: emit "select" and call on_select.
+  local function select_node()
+    local element = get_element_at_cursor()
+    if not element then return end
+    self:emit("select", element)
+    if opts.on_select then
+      opts.on_select(element)
+    end
+  end
+
+  --------------------------------------------------------------------------
+  -- Auto-expand
+  --------------------------------------------------------------------------
+
+  --- Recursively auto-expand collapsible nodes up to expand_level depth,
+  --- fetching children for each level before recursing deeper.
+  ---@param elements any[]? elements at the current depth
+  ---@param depth integer current depth (starts at 1 for root children)
+  ---@param on_done function? called after the final render
+  local function auto_expand(elements, depth, on_done)
+    if expand_level < depth or not elements or #elements == 0 then
+      render()
+      if on_done then on_done() end
+      return
+    end
+
+    local collapsible = {}
+    for _, element in ipairs(elements) do
+      if provider.get_tree_item(element).collapsible then
+        collapsible[#collapsible + 1] = element
+      end
+    end
+
+    if #collapsible == 0 then
+      render()
+      if on_done then on_done() end
+      return
+    end
+
+    local pending = #collapsible
+    local function on_all_expanded()
+      if depth >= expand_level then
+        render()
+        if on_done then on_done() end
+        return
+      end
+      local next_elements = {}
+      for _, el in ipairs(collapsible) do
+        for _, child in ipairs(get_state(el).children or {}) do
+          next_elements[#next_elements + 1] = child
+        end
+      end
+      auto_expand(next_elements, depth + 1, on_done)
+    end
+
+    for _, element in ipairs(collapsible) do
       local state = get_state(element)
-      state.expanded = not state.expanded
-      -- Re-render the tree to reflect the new state
+      state.loading = true
+      provider.get_children(element, function(children)
+        state.loading = false
+        state.children = children or {}
+        state.expanded = true
+        pending = pending - 1
+        if pending == 0 then on_all_expanded() end
+      end)
+    end
+  end
+
+  --- Move the cursor to opts.current once the tree is rendered.
+  --- If the buffer is already in a window, moves now; otherwise defers to
+  --- the first BufWinEnter (consumer places the buffer afterwards).
+  local function setup_current()
+    if not opts.current then return end
+    local target_line = 1
+    for i, node in ipairs(visible_nodes) do
+      if node.element == opts.current then
+        target_line = i
+        break
+      end
+    end
+    if tree_win and vim.api.nvim_win_is_valid(tree_win)
+        and vim.api.nvim_win_get_buf(tree_win) == tree_buf then
+      api.nvim_win_set_cursor(tree_win, { target_line, 0 })
+      return
+    end
+    api.nvim_create_autocmd("BufWinEnter", {
+      buffer = tree_buf,
+      once = true,
+      callback = function()
+        local win = api.nvim_get_current_win()
+        if vim.api.nvim_win_get_buf(win) == tree_buf then
+          api.nvim_win_set_cursor(win, { target_line, 0 })
+        end
+      end,
+    })
+  end
+
+  --- Load roots, auto-expand, position cursor.
+  local function initial_load()
+    provider.get_children(nil, function(children)
+      local root_state = get_state(nil)
+      root_state.children = children or {}
+      auto_expand(root_state.children, 1, setup_current)
+    end)
+  end
+
+  --------------------------------------------------------------------------
+  -- Panel management
+  --------------------------------------------------------------------------
+
+  --- Generate the split command for the panel window.
+  ---@return string
+  local function split_cmd()
+    if position == "left" then
+      return "topleft " .. width .. "vsplit"
+    elseif position == "top" then
+      return "topleft " .. height .. "split"
+    elseif position == "bottom" then
+      return "botright " .. height .. "split"
+    end
+    return "botright " .. width .. "vsplit"
+  end
+
+  --- Create the scratch buffer for the tree.
+  local function create_buf()
+    local buf = api.nvim_create_buf(false, true)
+    vim.bo[buf].buftype = "nofile"
+    vim.bo[buf].bufhidden = "wipe"
+    vim.bo[buf].filetype = "treeview"
+    return buf
+  end
+
+  --- Buffer-local keymaps.
+  local function setup_keymaps()
+    local map_opts = { buffer = tree_buf, nowait = true, silent = true }
+    vim.keymap.set("n", keys.toggle, function()
+      local element = get_element_at_cursor()
+      if element then self.toggle(element) end
+    end, map_opts)
+    vim.keymap.set("n", keys.select, select_node, map_opts)
+    if position then
+      vim.keymap.set("n", keys.close, function() self.hide() end, map_opts)
+    end
+  end
+
+  --- Cursor tracking: emit "cursor" when the node under the cursor changes.
+  local function setup_cursor_tracking()
+    vim.api.nvim_create_autocmd("CursorMoved", {
+      buffer = tree_buf,
+      callback = function()
+        local element = get_element_at_cursor()
+        if element and element ~= prev_element then
+          prev_element = element
+          self:emit("cursor", element)
+        end
+      end,
+    })
+  end
+
+  --- Show the panel and load data (panel mode only).
+  --- Reuses the window if already open; fetches roots if not loaded yet.
+  function self.show()
+    if disposed then return end
+
+    local win_valid = tree_win and vim.api.nvim_win_is_valid(tree_win)
+    local buf_valid = tree_buf and vim.api.nvim_buf_is_valid(tree_buf)
+    if win_valid and buf_valid then
+      vim.api.nvim_set_current_win(tree_win)
+    else
+      if win_valid then vim.api.nvim_win_close(tree_win, true) end
+      tree_buf = create_buf()
+      vim.cmd(split_cmd())
+      tree_win = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_set_buf(tree_win, tree_buf)
+      vim.wo[tree_win].number = false
+      vim.wo[tree_win].relativenumber = false
+      vim.wo[tree_win].signcolumn = "no"
+      vim.wo[tree_win].wrap = false
+      vim.wo[tree_win].statusline = opts.title and (" " .. opts.title) or " "
+      setup_keymaps()
+      setup_cursor_tracking()
+      self:emit("visibility", true)
+    end
+
+    local root_state = get_state(nil)
+    if not root_state.children then
+      provider.get_children(nil, function(children)
+        root_state.children = children or {}
+        auto_expand(root_state.children, 1, setup_current)
+      end)
+    else
       render()
     end
-  end, { buffer = self.buf, silent = true })
+  end
 
-  -- Track the previously highlighted element to avoid redundant cursor events
-  local prev_element = nil
+  --- Hide the panel window (panel mode only); buffer and state are kept.
+  function self.hide()
+    if tree_win and vim.api.nvim_win_is_valid(tree_win) then
+      vim.api.nvim_win_close(tree_win, true)
+      vim.cmd("mode")
+    end
+    tree_win = nil
+    self:emit("visibility", false)
+  end
 
-  -- Set up a CursorMoved autocmd to emit "cursor" events when the selected item changes
-  api.nvim_create_autocmd("CursorMoved", {
-    buffer = self.buf,
-    callback = function()
-      local element = get_element_at_cursor()
-      -- Only emit if the cursor moved to a different element
-      if element and element ~= prev_element then
-        prev_element = element
-        -- Emit cursor event so consumers can show previews, etc.
-        self:emit("cursor", element)
-      end
-    end,
-  })
-
-  --- Refreshes the tree view. If an element is given, collapses it and re-renders.
-  --- If no element is given, reloads all items from scratch.
-  ---@param element? any Optional element to collapse and re-render; nil reloads everything
-  function self:refresh(element)
+  --- Refresh tree data. With an element, re-fetches that subtree (and
+  --- re-expands it if it was open); without, re-fetches from the roots.
+  ---@param element any?
+  function self.refresh(element)
     if element then
-      -- Collapse the specific element and re-render
       local state = get_state(element)
-      state.expanded = false
-      render()
+      state.children = nil
+      if state.expanded then
+        expand(element)
+      end
     else
-      -- Full reload: clear all states and reload items from the data source
       node_states = {}
-      load_items(function(new_items)
-        self.roots = new_items
-        -- Apply auto-expand to the freshly loaded roots
-        auto_expand(self.roots, 1)
+      provider.get_children(nil, function(children)
+        local root_state = get_state(nil)
+        root_state.children = children or {}
         render()
       end)
     end
   end
 
-  --- Programmatically toggles the expand/collapse state of a collapsible element.
-  ---@param element any The element to toggle
-  function self:toggle(element)
-    local item = opts.get_tree_item(element)
-    -- Only toggle collapsible nodes
-    if item.collapsible then
-      local state = get_state(element)
-      -- Flip the expanded state
-      state.expanded = not state.expanded
-      -- Re-render the tree to reflect the change
-      render()
+  --- Dispose this instance: close the panel, delete the buffer, drop from
+  --- the registry. Cannot be reused afterwards.
+  function self.dispose()
+    if disposed then return end
+    disposed = true
+    self:emit("close")
+    self.hide()
+    if opts.viewId then
+      registry[opts.viewId] = nil
+    end
+    if tree_buf and vim.api.nvim_buf_is_valid(tree_buf) then
+      vim.api.nvim_buf_delete(tree_buf, { force = true })
+    end
+    tree_buf = nil
+    node_states = {}
+    visible_nodes = {}
+    self.listeners = {}
+  end
+
+  --- Alias for dispose (buffer-mode consumers use tree:close()).
+  function self.close()
+    self.dispose()
+  end
+
+  --- Replace the data provider and on_select (viewId reuse path).
+  ---@param new_provider TreeDataProvider
+  ---@param new_on_select? fun(element: any)
+  function self.set_provider(new_provider, new_on_select)
+    if disposed then return end
+    provider = new_provider
+    opts.on_select = new_on_select
+    node_states = {}
+    visible_nodes = {}
+    prev_element = nil
+    render()
+    if provider.on_did_change_tree_data then
+      provider.on_did_change_tree_data(function(element)
+        self.refresh(element)
+      end)
     end
   end
 
-  -- Perform the initial load of tree items
-  load_items(function(new_items)
-    -- Store the root items on the view instance
-    self.roots = new_items
-    -- Auto-expand nodes starting from depth 1
-    auto_expand(self.roots, 1)
-    -- Render the initial tree content
-    render()
+  -- Buffer mode: create the buffer up front for the consumer to place and
+  -- load immediately (panel mode creates the buffer and loads in show())
+  self.buf = nil
+  if not position then
+    tree_buf = create_buf()
+    self.buf = tree_buf
+    setup_keymaps()
+    setup_cursor_tracking()
+    initial_load()
+  end
 
-    -- If a current element is specified, position the cursor on it when the buffer enters a window
-    if opts.current then
-      -- Find the line number corresponding to the target element
-      local target_line = 1
-      for i, node in ipairs(visible_nodes) do
-        if node.element == opts.current then
-          target_line = i
-          break
-        end
-      end
-      -- Use BufWinEnter to set cursor after the buffer is displayed in a window
-      api.nvim_create_autocmd("BufWinEnter", {
-        buffer = self.buf,
-        once = true,
-        callback = function()
-          -- Verify the window is actually showing our buffer before setting cursor
-          local win = api.nvim_get_current_win()
-          if api.nvim_win_get_buf(win) == self.buf then
-            api.nvim_win_set_cursor(win, { target_line, 0 })
-          end
-        end,
-      })
-    end
-  end)
+  -- Register in the singleton registry (panel mode)
+  if opts.viewId then
+    registry[opts.viewId] = self
+  end
 
   return self
 end

@@ -8,7 +8,7 @@
 --   - LSP: single textDocument/documentSymbol request, whole tree upfront
 
 local lsp = require("plugins.lsp.lsp")
-local treeview = require("plugins.lsp.treeview")
+local treeview = require("widgets.treeview")
 local goto_loc = require("plugins.lsp.goto")
 
 --- Convert a symbol (hierarchical DocumentSymbol or flat SymbolInformation)
@@ -72,6 +72,7 @@ function M.open()
         })
       end,
       expand_level = 1,  -- auto-expand top-level symbols
+      icons = { collapsed = "+", expanded = "-" },
       width = 40,
       position = "right",
     })

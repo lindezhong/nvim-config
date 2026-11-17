@@ -19,7 +19,7 @@
 --   - This file: configuration, TreeDataProvider implementation, node construction
 
 local lsp = require("plugins.lsp.lsp")
-local treeview = require("plugins.lsp.treeview")
+local treeview = require("widgets.treeview")
 local goto_loc = require("plugins.lsp.goto")
 
 --------------------------------------------------------------------------
