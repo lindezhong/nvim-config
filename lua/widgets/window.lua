@@ -84,12 +84,14 @@ function M.create(layout_fn)
   -- failed layout_fn does not leave the temporary window dangling.
   ---@param new_layout_fn? fun(): table Optional override factory; falls back to the original layout_fn
   function self:rebuild_layout(new_layout_fn)
-    -- Destroy all windows/buffers of the current layout
-    self.layout:destroy()
-
-    -- Temporary window to keep the tab page alive after destroying all layout windows
+    -- Temporary window first: destroy() closes every layout window, and
+    -- closing the last window of a tab closes the tab itself, which would
+    -- leave the rebuilt layout sitting in the user's original tab.
     vim.cmd("new")
     local tmp_win = api.nvim_get_current_win()
+
+    -- Destroy all windows/buffers of the current layout
+    self.layout:destroy()
 
     -- Attempt to build the new layout using the provided or original factory
     local ok, result = pcall(new_layout_fn or layout_fn)

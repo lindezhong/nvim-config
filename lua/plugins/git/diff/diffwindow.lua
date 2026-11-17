@@ -413,6 +413,13 @@ function M.toggle_mode()
   -- Clear all diff buffers
   diffview.clear(state.diff)
 
+  -- The rebuild closes the old tree window; treeview created the tree buffer
+  -- with bufhidden="wipe", so that close would delete it before it is
+  -- re-attached below. The flag stays cleared afterwards: the buffer lives
+  -- on in the rebuilt tree window, and final teardown still deletes it
+  -- explicitly (tree:close -> dispose).
+  vim.bo[state.tree.buf].bufhidden = ""
+
   -- Rebuild the window layout for the new mode
   state.win:rebuild_layout(function()
     if new_mode == "vimdiff" then
