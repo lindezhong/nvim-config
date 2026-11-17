@@ -48,7 +48,7 @@ end
 
 --- Get document symbols. Delegates to vim.lsp.buf.document_symbol.
 --- Supports on_list callback for custom display (e.g., outline panel).
----@param opts? table
+---@param opts? table options passed through to vim.lsp.buf.document_symbol
 function M.document_symbol(opts)
   vim.lsp.buf.document_symbol(opts)
 end
