@@ -26,10 +26,6 @@ local goto_loc = require("plugins.lsp.goto")
 -- Configuration (user-overridable via vim.g.*)
 --------------------------------------------------------------------------
 
---- Panel width in columns.
----@type integer
-vim.g.call_hierarchy_width = vim.g.call_hierarchy_width or 40
-
 --- Total operation timeout in milliseconds (shared across all requests in one expand).
 ---@type integer
 vim.g.call_hierarchy_timeout = vim.g.call_hierarchy_timeout or 10000
@@ -411,7 +407,7 @@ local function open_call_hierarchy(direction)
 
       --- Convert a node to a TreeItem for display.
       ---@param element table tree node
-      ---@return TreeItem
+      ---@return TreeItem display node for the element
       get_tree_item = function(element)
         -- Prefix reference nodes with ref_prefix icon to distinguish from call nodes
         local ref_mark = element.is_ref and (icons.ref_prefix .. " ") or ""
@@ -439,7 +435,6 @@ local function open_call_hierarchy(direction)
         })
       end,
       expand_level = 1,              -- auto-expand root to show first-level results
-      width = vim.g.call_hierarchy_width,
       position = "right",
       keys = vim.g.call_hierarchy_keys,
       icons = {

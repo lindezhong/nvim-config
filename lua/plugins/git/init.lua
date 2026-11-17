@@ -51,7 +51,6 @@
 -- and for commit hashes displayed in the log view.
 -- Called on startup and whenever the colorscheme changes to ensure
 -- highlights persist across theme switches.
----@return nil
 local function set_highlights()
   -- Yellow highlight for modified files (ctermfg=3 for terminal, fg for GUI)
   vim.api.nvim_set_hl(0, "GitModified", { ctermfg = 3, fg = "yellow" })
@@ -72,7 +71,6 @@ end
 -- and creates default normal-mode keymaps for git operations.
 -- This function is called by lazy.nvim as the `config` callback
 -- when the plugin is loaded.
----@return nil
 local function setup()
   -- Apply highlight groups immediately on load
   set_highlights()

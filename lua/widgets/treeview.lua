@@ -20,6 +20,7 @@
 -- "expand", "collapse", "visibility".
 
 local view = require("widgets.view")
+local size = require("widgets.size")
 
 local api = vim.api
 
@@ -59,8 +60,8 @@ local api = vim.api
 ---@field on_select? fun(element: any) called on <CR> (also emitted as "select")
 ---@field expand_level? integer auto-expand depth on load (default 0)
 ---@field current? any element to place the cursor on after load
----@field width? integer panel width for left/right (default 40)
----@field height? integer panel height for top/bottom (default 15)
+---@field width? integer|string panel width for left/right; columns or percentage like "25%" (default "25%")
+---@field height? integer|string panel height for top/bottom; rows or percentage like "30%" (default "30%")
 ---@field position? "left"|"right"|"top"|"bottom" panel position; omit = buffer-only mode
 ---@field keys? TreeViewKeys custom key bindings
 ---@field icons? TreeViewIcons custom icons
@@ -118,8 +119,8 @@ function M.create(opts)
     expanded = "▾",
     leaf = " ",
   })
-  local width = opts.width or 40
-  local height = opts.height or 15
+  local width = opts.width or "25%"
+  local height = opts.height or "30%"
   local position = opts.position
   local expand_level = opts.expand_level or 0
 
@@ -135,7 +136,7 @@ function M.create(opts)
   local prev_element = nil   ---@type any? last element under the cursor (cursor event dedup)
 
   --- Get or create the state object for an element (ROOT sentinel for nil).
-  ---@param element any?
+  ---@param element any? element to fetch state for; nil = root
   ---@return {expanded: boolean, children: any[]?, loading: boolean}
   local function get_state(element)
     local key = element or ROOT
@@ -156,8 +157,8 @@ function M.create(opts)
     visible_nodes = {}
 
     --- Recursive walk: build display lines for elements at a given depth.
-    ---@param elements any[]
-    ---@param depth integer
+    ---@param elements any[] elements at the current depth
+    ---@param depth integer indent depth of this level
     local function walk(elements, depth)
       for _, element in ipairs(elements) do
         local item = provider.get_tree_item(element)
@@ -244,7 +245,7 @@ function M.create(opts)
   end
 
   --- Get the element at the cursor in the tree window.
-  ---@return any?
+  ---@return any? element under the cursor, nil when the line has no node
   local function get_element_at_cursor()
     local win = tree_win
     if not win or not vim.api.nvim_win_is_valid(win) then win = 0 end
@@ -416,16 +417,16 @@ function M.create(opts)
   --------------------------------------------------------------------------
 
   --- Generate the split command for the panel window.
-  ---@return string
+  ---@return string ex command like "topleft 50vsplit"
   local function split_cmd()
     if position == "left" then
-      return "topleft " .. width .. "vsplit"
+      return "topleft " .. size.resolve(width, "width") .. "vsplit"
     elseif position == "top" then
-      return "topleft " .. height .. "split"
+      return "topleft " .. size.resolve(height, "height") .. "split"
     elseif position == "bottom" then
-      return "botright " .. height .. "split"
+      return "botright " .. size.resolve(height, "height") .. "split"
     end
-    return "botright " .. width .. "vsplit"
+    return "botright " .. size.resolve(width, "width") .. "vsplit"
   end
 
   --- Create the scratch buffer for the tree.
@@ -512,7 +513,7 @@ function M.create(opts)
 
   --- Refresh tree data. With an element, re-fetches that subtree (and
   --- re-expands it if it was open); without, re-fetches from the roots.
-  ---@param element any?
+  ---@param element any? element subtree to refresh; nil = reload roots
   function self.refresh(element)
     if element then
       local state = get_state(element)
@@ -555,8 +556,8 @@ function M.create(opts)
   end
 
   --- Replace the data provider and on_select (viewId reuse path).
-  ---@param new_provider TreeDataProvider
-  ---@param new_on_select? fun(element: any)
+  ---@param new_provider TreeDataProvider data source to swap in
+  ---@param new_on_select? fun(element: any) replacement select handler
   function self.set_provider(new_provider, new_on_select)
     if disposed then return end
     provider = new_provider

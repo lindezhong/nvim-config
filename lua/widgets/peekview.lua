@@ -27,7 +27,7 @@
 ---@field min_width? integer minimum float window width in columns
 ---@field max_width_ratio? number maximum float window width as fraction of screen (0-1)
 ---@field max_height_ratio? number maximum list height as fraction of screen (0-1)
----@field split_height? integer list window height in split mode (rows)
+---@field split_height? integer|string list window height in split mode; rows or percentage like "25%" (default "25%")
 
 -- Keybinding configuration
 ---@class PeekViewKeys
@@ -54,6 +54,7 @@
 ---@field highlights? PeekViewHighlights highlight group config, missing fields use defaults
 
 local view = require("widgets.view")
+local size = require("widgets.size")
 local goto_loc = require("plugins.lsp.goto")
 local buf_utils = require("plugins.lsp.buf")
 
@@ -71,7 +72,7 @@ local default_layout = {
   min_width = 50,         -- minimum 50 columns
   max_width_ratio = 0.8,  -- max 80% of screen width
   max_height_ratio = 0.3, -- list max 30% of screen height
-  split_height = 10,      -- split mode 10 rows
+  split_height = "25%",   -- split mode list height (25% of screen rows)
 }
 
 -- Default keybindings
@@ -90,8 +91,8 @@ local default_highlights = {
 }
 
 -- Default render: formats item as "relative/path:lnum  text content"
----@param item PeekViewItem
----@return string
+---@param item PeekViewItem location entry to render
+---@return string one display line
 local function default_render(item)
   -- ":~" = relative to home (~/...), ":." = relative to cwd; combined prefers cwd-relative
   return vim.fn.fnamemodify(item.filename, ":~:.") .. ":" .. item.lnum .. "  " .. (item.text or "")
@@ -178,7 +179,7 @@ function M.create(opts)
 
   -- Update preview: load the file for the currently selected item, show it
   -- in target_win, position cursor, and highlight the keyword.
-  ---@param target_win integer
+  ---@param target_win integer window to render the preview into
   local function update_preview(target_win)
     if not vim.api.nvim_win_is_valid(list_win) then return end
     local cursor_row = vim.api.nvim_win_get_cursor(list_win)[1]
@@ -206,7 +207,7 @@ function M.create(opts)
 
   -- Cleanup: close windows, remove autocmds, clear highlights, optionally
   -- restore the source window (split mode). Idempotent via closed guard.
-  ---@param restore_source boolean
+  ---@param restore_source boolean true = put source window back to its original buffer (split mode)
   local function cleanup(restore_source)
     if closed then return end
     closed = true
@@ -219,8 +220,11 @@ function M.create(opts)
       vim.api.nvim_win_close(list_win, true)
     end
     if restore_source and mode == "split" and vim.api.nvim_win_is_valid(source_win) then
-      vim.api.nvim_win_set_buf(source_win, original_buf)
-      vim.api.nvim_win_set_cursor(source_win, original_cursor)
+      -- source window may have shown a scratch buffer that got wiped meanwhile
+      if original_buf and vim.api.nvim_buf_is_valid(original_buf) then
+        vim.api.nvim_win_set_buf(source_win, original_buf)
+        vim.api.nvim_win_set_cursor(source_win, original_cursor)
+      end
     end
   end
 
@@ -359,7 +363,7 @@ function M.create(opts)
     original_cursor = vim.api.nvim_win_get_cursor(source_win)
 
     -- Create horizontal split at the bottom
-    vim.cmd("botright " .. layout.split_height .. "split")
+    vim.cmd("botright " .. size.resolve(layout.split_height, "height") .. "split")
     -- The newly created split becomes the current window
     list_win = vim.api.nvim_get_current_win()
 

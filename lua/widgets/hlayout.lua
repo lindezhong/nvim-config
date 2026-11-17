@@ -6,6 +6,8 @@
 
 --- Import the base layout module for creating the underlying layout instance
 local layout = require("widgets.layout")
+--- Shared size helper (absolute values or percentage strings)
+local size = require("widgets.size")
 
 --- Neovim API shorthand for window/buffer operations
 local api = vim.api
@@ -16,7 +18,7 @@ local M = {}
 --- Create a horizontal layout with the specified child window definitions.
 -- Opens a series of vertical splits from left to right. Each child can
 -- specify a fixed width and/or a logical name for registry lookup.
----@param children { width?: integer, name?: string }[] List of window specs (width and/or name)
+---@param children { width?: integer|string, name?: string }[] List of window specs (width: columns or "25%", and/or name)
 ---@param registry? table Shared registry from parent layout (nil creates a new root registry)
 ---@return table self The layout instance populated with created windows and buffers
 function M.create(children, registry)
@@ -44,8 +46,9 @@ function M.create(children, registry)
     end
 
     -- Apply fixed width if specified in the child definition
+    -- (number = columns, string like "25%" = percentage of editor width)
     if child.width then
-      api.nvim_win_set_width(win, child.width)
+      api.nvim_win_set_width(win, size.resolve(child.width, "width"))
       vim.wo[win].winfixwidth = true  -- Prevent Vim from auto-resizing this window
     end
     -- Create a new scratch buffer and assign it to the window

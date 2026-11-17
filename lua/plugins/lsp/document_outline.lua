@@ -73,7 +73,6 @@ function M.open()
       end,
       expand_level = 1,  -- auto-expand top-level symbols
       icons = { collapsed = "+", expanded = "-" },
-      width = 40,
       position = "right",
     })
     tree.show()

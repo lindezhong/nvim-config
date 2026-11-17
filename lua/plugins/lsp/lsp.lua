@@ -132,7 +132,7 @@ end
 --- Check if a LSP Position falls within a LSP Range (inclusive).
 ---@param pos lsp.Position {line, character}
 ---@param range lsp.Range {start: Position, end: Position}
----@return boolean
+---@return boolean true when pos falls inside range (inclusive)
 local function pos_in_range(pos, range)
   -- Before range start
   if pos.line < range.start.line or pos.line > range["end"].line then
