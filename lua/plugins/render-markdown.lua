@@ -154,6 +154,30 @@ return {
         yaml = { enabled = false },
       })
 
+      -- Give RenderMarkdownCode a real color so code snippets stay visible
+      -- but readable. RenderMarkdownCode default-links to ColorColumn, and
+      -- CodeInline/InlineHighlight/CodeBorder link to RenderMarkdownCode -
+      -- so inline `code`, ==highlight== spans (and any line matching
+      -- ==...==, e.g. '=== title ===' separator lines) plus code block
+      -- borders/language label all end up in vim8-dark's ColorColumn
+      -- (term=reverse ctermbg=224): reversed text on light pink, unreadable.
+      -- This definition stops the chain before ColorColumn; everything
+      -- linking through RenderMarkdownCode follows along. Clearing the group
+      -- instead is NOT an option: the plugin is the only thing marking code
+      -- spans in this setup (treesitter @markup.raw is undefined here), so
+      -- inline code would render indistinguishable from plain text.
+      -- Plain (non-default) definition wins over the plugin's default=true
+      -- link regardless of setup order. It does NOT survive :colorscheme
+      -- though: hi clear wipes this user-level definition while the plugin's
+      -- default links live on nvim's default layer and survive hi clear, so
+      -- after a reload code lands back on ColorColumn pink until config()
+      -- runs again (restart). vim8-dark is the only scheme in use and loads
+      -- before the first markdown buffer opens config(), so the initial
+      -- startup state is fine.
+      -- Same gray as MatchParen in vim8-dark (239/#4e4e4e) so the dark-gray
+      -- accents across the colorscheme stay unified.
+      vim.api.nvim_set_hl(0, "RenderMarkdownCode", { ctermbg = 239, bg = "#4e4e4e" }) -- 256-gray #4e4e4e
+
       -- Rewrite the builtin markdown highlights query with the line-level
       -- conceal_lines directives removed, keeping the char-level
       -- 'conceal ""' on the same patterns. Rationale: on first attach the
