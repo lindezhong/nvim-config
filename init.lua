@@ -66,8 +66,17 @@ vim.opt.writebackup = false
 vim.opt.guicursor = "a:block-blinkon0"
 -- Jumplist behaves like browser back/forward (new jump after back clears forward history)
 vim.opt.jumpoptions = "stack"
--- Per-directory shada file so each project has its own jumplist/marks
-vim.opt.shadafile = vim.fn.stdpath("state") .. "/shada/" .. vim.fn.getcwd():gsub("/", "_") .. ".shada"
+-- Per-directory shada file so each project has its own jumplist/marks.
+-- Flatten the whole cwd into one safe file name: on Windows getcwd()
+-- returns "C:\Users\..." whose colon and backslashes are invalid in file
+-- names and made nvim create nested "shada/C:/Users/..." directories on
+-- exit (E886). Collapsing [\/:]+ runs keeps the name identical to the
+-- previous gsub("/", "_") on POSIX, so Linux keeps its shada history.
+local shada_name = vim.fn.getcwd():gsub("[\\/:]+", "_")
+if #shada_name > 180 then -- stay clear of filesystem name-length limits
+  shada_name = shada_name:sub(1, 180) .. "-" .. vim.fn.sha256(vim.fn.getcwd()):sub(-8)
+end
+vim.opt.shadafile = vim.fn.stdpath("state") .. "/shada/" .. shada_name .. ".shada"
 -- Only show statusline when multiple windows are open
 vim.opt.laststatus = 1
 -- Fill characters for separators and folds

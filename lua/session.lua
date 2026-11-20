@@ -35,9 +35,19 @@ function M.register(name, opts)
   end
 end
 
--- Convert directory path to session filename (replace / with _)
+-- Convert directory path to session filename. The whole path is flattened
+-- into one safe name: on Windows expand("%:p:h") returns "C:\Users\..."
+-- whose colon and backslashes are invalid in file names, which made
+-- mksession fail on every VimLeave — silently, since save() wraps it in
+-- silent! — so no session was ever written. Collapsing [\/:]+ runs keeps
+-- the name identical to the previous gsub("/", "_") on POSIX, so Linux
+-- keeps its existing session files.
 local function path_to_filename(dir)
-  return dir:gsub("/", "_") .. ".nvim"
+  local name = dir:gsub("[\\/:]+", "_")
+  if #name > 180 then -- stay clear of filesystem name-length limits
+    name = name:sub(1, 180) .. "-" .. vim.fn.sha256(dir):sub(-8)
+  end
+  return name .. ".nvim"
 end
 
 -- Check if current directory is in the exclude list
