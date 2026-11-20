@@ -11,23 +11,23 @@ snippet curlPost curl post
 	  -H 'Connection: keep-alive'  \
 	  --data-raw '${2:json data}'
 
-snippet curlUploadFile curl上传文件
+snippet curlUploadFile curl upload file
 	curl '${1:url}' \
 	  -H 'Content-Type: multipart/form-data'  \
 	  -H 'Connection: keep-alive'  \
 	  -F 'file=@${2:filePath}' \
-	  -F '${3:key普通参数，value不带@}=${4:value}'
+	  -F '${3:key is a plain parameter, value without @}=${4:value}'
 
-snippet curlHeadCookie 添加cookie
+snippet curlHeadCookie add cookie
 	-H "Cookie: $cookie" \
 
-snippet curlHeadLanguage curl 语言
+snippet curlHeadLanguage curl language
 	-H 'Accept-Language: zh-CN,zh;'  \
 
-snippet curlUrlencode 使用curl对url进行编码成可请求的url, 只要参数部分, 如果需要保留host(需要一个host作为url_effective)部分则去除cut命令, 比如 key=? -> key=%3f 或 ? -> %3f
+snippet curlUrlencode Use curl to encode a url into a requestable url, keeping only the parameter part; to keep the host part (a host is needed as url_effective) remove the cut command, e.g. key=? -> key=%3f or ? -> %3f
 	${3:params}=''$(curl -s -o /dev/null -w '%{url_effective}' --get --data-urlencode "${1:key=value}" "${2:http://example.com}" | cut -d '?' -f2-)''
 	$0
 
-snippet urlencode 使用curl对url进行编码成可请求的url, 只要参数部分, 如果需要保留host(需要一个host作为url_effective)部分则去除cut命令, 比如 key=? -> key=%3f 或 ? -> %3f
+snippet urlencode Use curl to encode a url into a requestable url, keeping only the parameter part; to keep the host part (a host is needed as url_effective) remove the cut command, e.g. key=? -> key=%3f or ? -> %3f
 	${3:params}=''$(curl -s -o /dev/null -w '%{url_effective}' --get --data-urlencode "${1:key=value}" "${2:http://example.com}" | cut -d '?' -f2-)''
 	$0

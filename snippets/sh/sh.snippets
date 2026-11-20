@@ -1,54 +1,56 @@
-# #变量
-# ##数组#变量
-# #	个数相关,$#：shell的参数个数
-# @、*	所有元素,$@ $: shell的所有参数列表 array[@]/array[]: 数组的所有元素
-# ${#array[@]}	取数组元素的个数
-# ${#array[*]}	取数组元素的个数
-# ${array[*]}	取所有数组的元素
-# ${array[@]}	取所有数组的元素
-# ${!array[@]}	取数组下标的值
-# ${array[@]:n:m}	从数组n位置开始取m个元素
-# array_new=(${array1[@]} ${array2[@]})	数组合并:将array1和array2合并然后赋值给array_new
-# array=($(echo ${ayyary[@]} | sed ‘s/ /\n/g’ |sort )) | uniq	对数组进行去重排序，详细解释
+# #Variables
+# ##Arrays#Variables
+# #	count-related, $#: number of shell arguments
+# @, *	all elements, $@ $: list of all shell arguments, array[@]/array[]: all elements of the array
+# ${#array[@]}	get the number of array elements
+# ${#array[*]}	get the number of array elements
+# ${array[*]}	get all array elements
+# ${array[@]}	get all array elements
+# ${!array[@]}	get the array indices
+# ${array[@]:n:m}	take m elements starting at position n
+# array_new=(${array1[@]} ${array2[@]})	merge arrays: merge array1 and array2 and assign to
+# array_new
+# array=($(echo ${ayyary[@]} | sed 's/ /\n/g' |sort )) | uniq	deduplicate and sort an array, see
+# the detailed explanation
 # if echo “${array[@]}” | grep -w “item_1” &>/dev/null; then
 # echo "Found"
-# fi	判断item_1是否在array中
-# #脚本参数
-# 可以通过 $* 和 $@ 获取所有的脚本参数 
-# ##传递变量#脚本参数
-# 两者在不加引号的时候逻辑一致, 但在加引号的时候两者的逻辑不一致
+# fi	check whether item_1 is in array
+# #Script arguments
+# All script arguments are available via $* and $@ 
+# ##Passing variables#Script arguments
+# Unquoted they behave the same, but quoted they behave differently
 # ```shell
 # fun() {
 # }
-# # 假设调用该脚本名为 test.sh , 调用方式为: test.sh "a b" c
-# fun $*   # 相当于调用方法: fun a b c 
-# fun $@   # 相当于调用方法: fun a b c 
-# fun "$*" # 相当于调用方法: fun "a b c" 
-# fun "$@" # 相当于调用方法: fun "a b" "c" 
-# ##循环参数#脚本参数
+# # Assume the script is test.sh, called as: test.sh "a b" c
+# fun $*   # equivalent to calling: fun a b c 
+# fun $@   # equivalent to calling: fun a b c 
+# fun "$*" # equivalent to calling: fun "a b c" 
+# fun "$@" # equivalent to calling: fun "a b" "c" 
+# ##Looping over arguments#Script arguments
 # ```shell
 # #!/bin/bash
 # 
 # fun() {
-#     #打印: 1' '2' '3'
+#     #prints: 1' '2' '3'
 #     for arg in $*; do
 #         echo -n "'$arg' " 
 #     done
 #     echo ""
 # 
-#     #打印: 1' '2' '3'
+#     #prints: 1' '2' '3'
 #     for arg in $@; do
 #         echo -n "'$arg' " 
 #     done
 #     echo ""
 # 
-#     #打印: 1 2 3'
+#     #prints: 1 2 3'
 #     for arg in "$*"; do
 #         echo -n "'$arg' " 
 #     done
 #     echo ""
 # 
-#     #打印: 1 2' '3'
+#     #prints: 1 2' '3'
 #     for arg in "$@"; do
 #         echo -n "'$arg' " 
 #     done
@@ -58,23 +60,23 @@
 # fun "1 2" 3
 # ```
 
-snippet arrLength 获取数组长度
-	${2:length}=\${#${1:数组名}[@]\}
+snippet arrLength get array length
+	${2:length}=\${#${1:array name}[@]\}
 
-snippet arrIn 判断元素是否在数组中
+snippet arrIn check whether an element is in an array
 	if [[ "\${${1:arr}[@]\}" =~ "\${${2:item}\}" ]]; then
 	    $0
 	fi
 
-snippet arrAdd 往数组的最后追加元素, 比如 (1 2) -> (1 2 3)
+snippet arrAdd append an element to the end of an array, e.g. (1 2) -> (1 2 3)
 	${1:arr}[${#$1[@]}]=${2:value}
 
-snippet arrPop 获取并删除数组中的元素最后一个元素 , 比如 (1 2 3) -> (1 2)
+snippet arrPop get and remove the last element of an array, e.g. (1 2 3) -> (1 2)
 	${1:element}=\${${2:arr}[${#$2[@]}-1]\}
 	unset $2[${#$2[@]}-1]
 	$0
 
-snippet arrDel 根据下标删除数组元素, 比如 (0 1 2) -> (0 null 2), 请注意该删除会导致数组长度变成 2 , 但只存在 arr[0] 和 arr[2] 的数组元素 arr[1] 丢失(会导致断层), 这可能会导致用下标for异常, 这个可以用mapFor替代
+snippet arrDel delete an array element by index, e.g. (0 1 2) -> (0 null 2). Note: this makes the array length 2, but only arr[0] and arr[2] exist; arr[1] is gone (leaving a gap), which can break index-based for loops; use mapFor instead
 	unset ${1:arr}[${2:index}]
 
 # #!/bin/bash
@@ -87,64 +89,66 @@ snippet arrDel 根据下标删除数组元素, 比如 (0 1 2) -> (0 null 2), 请
 # }
 # arr=('1' 2 3)
 # fun arr
-# 输出: 3 2 1
-snippet arrArgs 数组作为函数/方法的参数,调用例子(fun为函数arr_var为map变量,调用时不带$). fun arr_var
+# output: 3 2 1
+snippet arrArgs array as a function/method argument, call example (fun is the function, arr_var the array variable, passed without $). fun arr_var
 	local __tmp_arr_var=\$(declare -p "\$${1:index}")
 	eval "declare -A local ${2:arr_var}"=${__tmp_arr_var#*=}
 	$0
 
-# ##map#变量
-# #	个数相关,$#：shell的参数个数
-# @、*	所有元素,$@ $: shell的所有参数列表 array[@]/array[]: 数组的所有元素
-# ${#array[@]}	取数组元素的个数
-# ${#array[*]}	取数组元素的个数
-# ${array[*]}	取所有数组的元素
-# ${array[@]}	取所有数组的元素
-# ${!array[@]}	取数组下标的值
-# ${array[@]:n:m}	从数组n位置开始取m个元素
-# array_new=(${array1[@]} ${array2[@]})	数组合并:将array1和array2合并然后赋值给array_new
-# array=($(echo ${ayyary[@]} | sed ‘s/ /\n/g’ |sort )) | uniq	对数组进行去重排序，详细解释
+# ##map#Variables
+# #	count-related, $#: number of shell arguments
+# @, *	all elements, $@ $: list of all shell arguments, array[@]/array[]: all elements of the array
+# ${#array[@]}	get the number of array elements
+# ${#array[*]}	get the number of array elements
+# ${array[*]}	get all array elements
+# ${array[@]}	get all array elements
+# ${!array[@]}	get the array indices
+# ${array[@]:n:m}	take m elements starting at position n
+# array_new=(${array1[@]} ${array2[@]})	merge arrays: merge array1 and array2 and assign to
+# array_new
+# array=($(echo ${ayyary[@]} | sed 's/ /\n/g' |sort )) | uniq	deduplicate and sort an array, see
+# the detailed explanation
 # if echo “${array[@]}” | grep -w “item_1” &>/dev/null; then
 # echo "Found"
-# fi	判断item_1是否在array中
+# fi	check whether item_1 is in array
 
-snippet mapLength 获取map长度
-	${2:length}=\${#${1:map名}[@]\}
+snippet mapLength get map length
+	${2:length}=\${#${1:map name}[@]\}
 
-snippet mapInKey 判断map中是否包含某个key
+snippet mapInKey check whether a map contains a key
 	if [ -n "\${${1:map}[${2:key}]\}" ]; then
 	    $0
 	fi
 
-snippet mapInValue 判断map中是否包含某个Value
+snippet mapInValue check whether a map contains a Value
 	if [[ "\${${1:map}[@]\}" =~ "\${${2:value}\}" ]]; then
 	    $0
 	fi
 
-snippet mapInit 初始化map,普通方式定义无法遍历:declare -A map=(['k1']='v1' ['k2']='v2')
-	declare -A ${1:map_name}=(${2:初始化值})
+snippet mapInit initialize a map; a map defined the normal way cannot be iterated: declare -A map=(['k1']='v1' ['k2']='v2')
+	declare -A ${1:map_name}=(${2:initial values})
 	$0
 
-snippet mapFor 遍历map
+snippet mapFor iterate over a map
 	for ${2:key} in \${!${1:map_var_name}[@]\}; do
 	    ${3:value}=\${$1[\$$2]\}
 	    $0
 	done
 
-snippet mapForKeys 遍历map keys
+snippet mapForKeys iterate over map keys
 	for ${2:key} in \${!${1:map_var_name}[@]\}; do
 	    $0
 	done
 
-snippet mapForValues 遍历map values
+snippet mapForValues iterate over map values
 	for ${2:value} in \${${1:map_var_name}[@]\}; do
 	    $0
 	done
 
-snippet mapPut 往map中put数据
+snippet mapPut put data into a map
 	${1:map}[${2:key}]=${3:value}
 
-snippet mapDel 删除map中的某个key
+snippet mapDel delete a key from a map
 	unset ${1:map}[${2:key}]
 
 # #!/bin/bash
@@ -158,36 +162,36 @@ snippet mapDel 删除map中的某个key
 # }
 # declare -A map=(["k"]="v")
 # fun map
-# 输出 : k : v
-snippet mapArgs map作为函数/方法的参数,调用例子(fun为函数map_var为map变量,调用时不带$). fun map_var
+# output : k : v
+snippet mapArgs map as a function/method argument, call example (fun is the function, map_var the map variable, passed without $). fun map_var
 	local __tmp_map_var=\$(declare -p "\$${1:index}")
 	eval "declare -A local ${2:map_var}"=${__tmp_map_var#*=}
 	$0
 
-# ##字符串 str#变量
-snippet strEquals 比较两个字符串相等
-	if [[ ${1:变量或字面量支持通配符*} == ${2:变量或字面量支持通配符*} ]]; then
+# ##String str#Variables
+snippet strEquals check whether two strings are equal
+	if [[ ${1:variable or literal, supports wildcard *} == ${2:variable or literal, supports wildcard *} ]]; then
 	    $0
 	fi
 
-snippet strInit 初始化变量
-	test -z "\$${1:变量名}" && $1="${2:初始值}"
+snippet strInit initialize a variable
+	test -z "\$${1:variable name}" && $1="${2:initial value}"
 
-snippet strNull 判断字符串为空
-	if [[ -z \$${1:变量名} ]]; then
+snippet strNull check whether a string is empty
+	if [[ -z \$${1:variable name} ]]; then
 	    $0
 	fi
 
-snippet strReplaceOne 替换字符串可以用通配符(*),只替换第一个匹配的字符串
-	${4:var}=\${${1:var}/${2:被替换字符}/${3:替换字符}\}
+snippet strReplaceOne replace in a string, wildcards (*) allowed, replaces only the first match
+	${4:var}=\${${1:var}/${2:text to replace}/${3:replacement}\}
 	$0
 
-snippet strReplaceAll 替换字符串可以用通配符(*),替换第全部匹配的字符串
-	${4:var}=\${${1:var}//${2:被替换字符}/${3:替换字符}\}
+snippet strReplaceAll replace in a string, wildcards (*) allowed, replaces all matches
+	${4:var}=\${${1:var}//${2:text to replace}/${3:replacement}\}
 	$0
 
-snippet strReplaceSed 替换字符串,使用正则表达式, 最后'/g' 为全部匹配,如果为 '/'则只替换匹配的第一个
-	${4:var}=\$(echo \$${1:var} | sed 's/${2:被替换字符}/${3:替换字符}/g')
+snippet strReplaceSed replace in a string using a regular expression; the trailing '/g' replaces all matches, with just '/' only the first match is replaced
+	${4:var}=\$(echo \$${1:var} | sed 's/${2:text to replace}/${3:replacement}/g')
 	$0
 
 # #!/bin/bash
@@ -200,76 +204,86 @@ snippet strReplaceSed 替换字符串,使用正则表达式, 最后'/g' 为全�
 #     item=${arr[i]}
 #     echo "$item"
 # done
-# echo "arr数组长度: ${#arr[@]}"
-# 输出:
+# echo "arr array length: ${#arr[@]}"
+# output:
 # 1
 # 
 # 
 # 
 # 2,3 4
-# arr数组长度: 5
-snippet strSplit 分割字符串(将分割字符串换成IFS),但要注意字符串中有IFS的情况。 '1,2 3' -> ['1','2','3']
-	${3:str_arr_var}=(\${${1:str_var}//${2:分割符}/\${IFS\}\})
+# arr array length: 5
+snippet strSplit split a string (by replacing the separator with IFS); watch out for IFS characters already in the string. '1,2 3' -> ['1','2','3']
+	${3:str_arr_var}=(\${${1:str_var}//${2:separator}/\${IFS\}\})
 	$0
 
-snippet strSplitIfs 分割字符串(通过修改IFS实现),要注意1.分割符只能有一位2.要使用带下标的for循环(否则原来字符串中带IFS会分割)  。'1,2 3' -> ['1','2 3']
+snippet strSplitIfs split a string (by changing IFS); note 1. the separator must be a single character 2. use an indexed for loop (otherwise IFS characters in the original string will split it). '1,2 3' -> ['1','2 3']
 	OLD_IFS=\${IFS\}
-	IFS='${1:分割符}'
+	IFS='${1:separator}'
 	${3:str_arr_var}=(\$${2:str_var})
 	IFS=\${OLD_IFS\}
 	$0
 
-# ###字符串截取##字符串 str#变量
-# ${string: start :length}   从 string 字符串的左边第 start 个字符开始，向右截取 length 个字符。
-# ${string: start}           从 string 字符串的左边第 start 个字符开始截取，直到最后。
-# ${string: 0-start :length} 从 string 字符串的右边第 start 个字符开始，向右截取 length 个字符。
-# ${string: 0-start}         从 string 字符串的右边第 start 个字符开始截取，直到最后。
-# ${string#*chars}           从 string 字符串第一次出现 *chars 的位置开始，截取 *chars 右边的所有字符。
-# ${string##*chars}          从 string 字符串最后一次出现 *chars 的位置开始，截取 *chars 右边的所有字符。
-# ${string%*chars}           从 string 字符串第一次出现 *chars 的位置开始，截取 *chars 左边的所有字符。
-# ${string%%*chars}          从 string 字符串最后一次出现 *chars 的位置开始，截取 *chars 左边的所有字符。
-snippet strSubByIndex 截取字符串根据下标,${'c.biancheng.net': 2 : 9} -> 'biancheng'
-	${4:var}=\${${1:字符串}: ${2:start启始位置,可以为负数} :${3:length长度,不填写则到最后,为负数则到倒数位置}\}
+# ###Substrings##String str#Variables
+# ${string: start :length}   starting at the start-th character from the left of string, take length
+# characters to the right.
+# ${string: start}           starting at the start-th character from the left of string, take
+# everything to the end.
+# ${string: 0-start :length} starting at the start-th character from the right of string, take
+# length characters to the right.
+# ${string: 0-start}         starting at the start-th character from the right of string, take
+# everything to the end.
+# ${string#*chars}           from the first occurrence of *chars in string, take all characters to
+# the right of *chars.
+# ${string##*chars}          from the last occurrence of *chars in string, take all characters to
+# the right of *chars.
+# ${string%*chars}           from the first occurrence of *chars in string, take all characters to
+# the left of *chars.
+# ${string%%*chars}          from the last occurrence of *chars in string, take all characters to
+# the left of *chars.
+snippet strSubByIndex substring by index, ${'c.biancheng.net': 2 : 9} -> 'biancheng'
+	${4:var}=\${${1:string}: ${2:start position, can be negative} :${3:length, omit to go to the end, negative counts from the end}\}
 
-# 使用 # 号截取右边字符
-snippet strSubRightFirst 截取关键字(第一个匹配到的)右边的字符串, ${'c.biancheng.net'#*.} -> 'biancheng.net'
-	${3:var}=\${${1:字符串}#*${2:关键字}\}
+# Use # to take the characters on the right
+snippet strSubRightFirst take the string to the right of the keyword (first match), ${'c.biancheng.net'#*.} -> 'biancheng.net'
+	${3:var}=\${${1:string}#*${2:keyword}\}
 
-snippet strSubRightLast 截取关键字(最后一个匹配到的)右边的字符串, ${'c.biancheng.net'##*.} -> 'net'
-	${3:var}=\${${1:字符串}##*${2:关键字}\}
+snippet strSubRightLast take the string to the right of the keyword (last match), ${'c.biancheng.net'##*.} -> 'net'
+	${3:var}=\${${1:string}##*${2:keyword}\}
 
-# 使用 % 号截取左边字符
-snippet strSubLeftFirst 截取关键字(第一个匹配到的)左边的字符串, ${'c.biancheng.net'%*.} -> 'c'
-	${3:var}=\${${1:字符串}%%${2:关键字}*\}
+# Use % to take the characters on the left
+snippet strSubLeftFirst take the string to the left of the keyword (first match), ${'c.biancheng.net'%*.} -> 'c'
+	${3:var}=\${${1:string}%%${2:keyword}*\}
 
-snippet strSubLeftLast 截取关键字(最后一个匹配到的)左边的字符串, ${'c.biancheng.net'%%*.} -> 'c.biancheng'
-	${3:var}=\${${1:字符串}%${2:关键字}*\}
+snippet strSubLeftLast take the string to the left of the keyword (last match), ${'c.biancheng.net'%%*.} -> 'c.biancheng'
+	${3:var}=\${${1:string}%${2:keyword}*\}
 
-# ##函数参数args#变量
-# $# 	传递到脚本的参数个数
-# $* 	以一个单字符串显示所有向脚本传递的参数。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
-# $$ 	脚本运行的当前进程ID号
-# $! 	后台运行的最后一个进程的ID号
-# $@ 	与$*相同，但是使用时加引号，并在引号中返回每个参数。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
-# $- 	显示Shell使用的当前选项，与set命令功能相同。
-# $? 	显示最后命令的退出状态。0表示没有错误，其他任何值表明有错误。
+# ##Function arguments args#Variables
+# $# 	number of arguments passed to the script
+# $* 	all arguments passed to the script as a single string. Quoted as "$*", it outputs all
+# arguments as "$1 $2 … $n".
+# $$ 	process ID of the running script
+# $! 	process ID of the last background process
+# $@ 	same as $*, but when quoted each argument is returned in its own quotes. Quoted as "$@", it
+# outputs all arguments as "$1" "$2" … "$n".
+# $- 	shows the current options used by the shell, same as the set command.
+# $? 	shows the exit status of the last command. 0 means no error, any other value means an error.
 # #!/bin/bash
-# echo "-- \$* 演示 ---"
+# echo "-- \$* demo ---"
 # for i in "$*"; do
 #     echo $i
 # done
-# echo "-- \$@ 演示 ---"
+# echo "-- \$@ demo ---"
 # for i in "$@"; do
 #     echo $i
 # done
-# 执行`test.sh 1 2 3`输出如下:
-# -- $* 演示 ---
+# Running `test.sh 1 2 3` outputs:
+# -- $* demo ---
 # 1 2 3
-# -- $@ 演示 ---
+# -- $@ demo ---
 # 1
 # 2
 # 3
-snippet argsFor 遍历参数(外部传入参数)
+snippet argsFor iterate over arguments (passed in from outside)
 	for ${1:item} in "$@"; do
 	    $0
 	done
@@ -285,8 +299,8 @@ snippet argsFor 遍历参数(外部传入参数)
 # }
 # declare -A map=(["k"]="v")
 # fun map
-# 输出 : k : v
-snippet argsMap map作为函数/方法的参数,调用例子(fun为函数map_var为map变量,调用时不带$). fun map_var
+# output : k : v
+snippet argsMap map as a function/method argument, call example (fun is the function, map_var the map variable, passed without $). fun map_var
 	local __tmp_map_var=\$(declare -p "\$${1:index}")
 	eval "declare -A local ${2:map_var}"=${__tmp_map_var#*=}
 	$0
@@ -301,175 +315,181 @@ snippet argsMap map作为函数/方法的参数,调用例子(fun为函数map_var
 # }
 # arr=('1' 2 3)
 # fun arr
-# 输出: 3 2 1
-snippet argsArr 数组作为函数/方法的参数,调用例子(fun为函数arr_var为map变量,调用时不带$). fun arr_var
+# output: 3 2 1
+snippet argsArr array as a function/method argument, call example (fun is the function, arr_var the array variable, passed without $). fun arr_var
 	local __tmp_arr_var=\$(declare -p "\$${1:index}")
 	eval "declare -A local ${2:arr_var}"=${__tmp_arr_var#*=}
 	$0
 
-# ##变量 var#变量
-snippet varInit 初始化变量
-	test -z "\$${1:变量名}" && $1="${2:初始值}"
+# ##Variable var#Variables
+snippet varInit initialize a variable
+	test -z "\$${1:variable name}" && $1="${2:initial value}"
 
-snippet varNull 判断字符串为空
-	if [[ -z \$${1:变量名} ]]; then
+snippet varNull check whether a string is empty
+	if [[ -z \$${1:variable name} ]]; then
 	    $0
 	fi
 
-# 流程控制 if for err
+# Flow control if for err
 
-# ##if#流程控制
-# 常用参数：
-# 文件/目录判断：
-# [ -a FILE ] 如果 FILE 存在则为真。
-# [ -b FILE ] 如果 FILE 存在且是一个块文件则返回为真。
-# [ -c FILE ] 如果 FILE 存在且是一个字符文件则返回为真。
-# [ -d FILE ] 如果 FILE 存在且是一个目录则返回为真。
-# [ -e FILE ] 如果 指定的文件或目录存在时返回为真。
-# [ -f FILE ] 如果 FILE 存在且是一个普通文件则返回为真。
-# [ -g FILE ] 如果 FILE 存在且设置了SGID则返回为真。
-# [ -h FILE ] 如果 FILE 存在且是一个符号符号链接文件则返回为真。（该选项在一些老系统上无效）
-# [ -k FILE ] 如果 FILE 存在且已经设置了冒险位则返回为真。
-# [ -p FILE ] 如果 FILE 存并且是命令管道时返回为真。
-# [ -r FILE ] 如果 FILE 存在且是可读的则返回为真。
-# [ -s FILE ] 如果 FILE 存在且大小非0时为真则返回为真。
-# [ -u FILE ] 如果 FILE 存在且设置了SUID位时返回为真。
-# [ -w FILE ] 如果 FILE 存在且是可写的则返回为真。（一个目录为了它的内容被访问必然是可执行的）
-# [ -x FILE ] 如果 FILE 存在且是可执行的则返回为真。
-# [ -O FILE ] 如果 FILE 存在且属有效用户ID则返回为真。
-# [ -G FILE ] 如果 FILE 存在且默认组为当前组则返回为真。（只检查系统默认组）
-# [ -L FILE ] 如果 FILE 存在且是一个符号连接则返回为真。
-# [ -N FILE ] 如果 FILE 存在 and has been mod如果ied since it was last read则返回为真。
-# [ -S FILE ] 如果 FILE 存在且是一个套接字则返回为真。
-# [ FILE1 -nt FILE2 ] 如果 FILE1 比 FILE2 新, 或者 FILE1 存在但是 FILE2 不存在则返回为真。
-# [ FILE1 -ot FILE2 ] 如果 FILE1 比 FILE2 老, 或者 FILE2 存在但是 FILE1 不存在则返回为真。
-# [ FILE1 -ef FILE2 ] 如果 FILE1 和 FILE2 指向相同的设备和节点号则返回为真。
-# 字符串判断
-# [ -z STRING ]    如果STRING的长度为零则返回为真，即空是真
-# [ -n STRING ]    如果STRING的长度非零则返回为真，即非空是真
-# [ STRING1 ]　   如果字符串不为空则返回为真,与-n类似
-# [ STRING1 == STRING2 ]   如果两个字符串相同则返回为真
-# [ STRING1 != STRING2 ]    如果字符串不相同则返回为真
-# [ STRING1 < STRING2 ]     如果 “STRING1”字典排序在“STRING2”前面则返回为真。
-# [ STRING1 > STRING2 ]     如果 “STRING1”字典排序在“STRING2”后面则返回为真。
-# 数值判断
-# [ INT1 -eq INT2 ]          INT1和INT2两数相等返回为真 ,=
-# [ INT1 -ne INT2 ]          INT1和INT2两数不等返回为真 ,<>
-# [ INT1 -gt INT2 ]           INT1大于INT2返回为真 ,>
-# [ INT1 -ge INT2 ]          INT1大于等于INT2返回为真,>=
-# [ INT1 -lt INT2 ]            INT1小于INT2返回为真 ,<
-# [ INT1 -le INT2 ]           INT1小于等于INT2返回为真,<=
-# 逻辑判断
-# [ ! EXPR ]       逻辑非，如果 EXPR 是false则返回为真。
-# [ EXPR1 -a EXPR2 ]      逻辑与，如果 EXPR1 and EXPR2 全真则返回为真。
-# [ EXPR1 -o EXPR2 ]      逻辑或，如果 EXPR1 或者 EXPR2 为真则返回为真。
-# [  ] || [  ]           用OR来合并两个条件
-# [  ] && [  ]        用AND来合并两个条件
-# 其他判断
-# [ -t FD ]  如果文件描述符 FD （默认值为1）打开且指向一个终端则返回为真
-# [ -o optionname ]  如果shell选项optionname开启则返回为真
-# IF高级特性：
-# 双圆括号((  ))：表示数学表达式
-#     在判断命令中只允许在比较中进行简单的算术操作，而双圆括号提供更多的数学符号，而且在双圆括号里面的'>','<'号不需要转意。
-# 双方括号[[  ]]：表示高级字符串处理函数
-#     双方括号中判断命令使用标准的字符串比较，还可以使用匹配模式，从而定义与字符串相匹配的正则表达式。
-# 双括号的作用：
-# 在shell中，[ $a != 1 || $b = 2 ]是不允许出，要用[ $a != 1 ] || [ $b = 2 ]，而双括号就可以解决这个问题的，[[ $a != 1 || $b = 2 ]]。又比如这个[ "$a" -lt "$b" ]，也可以改成双括号的形式(("$a" < "$b"))
+# ##if#Flow control
+# Common operators:
+# File/directory tests:
+# [ -a FILE ] true if FILE exists.
+# [ -b FILE ] true if FILE exists and is a block special file.
+# [ -c FILE ] true if FILE exists and is a character special file.
+# [ -d FILE ] true if FILE exists and is a directory.
+# [ -e FILE ] true if the given file or directory exists.
+# [ -f FILE ] true if FILE exists and is a regular file.
+# [ -g FILE ] true if FILE exists and has SGID set.
+# [ -h FILE ] true if FILE exists and is a symbolic link. (not supported on some old systems)
+# [ -k FILE ] true if FILE exists and has the sticky bit set.
+# [ -p FILE ] true if FILE exists and is a named pipe.
+# [ -r FILE ] true if FILE exists and is readable.
+# [ -s FILE ] true if FILE exists and has a size greater than zero.
+# [ -u FILE ] true if FILE exists and has the SUID bit set.
+# [ -w FILE ] true if FILE exists and is writable. (a directory must be executable for its contents
+# to be accessed)
+# [ -x FILE ] true if FILE exists and is executable.
+# [ -O FILE ] true if FILE exists and is owned by the effective user ID.
+# [ -G FILE ] true if FILE exists and its group is the current group. (only checks the default
+# group)
+# [ -L FILE ] true if FILE exists and is a symbolic link.
+# [ -N FILE ] true if FILE exists and has been modified since it was last read.
+# [ -S FILE ] true if FILE exists and is a socket.
+# [ FILE1 -nt FILE2 ] true if FILE1 is newer than FILE2, or FILE1 exists and FILE2 does not.
+# [ FILE1 -ot FILE2 ] true if FILE1 is older than FILE2, or FILE2 exists and FILE1 does not.
+# [ FILE1 -ef FILE2 ] true if FILE1 and FILE2 refer to the same device and inode numbers.
+# String tests
+# [ -z STRING ]    true if the length of STRING is zero, i.e. empty is true
+# [ -n STRING ]    true if the length of STRING is non-zero, i.e. non-empty is true
+# [ STRING1 ]     true if the string is not empty, similar to -n
+# [ STRING1 == STRING2 ]   true if the two strings are equal
+# [ STRING1 != STRING2 ]    true if the strings are not equal
+# [ STRING1 < STRING2 ]     true if "STRING1" sorts before "STRING2" lexicographically.
+# [ STRING1 > STRING2 ]     true if "STRING1" sorts after "STRING2" lexicographically.
+# Numeric tests
+# [ INT1 -eq INT2 ]          true if INT1 equals INT2 ,=
+# [ INT1 -ne INT2 ]          true if INT1 does not equal INT2 ,<>
+# [ INT1 -gt INT2 ]           true if INT1 is greater than INT2 ,>
+# [ INT1 -ge INT2 ]          true if INT1 is greater than or equal to INT2,>=
+# [ INT1 -lt INT2 ]            true if INT1 is less than INT2 ,<
+# [ INT1 -le INT2 ]           true if INT1 is less than or equal to INT2,<=
+# Logical tests
+# [ ! EXPR ]       logical NOT, true if EXPR is false.
+# [ EXPR1 -a EXPR2 ]      logical AND, true if both EXPR1 and EXPR2 are true.
+# [ EXPR1 -o EXPR2 ]      logical OR, true if either EXPR1 or EXPR2 is true.
+# [  ] || [  ]           combine two conditions with OR
+# [  ] && [  ]        combine two conditions with AND
+# Other tests
+# [ -t FD ]  true if file descriptor FD (default 1) is open and refers to a terminal
+# [ -o optionname ]  true if shell option optionname is enabled
+# Advanced IF features:
+# Double parentheses ((  )): arithmetic expressions
+#     The test command only allows simple arithmetic in comparisons; double parentheses support more
+#     math operators, and '>' and '<' don't need escaping inside them.
+# Double brackets [[  ]]: advanced string handling
+#     Tests in double brackets use standard string comparison and also support pattern matching, so
+#     you can define regular expressions to match strings.
+# What double brackets solve:
+# In shell, [ $a != 1 || $b = 2 ] is not allowed; you have to write [ $a != 1 ] || [ $b = 2 ].
+# Double brackets solve this: [[ $a != 1 || $b = 2 ]]. Likewise [ "$a" -lt "$b" ] can be written
+# with double parentheses as (("$a" < "$b"))
 
-snippet ifStrEquals 比较两个字符串相等
-	if [[ "${1:变量或字面量支持通配符*使用*时候不能被双引号包裹}" == "${2:变量或字面量支持通配符*使用*时候不能被双引号包裹}" ]]; then
+snippet ifStrEquals check whether two strings are equal
+	if [[ "${1:variable or literal, supports wildcard *; when using * it must not be in double quotes}" == "${2:variable or literal, supports wildcard *; when using * it must not be in double quotes}" ]]; then
 	    $0
 	fi
 
-snippet ifStrEqualsRegular 比较两个字符串相等, 支持正则匹配, 通过grep实现
-	if \`grep -E '${2:要匹配的正则表达式}' <<< "${1:要比较的变量或字符}" > /dev/null\`; then
+snippet ifStrEqualsRegular check whether two strings are equal, supports regex matching, implemented with grep
+	if \`grep -E '${2:regex to match}' <<< "${1:variable or string to compare}" > /dev/null\`; then
 	    $0
 	fi
 
-snippet ifStrNull 判断字符串为空
-	if [[ -z \$${1:变量名} ]]; then
+snippet ifStrNull check whether a string is empty
+	if [[ -z \$${1:variable name} ]]; then
 	    $0
 	fi
 
-snippet ifVarNull 判断字符串为空
-	if [[ -z \$${1:变量名} ]]; then
+snippet ifVarNull check whether a string is empty
+	if [[ -z \$${1:variable name} ]]; then
 	    $0
 	fi
 
-snippet ifDirExist 判断目录(目录不能用''包裹)是否存在，要判断不存在加 !
-	if [ -d "${1:目录地址}" ]; then
+snippet ifDirExist check whether a directory exists (the directory must not be wrapped in ''); add ! to check that it does not exist
+	if [ -d "${1:directory path}" ]; then
 	    $0
 	fi
 
-snippet ifFileExist 判断文件(文件不能用''包裹)是否存在，要判断不存在加 !
-	if [ -f "${1:文件地址}" ]; then
+snippet ifFileExist check whether a file exists (the file must not be wrapped in ''); add ! to check that it does not exist
+	if [ -f "${1:file path}" ]; then
 	    $0
 	fi
 
-snippet ifNum 判断是否为数字,进入if是数字
+snippet ifNum check whether it is a number; enters the if when it is a number
 	if grep -E '^[0-9][0-9]*$' <<< "\$${1:var}" >> /dev/null; then
 	    $0
 	fi
 
-snippet ifArrIn 判断元素是否在数组中,进入if则在
+snippet ifArrIn check whether an element is in an array; enters the if when it is
 	if [[ "\${${1:arr}[@]\}" =~ "\${${2:item}\}" ]]; then
 	    $0
 	fi
 
-snippet ifInArr 判断元素是否在数组中,进入if则在
+snippet ifInArr check whether an element is in an array; enters the if when it is
 	if [[ "\${${1:arr}[@]\}" =~ "\${${2:item}\}" ]]; then
 	    $0
 	fi
 
-snippet ifInMapKey 判断map中是否包含某个key
+snippet ifInMapKey check whether a map contains a key
 	if [ -n "\${${1:map}[${2:key}]\}" ]; then
 	    $0
 	fi
 
-snippet ifInMapValue 判断map中是否包含某个Value
+snippet ifInMapValue check whether a map contains a Value
 	if [[ "\${${1:map}[@]\}" =~ "\${${2:value}\}" ]]; then
 	    $0
 	fi
 
-# ##for#流程控制
-snippet forArgs 遍历参数(外部传入参数)
+# ##for#Flow control
+snippet forArgs iterate over arguments (passed in from outside)
 	for ${1:item} in "$@"; do
 	    $0
 	done
 
-snippet forin 遍历数组不带下标
-	for ${2:子变量名} in "\${${1:父变量名}[@]\}"; do
+snippet forin iterate over an array without index
+	for ${2:item variable name} in "\${${1:array variable name}[@]\}"; do
 	    $0
 	done
 
-snippet fori 遍历数组带下标
-	for(( ${1:i}=0; $1<\${#${2:数组名}[@]\}; $1++)) do
+snippet fori iterate over an array with index
+	for(( ${1:i}=0; $1<\${#${2:array name}[@]\}; $1++)) do
 	    $0\${$2[$1]\}
 	done
 
-snippet forStr 遍历字符串,遍历元素是char, 'hello' -> ['h','e','l','l','o']
+snippet forStr iterate over a string, each element is a char, 'hello' -> ['h','e','l','l','o']
 	for (( ${2:i}=0; $2<=\${#${1:str}\}; $2++ )); do
 	    ${3:char}=\${$1:\$$2:1\}
 		$0
 	done
 
-snippet forMap 遍历map
+snippet forMap iterate over a map
 	for ${2:key} in \${!${1:map_var_name}[@]\}; do
 	    ${3:value}=\${$1[\$$2]\}
 	    $0
 	done
 
-snippet forMapKeys 遍历map keys
+snippet forMapKeys iterate over map keys
 	for ${2:key} in \${!${1:map_var_name}[@]\}; do
 	    $0
 	done
 
-snippet forMapValues 遍历map values
+snippet forMapValues iterate over map values
 	for ${2:value} in \${${1:map_var_name}[@]\}; do
 	    $0
 	done
 
-snippet forArr2In 遍历二维数组不带下标，arr2=('1 2 3' '4 5 6'),如果子数组带空格用(')包裹
+snippet forArr2In iterate over a 2D array without index, arr2=('1 2 3' '4 5 6'); wrap sub-arrays containing spaces in (')
 	for ${2:arr_1_var} in "\${${1:arr}[@]\}"; do
 	    eval ${3:arr_2_var}=(\$$2) 
 	    for ${4:item} in "\${$3[@]\}"; do
@@ -477,177 +497,177 @@ snippet forArr2In 遍历二维数组不带下标，arr2=('1 2 3' '4 5 6'),如果
 		done
 	done
 
-snippet forArr2I 遍历二维数组带下标,arr2=('1 2 3' '4 5 6'),如果子数组带空格用(')包裹
-	for(( ${1:i}=0; $1<\${#${2:数组名}[@]\}; $1++)) do
+snippet forArr2I iterate over a 2D array with index, arr2=('1 2 3' '4 5 6'); wrap sub-arrays containing spaces in (')
+	for(( ${1:i}=0; $1<\${#${2:array name}[@]\}; $1++)) do
 	    eval ${3:tmp_arr_var}=(\${$2[$1]\})
 	    for(( ${4:j}=0; $4<\${#$3[@]\}; $4++)) do
 	        $0\${$3[$4]\}
 	    done
 	done
 
-# ##error#流程控制
-snippet errExit 上一条命令异常退出脚本
+# ##error#Flow control
+snippet errExit exit the script if the previous command failed
 	if [ ! $? -eq 0 ]; then
 	    exit 1
 	fi
 
-snippet errReturn 上一条命令异常退出方法
+snippet errReturn return from the function if the previous command failed
 	if [ ! $? -eq 0 ]; then
 	    return 1
 	fi
 
-# #环境信息
-snippet homePath 脚本存放目录,如果该文件是个软连接不会去真实脚本获取
+# #Environment
+snippet homePath directory containing the script; if the file is a symlink the real script path is not resolved
 	home_path=$(readlink -f $(dirname "\$0"))
 	$0
 
-snippet homePathReal 脚本存放目录,如果该文件是个软连接,会获取真实脚本路径
+snippet homePathReal directory containing the script; if the file is a symlink the real script path is resolved
 	script_path=\$0
 	while [ -L $script_path ]; do
-	    # 如果是软连接要处理真实路径
+	    # if it is a symlink, resolve the real path
 	    script_path=$(ls -al $script_path)
 	    script_path=${script_path##*->}
 	done
 	home_path=$(readlink -f $(dirname "$script_path"))
 
-snippet currentPath 获取当前执行脚本目录
+snippet currentPath get the directory of the currently running script
 	current_path=$(pwd)
 	$0
 
-# ##更改目录#环境信息
+# ##Changing directory#Environment
 # ```shell
-# $ pushd /dir1 # 将目录/dir1添加到目录栈中，同时当前目录切换到/dir1
+# $ pushd /dir1 # push /dir1 onto the directory stack and switch the current directory to /dir1
 # $ pushd /dir2
 # $ pushd /dir3
 # $ pushd /dir4
-# $ dirs -v # 显示目录栈内容,前面数字为下标
+# $ dirs -v # show the directory stack; the leading number is the index
 # 0 /dir1 
 # 1 /dir2
 # 2 /dir3
 # 3 /dir4
-# $ pushd +2 # 将下标为2的目录作为栈顶，顺序保持不变
+# $ pushd +2 # bring the directory at index 2 to the top of the stack, keeping the order
 # $ dirs -v
 # 0 /dir3
 # 1 /dir4
 # 2 /dir1
 # 3 /dir2
-# $ popd # 将栈顶移除
+# $ popd # remove the top of the stack
 # 0 /dir4
 # 1 /dir1
 # 2 /dir2
 # ```
-snippet pushd 将一个目录路径添加到／放入目录栈（历史）顶中，之后，你可以浏览位于目录栈（历史）中的任意目录(默认在栈顶)
-	pushd ${1:目录}
+snippet pushd push a directory path onto the top of the directory stack (history); afterwards you can navigate to any directory in the stack (default is the top)
+	pushd ${1:directory}
 
-snippet popd popd命令会从栈顶移除一个目录,配合poshd使用
+snippet popd popd removes a directory from the top of the stack, used together with pushd
 	popd
 
-snippet dirs dirs查看目录栈,配合pushd和popd使用
+snippet dirs dirs shows the directory stack, used together with pushd and popd
 	dirs -v
 
-# #输入输出
-# -t : 设置超时时间单位秒,超时后不设置变量
-# -p : 提示信息
-# 5s后就跳过
-# 例子 : read -t 5 -p "提示信息 : " var
-snippet read 读取键盘输入, -t {num} 设置超时时间, 单位秒
-	read -p "${1:提示信息} : " ${2:读取到那个变量}
+# #Input/Output
+# -t : timeout in seconds; on timeout the variable is not set
+# -p : prompt message
+# skips after 5s
+# example : read -t 5 -p "prompt : " var
+snippet read read keyboard input, -t {num} sets a timeout in seconds
+	read -p "${1:prompt} : " ${2:variable to read into}
 	$0
 
-snippet readNum 读取键盘输入的正整数,非数值再次输入, -t {num} 设置超时时间, 单位秒 
-	read -p "${1:提示信息} : " ${2:读取到那个变量}
+snippet readNum read a positive integer from the keyboard, re-prompt on non-numeric input, -t {num} sets a timeout in seconds 
+	read -p "${1:prompt} : " ${2:variable to read into}
 	while [ -z \`grep -E '^[0-9][0-9]*$' <<< "\$$2"\` ]; do
-	    read -p "${3:请输入正整数} : " $2
+	    read -p "${3:please enter a positive integer} : " $2
 	done
 	$0
 
-snippet readInArrIndex 输入数组下标以选择元素, -t {num} 设置超时时间, 单位秒 
+snippet readInArrIndex enter an array index to select an element, -t {num} sets a timeout in seconds 
 	while [ -z \`grep -E '^[0-9][0-9]*$' <<< "\$$4"\` ] || [ \$$4 -lt 0 ] || [ \$$4 -gt \${#$2[@]\} ]; do
-	    for(( ${1:i}=0; $1<\${#${2:数组名}[@]\}; $1++)) do
+	    for(( ${1:i}=0; $1<\${#${2:array name}[@]\}; $1++)) do
 	        if [ -z "\$$4" ] || [ ! -z \`grep -E '^[0-9][0-9]*$' <<< "\$$4"\`  ] || [ ! -z \`grep "\${$4\}" <<< "\${$2[$1]\}"\` ]; then
 	            echo "\$$1) \${$2[$1]\}"
 	        fi
 	    done
-	    read -p "${3:提示信息} : " ${4:读取到那个下标变量}
+	    read -p "${3:prompt} : " ${4:index variable to read into}
 	done
 	${5:item}=\${$2[\$$4]\}
-	echo "${6:输入 [\$$4] , 选择 [\$$5]}"
+	echo "${6:input [\$$4] , selected [\$$5]}"
 	$0
 
-snippet readInStr 输入字符串数组的元素,字符串数组例子 : str_arr='y Y n N',输入: y ,-t {num} 设置超时时间, 单位秒 
+snippet readInStr enter an element of a string array, string array example : str_arr='y Y n N', input: y, -t {num} sets a timeout in seconds 
 	$3=""
-	read -p "${1:提示信息} , 请输入 [\${${3:str_arr}\}] :  " ${2:读取到那个变量}
+	read -p "${1:prompt} , please enter [\${${3:str_arr}\}] :  " ${2:variable to read into}
 	while [[ ! "\${$3[@]\}" =~ "\${$2\}" ]] || [ -z "\${$2\}" ]; do
-	    read -p "${4:请输入 [\$$3]} : " $2
+	    read -p "${4:please enter [\$$3]} : " $2
 	done
 	$0
 
-snippet readNotNull 读取键盘输入不允许为空, -t {num} 设置超时时间, 单位秒
-	read -p "${1:提示信息} : " ${2:读取到那个变量}
+snippet readNotNull read keyboard input, empty input not allowed, -t {num} sets a timeout in seconds
+	read -p "${1:prompt} : " ${2:variable to read into}
 	while [ -z \$$2 ]; do
-	    read -p "${3:不允许输入空请重新输入} : " $2
+	    read -p "${3:empty input not allowed, please try again} : " $2
 	done
 	$0
 
-snippet readPipeline 从命令管道中读取内容, 每次读取一行, 临时修改IFS让行首空格可以显示, 为防止卡住设置超时时间为1 , 比如`echo -e 'aa\nbb' | shell.sh` 使得可以读取到两行, aa , bb 到line
+snippet readPipeline read from a pipe one line at a time; IFS is temporarily changed so leading spaces are kept, and the timeout is set to 1 to avoid hanging, e.g. `echo -e 'aa\nbb' | shell.sh` reads two lines, aa and bb, into line
 	while IFS= read -t 1 ${1:line}
 	do
 	    $0
 	done
 
-snippet readFile 读取文件内容, 每次读取一行, 临时修改IFS让行首空格可以显示
+snippet readFile read a file one line at a time; IFS is temporarily changed so leading spaces are kept
 	while IFS= read ${2:line}
 	do
 	    $0
 	done  < ${1:file_path}
 
-snippet readFileFd 读取文件内容, 临时修改IFS让行首空格可以显示, 每次读取一行从文件描述符 FD 读取，而不是从标准输入(0)读取 , FD 需要大于等于3的数字, 默认的描述符如下, 0: 标准输入 , 1: 标准输出, 2: 标准错误
+snippet readFileFd read a file; IFS is temporarily changed so leading spaces are kept; reads one line at a time from file descriptor FD instead of standard input (0). FD must be a number >= 3; the default descriptors are 0: standard input, 1: standard output, 2: standard error
 	exec ${2:fd}< ${1:file_path}
 	while IFS= read -u$2 ${3:line}
 	do
 	    $0
 	done
-	exec $2<&- # 关闭描述符 $2
+	exec $2<&- # close descriptor $2
 
-snippet readCommand 读取命令执行结果, 临时修改IFS让行首空格可以显示, 每次读取一行, >() 或 <() 是一种称为'过程替换'（process substitution）的语法。这种语法允许你把一个命令的输出作为一个文件名从而传递给另一个命令，从而实现一些复杂的 I/O 操作
+snippet readCommand read command output; IFS is temporarily changed so leading spaces are kept; reads one line at a time. >() or <() is a syntax called 'process substitution'. It lets you pass a command's output to another command as a file name, enabling complex I/O operations
 	while IFS= read ${2:line}
 	do
 	    $0
 	done  < <(${1:command})
 
-snippet readCommandFd 读取命令执行结果, 临时修改IFS让行首空格可以显示, 每次读取一行,从文件描述符 FD 读取，而不是从标准输入(0)读取 , FD 需要大于等于3的数字, 默认的描述符如下, 0: 标准输入 , 1: 标准输出, 2: 标准错误 ， >() 或 <() 是一种称为'过程替换'（process substitution）的语法。这种语法允许你把一个命令的输出作为一个文件名从而传递给另一个命令，从而实现一些复杂的 I/O 操作
+snippet readCommandFd read command output; IFS is temporarily changed so leading spaces are kept; reads one line at a time from file descriptor FD instead of standard input (0). FD must be a number >= 3; the default descriptors are 0: standard input, 1: standard output, 2: standard error. >() or <() is a syntax called 'process substitution'. It lets you pass a command's output to another command as a file name, enabling complex I/O operations
 	exec ${2:fd}< <(${1:command})
 	while IFS= read -u$2 ${3:line}
 	do
 	    $0
 	done
-	exec $2<&- # 关闭描述符 $2
+	exec $2<&- # close descriptor $2
 
 # #awk
-snippet awk awk 指定分割符,并且打印某个分割后的值
-	awk -v FS="${1:分割符}" '{print \$${2:index以1为启始位}}'
+snippet awk awk with a given separator, printing one of the split values
+	awk -v FS="${1:separator}" '{print \$${2:index, starting at 1}}'
 
-# #其他shell命令/shell
-snippet continue 跳过for/while循环
+# #Other shell commands/shell
+snippet continue skip to the next for/while loop iteration
 	continue
 
-snippet eval eval:1.要在命令的最前面2.扫描eval后面的命令两遍第一遍替换变量，第二遍执行 arr_v='1 2',eval arr=($arr_v) => arr=(1 2)
+snippet eval eval: 1. must be at the very start of the command 2. scans the command after eval twice: the first pass substitutes variables, the second executes it. arr_v='1 2',eval arr=($arr_v) => arr=(1 2)
 	eval
 
-snippet template_engine 使用eval命令实现模板引擎,模板文件中出现特殊字符使用'\'转义比如 \->\\ `->`\` 双引号->\双引号
-	eval "echo \"$(cat "${1:模板引擎文件路径}")\" > \"${2:生成文件路径}\""
+snippet template_engine template engine implemented with eval; escape special characters in the template file with '\', e.g. \->\\ `->`\` double quote->\double quote
+	eval "echo \"$(cat "${1:template file path}")\" > \"${2:output file path}\""
 	$0
 
 # #tee
-snippet teeDisable 禁用, 正常输出标准输出和标准异常同时重定向到文件, 区分标准输出和标准异常, 这个操作只能在执行命令中使用, 不能在shell脚本中执行, 否则会导致shell没法终止，>() 或 <() 是一种称为'过程替换'（process substitution）的语法。这种语法允许你把一个命令的输出作为一个文件名从而传递给另一个命令，从而实现一些复杂的 I/O 操作
+snippet teeDisable disabled. Prints stdout and stderr normally while also redirecting them to files, keeping stdout and stderr separate. This only works when typed as a command, not inside a shell script, otherwise the shell cannot terminate. >() or <() is a syntax called 'process substitution'. It lets you pass a command's output to another command as a file name, enabling complex I/O operations
 	${1:command} > >(tee ${2:stdout}) 2> >(tee ${3:stderr} >&2)
-	禁用该提示, 这个提示会导致shell无法正常终止因为该操作是tee读取文件所以会一直等待, 只能在调用脚本的时候使用
+	Disabled: this would keep the shell from terminating because tee keeps waiting while reading the file; only use it when calling the script
 
-snippet teeOutput 正常输出标准输出和标准异常同时重定向到文件
+snippet teeOutput print stdout and stderr normally while also redirecting them to a file
 	${1:command} | tee ${2:output}
 	$0
 
-snippet teeOutErr 正常输出标准输出和标准异常同时重定向到文件, 区分标准输出和标准异常文件, 1. 先将标准输出和标准异常输出到一个临时文件 2. 使用tee读取临时的标准输出和标准异常到期望的文件上 3. tee最后要使用 & 异步执行是因为tee在读取文件的时候会一直等待 4. 最后要调用sync命令确保所有缓冲区中的数据都被写入到磁盘
+snippet teeOutErr print stdout and stderr normally while also redirecting them to files, keeping separate stdout and stderr files. 1. first write stdout and stderr to temporary files 2. use tee to read the temporary stdout and stderr into the desired files 3. tee must run asynchronously with & at the end because it keeps waiting while reading the file 4. finally call sync to make sure all buffered data is written to disk
 	tee '$2' < "$2.tmp" &
 	tee '$3' < "$3.tmp" >&2 &
 	${1:command} > ${2:stdout}.tmp 2> ${3:stderr}.tmp 
@@ -655,4 +675,4 @@ snippet teeOutErr 正常输出标准输出和标准异常同时重定向到文�
 	$0
 
 # #mkfifo
-snippet mkfifo mkfifo 是一个用于创建命名管道（FIFO，First In First Out）的命令. 可以通过-m指定管道权限, 比如 `mkfifo -m 644 my_pipe` 在 Unix/Linux 系统中，命名管道是一种特殊的文件，允许两个或多个进程之间进行通信。通过使用命名管道，一个进程可以将数据写入管道，而另一个进程可以从该管道中读取数据，从而实现进程间通信。1. 创建命名管道 `mkfifo my_pipe` 2. 写入数据: `echo 'Hello, World!' > my_pipe` 3. 读取数据: 在另一个终端中，可以使用 cat 或其他命令从命名管道读取数据：`cat < my_pipe`
+snippet mkfifo mkfifo creates a named pipe (FIFO, First In First Out). Use -m to set the pipe permissions, e.g. `mkfifo -m 644 my_pipe`. On Unix/Linux, a named pipe is a special file that lets two or more processes communicate: one process writes data into the pipe and another reads from it. 1. create a named pipe `mkfifo my_pipe` 2. write data: `echo 'Hello, World!' > my_pipe` 3. read data: in another terminal, use cat or another command to read from the named pipe: `cat < my_pipe`

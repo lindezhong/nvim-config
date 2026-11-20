@@ -1,6 +1,6 @@
 # mysql
 
-snippet mysqlInitParameter mysql 初始化查询参数, 比如host密码等
+snippet mysqlInitParameter mysql initialize query parameters, such as host, password, etc.
 	MYSQL_USER="${1:root}"
 	MYSQL_PASSWORD="${2:password}"
 	MYSQL_HOST="${3:localhost}"
@@ -9,7 +9,7 @@ snippet mysqlInitParameter mysql 初始化查询参数, 比如host密码等
 	set -o pipefail
 	$0
 
-snippet mysqlQueryOne mysql 查询一条数据, 数据中不允许有换行否则会出问题, set -o pipefail(使得整个管道命令只要有一个命令失败，整个管道就会返回失败状态) 可以使用$?检测命令执行错误, 但返回值(count)不能是local
+snippet mysqlQueryOne mysql query a single row; the data must not contain newlines or it will break. set -o pipefail (makes the whole pipeline return a failure status if any command in it fails) lets you use $? to detect command errors, but the return value (count) cannot be local
 	declare -A ${1:map}=()
 	__mysql_result=$(mysql -e "${2:sql}\G;" -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -h "$MYSQL_HOST" -P "$MYSQL_PORT" -D "$MYSQL_DATABASE" | tail -n +2)
 	while read $1_line
@@ -20,7 +20,7 @@ snippet mysqlQueryOne mysql 查询一条数据, 数据中不允许有换行否�
 	done  < <(echo "$__mysql_result")
 	$0
 
-snippet mysqlQueryList mysql 查询多条数据, 数据中不允许有换行否则会出问题, set -o pipefail(使得整个管道命令只要有一个命令失败，整个管道就会返回失败状态) 可以使用$?检测命令执行错误, 但返回值(count)不能是local
+snippet mysqlQueryList mysql query multiple rows; the data must not contain newlines or it will break. set -o pipefail (makes the whole pipeline return a failure status if any command in it fails) lets you use $? to detect command errors, but the return value (count) cannot be local
 	__mysql_result=$(mysql -e "${2:sql}\G;"  -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -h "$MYSQL_HOST" -P "$MYSQL_PORT" -D "$MYSQL_DATABASE")
 	$1_length=0
 	while read $1_line
@@ -37,7 +37,7 @@ snippet mysqlQueryList mysql 查询多条数据, 数据中不允许有换行否�
 	done  < <(echo "$__mysql_result")
 	$0
 
-snippet mysqlRowCount mysql 执行有影响的sql(比如, insert delete update),返回影响函数, SELECT ROW_COUNT(),用于返回上一个数据更改语句所影响的行数, set -o pipefail(使得整个管道命令只要有一个命令失败，整个管道就会返回失败状态) 可以使用$?检测命令执行错误, 但返回值(count)不能是local
+snippet mysqlRowCount mysql execute a modifying sql (e.g. insert delete update) and return the affected row count; SELECT ROW_COUNT() returns the number of rows affected by the previous data-modifying statement. set -o pipefail (makes the whole pipeline return a failure status if any command in it fails) lets you use $? to detect command errors, but the return value (count) cannot be local
 	${1:count}=$(mysql -e "${2:sql};SELECT ROW_COUNT()\G;"  -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -h "$MYSQL_HOST" -P "$MYSQL_PORT" -D "$MYSQL_DATABASE" \
 	    | tail -n +2 | awk '{print \$2}')
 	$0

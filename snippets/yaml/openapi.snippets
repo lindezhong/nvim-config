@@ -1,9 +1,9 @@
-snippet openapiInit openapi初始化
+snippet openapiInit openapi initialization
 	openapi: 3.0.4
 	info:
 	  title: Swagger Petstore - OpenAPI 3.0
 	  description: |-
-	    ${1:描述详情,支持markdown语法}
+	    ${1:detailed description, supports markdown syntax}
 	  termsOfService: ${2:http://localhost}
 	  contact:
 	    email: ${3:2872611588@qq.com}
@@ -12,7 +12,7 @@ snippet openapiInit openapi初始化
 	    url: https://www.apache.org/licenses/LICENSE-2.0.html
 	  version: 1.0.12
 	externalDocs:
-	  description: ${4:附加的外部文档}
+	  description: ${4:additional external documentation}
 	  url: ${5:http://localhost}
 	servers:
 	  - url: ${6:http://localhost/api/v1} 
@@ -44,14 +44,14 @@ snippet openapiInit openapi初始化
 	        - message
 	    openapiComponentSchema
 
-snippet openapiTag 定义一个标签用于聚合paths的, 在tag下有多个path, path也可以定义多个tag这样path会在多个path中出现
+snippet openapiTag define a tag that groups paths; a tag holds multiple paths, and a path can have multiple tags so it appears under each of them
 	- name: ${1:tag_name}
 	  description: ${2:tag description}
 	  externalDocs:
-	    description: ${3:附加的外部文档}
+	    description: ${3:additional external documentation}
 	    url: ${4:http://localhost}
 
-snippet openapiPath 定义一个请求路径
+snippet openapiPath define a request path
 	${1:/path}:
 	  ${2:get, head, post, put, patch, delete, options, trace}:
 	    tags:
@@ -72,75 +72,75 @@ snippet openapiPath 定义一个请求路径
 	            schema:
 	              $ref: "#/components/schemas/Error"
 
-snippet openapiRequestBody requestBody 是请求的主体部分(非url部分),通常在POST,PUT,PATCH等请求中使用，用于传递较大或复杂的数据
+snippet openapiRequestBody requestBody is the body of the request (not the url part), usually used in POST, PUT, PATCH etc. to send large or complex data
 	requestBody:
 	  description: ${1:body description}
 	  content:
 	    openapiPathContent$0
 	  required: true
 
-snippet openapiPathContentJsonRef requestBody json格式类型, 引用复用对象(components/schemas/Object)
+snippet openapiPathContentJsonRef requestBody json format, references a reusable object (components/schemas/Object)
 	application/json:
 	  schema:
 	    $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormRef requestBody 简单表单格式格式类型只能传递简单key value, 引用复用对象(components/schemas/Object), 表单格式本质上是从url中传递参数spring mvc 试用@RequestParam或@ModelAttribute获取, curl例子curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
+snippet openapiPathContentFormRef requestBody simple form format, only simple key value pairs, references a reusable object (components/schemas/Object); form data is essentially passed like url parameters, spring mvc reads it with @RequestParam or @ModelAttribute, curl example curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
 	application/x-www-form-urlencoded:
 	  schema:
 	    $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormDataRef requestBody 复杂表单格式格式类型可以传递复杂对象(同时传文件和复杂参数比如数组), 引用复用对象(components/schemas/Object), form-data 使用边界（boundary）分隔多个部分,spring mvc可以通过@RequestParam获取, curl例子curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
+snippet openapiPathContentFormDataRef requestBody complex form format, can send complex objects (files together with complex parameters such as arrays), references a reusable object (components/schemas/Object); form-data separates parts with a boundary, spring mvc reads it with @RequestParam, curl example curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
 	application/x-www-form-urlencoded:
 	  schema:
 	    $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentJsonListRef requestBody list类型的json格式类型, 引用复用对象(components/schemas/Object)
+snippet openapiPathContentJsonListRef requestBody list json format, references a reusable object (components/schemas/Object)
 	application/json:
 	  schema:
 	    type: array
 	    items:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormListRef requestBody list简单表单格式格式类型只能传递简单key value, 引用复用对象(components/schemas/Object), 表单格式本质上是从url中传递参数spring mvc 试用@RequestParam或@ModelAttribute获取, curl例子curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
+snippet openapiPathContentFormListRef requestBody list simple form format, only simple key value pairs, references a reusable object (components/schemas/Object); form data is essentially passed like url parameters, spring mvc reads it with @RequestParam or @ModelAttribute, curl example curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
 	application/x-www-form-urlencoded:
 	  schema:
 	    type: array
 	    items:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormDataListRef requestBody list复杂表单格式格式类型可以传递复杂对象(同时传文件和复杂参数比如数组), 引用复用对象(components/schemas/Object), form-data 使用边界（boundary）分隔多个部分,spring mvc可以通过@RequestParam获取, curl例子curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
+snippet openapiPathContentFormDataListRef requestBody list complex form format, can send complex objects (files together with complex parameters such as arrays), references a reusable object (components/schemas/Object); form-data separates parts with a boundary, spring mvc reads it with @RequestParam, curl example curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
 	application/x-www-form-urlencoded:
 	  schema:
 	    type: array
 	    items:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentJsonMapRef requestBody Map类型的json格式类型, 引用复用对象(components/schemas/Object)
+snippet openapiPathContentJsonMapRef requestBody Map json format, references a reusable object (components/schemas/Object)
 	application/json:
 	  schema:
 	    type: object
 	    additionalProperties:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormMapRef requestBody Map简单表单格式格式类型只能传递简单key value, 引用复用对象(components/schemas/Object), 表单格式本质上是从url中传递参数spring mvc 试用@RequestParam或@ModelAttribute获取, curl例子curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
+snippet openapiPathContentFormMapRef requestBody Map simple form format, only simple key value pairs, references a reusable object (components/schemas/Object); form data is essentially passed like url parameters, spring mvc reads it with @RequestParam or @ModelAttribute, curl example curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'  -d 'name=John&age=30' http://localhost:8080/submit
 	application/x-www-form-urlencoded:
 	  schema:
 	    type: object
 	    additionalProperties:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiPathContentFormDataMapRef requestBody Map复杂表单格式格式类型可以传递复杂对象(同时传文件和复杂参数比如数组), 引用复用对象(components/schemas/Object), form-data 使用边界（boundary）分隔多个部分,spring mvc可以通过@RequestParam获取, curl例子curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
+snippet openapiPathContentFormDataMapRef requestBody Map complex form format, can send complex objects (files together with complex parameters such as arrays), references a reusable object (components/schemas/Object); form-data separates parts with a boundary, spring mvc reads it with @RequestParam, curl example curl -X POST http://localhost:8080/upload -H 'Content-Type: multipart/form-data' -F 'file=@/path/to/your/file.txt' -F 'description=This is a sample description'
 	application/x-www-form-urlencoded:
 	  schema:
 	    type: object
 	    additionalProperties:
 	      $ref: '#/components/schemas/${1:Object}'
 
-snippet openapiRequestParameters 请求参数在url中出现
+snippet openapiRequestParameters request parameters that appear in the url
 	parameters:
 	  openapiRequestParametersItem
 
-snippet openapiRequestParametersItemInteger 请求参数在url,header,cookie中出现, 参数类型integer
+snippet openapiRequestParametersItemInteger request parameter in url, header or cookie, parameter type integer
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -150,7 +150,7 @@ snippet openapiRequestParametersItemInteger 请求参数在url,header,cookie中�
 	    type: integer
 	    format: int32
 
-snippet openapiRequestParametersItemLong 请求参数在url,header,cookie中出现, 参数类型long
+snippet openapiRequestParametersItemLong request parameter in url, header or cookie, parameter type long
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -160,7 +160,7 @@ snippet openapiRequestParametersItemLong 请求参数在url,header,cookie中出�
 	    type: integer
 	    format: int64
 
-snippet openapiRequestParametersItemFloat 请求参数在url,header,cookie中出现, 参数类型float
+snippet openapiRequestParametersItemFloat request parameter in url, header or cookie, parameter type float
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -170,7 +170,7 @@ snippet openapiRequestParametersItemFloat 请求参数在url,header,cookie中出
 	    type: number
 	    format: float
 
-snippet openapiRequestParametersItemDouble 请求参数在url,header,cookie中出现, 参数类型double
+snippet openapiRequestParametersItemDouble request parameter in url, header or cookie, parameter type double
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -180,7 +180,7 @@ snippet openapiRequestParametersItemDouble 请求参数在url,header,cookie中�
 	    type: number
 	    format: double
 
-snippet openapiRequestParametersItemString 请求参数在url,header,cookie中出现, 参数类型string
+snippet openapiRequestParametersItemString request parameter in url, header or cookie, parameter type string
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -189,7 +189,7 @@ snippet openapiRequestParametersItemString 请求参数在url,header,cookie中�
 	    default: ${5:}
 	    type: string
 
-snippet openapiRequestParametersItemBoolean 请求参数在url,header,cookie中出现, 参数类型boolean
+snippet openapiRequestParametersItemBoolean request parameter in url, header or cookie, parameter type boolean
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -198,7 +198,7 @@ snippet openapiRequestParametersItemBoolean 请求参数在url,header,cookie中�
 	    default: ${5:true}
 	    type: boolean
 
-snippet openapiRequestParametersItemDate 请求参数在url,header,cookie中出现, 参数类型date, 日期格式: YYYY-MM-DD, 比如1970-01-01
+snippet openapiRequestParametersItemDate request parameter in url, header or cookie, parameter type date, date format: YYYY-MM-DD, e.g. 1970-01-01
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -208,7 +208,7 @@ snippet openapiRequestParametersItemDate 请求参数在url,header,cookie中出�
 	    type: string
 	    format: date
 
-snippet openapiRequestParametersItemEnum 请求参数在url,header,cookie中出现, 参数类型enum
+snippet openapiRequestParametersItemEnum request parameter in url, header or cookie, parameter type enum
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -220,7 +220,7 @@ snippet openapiRequestParametersItemEnum 请求参数在url,header,cookie中出�
 	    enum:
 	      - $5
 
-snippet openapiRequestParametersItemDateTime 请求参数在url,header,cookie中出现, 参数类型dateTime, 非0时区日期格式: YYYY-MM-DDTHH:MM:SS± HH:MM(1970-01-01T00:00:00+08:00), 0时区日期格式: YYYY-MM-DDTHH:MM:SSZ(1970-01-01T00:00:00Z)
+snippet openapiRequestParametersItemDateTime request parameter in url, header or cookie, parameter type dateTime, non-UTC date format: YYYY-MM-DDTHH:MM:SS± HH:MM(1970-01-01T00:00:00+08:00), UTC date format: YYYY-MM-DDTHH:MM:SSZ(1970-01-01T00:00:00Z)
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -230,7 +230,7 @@ snippet openapiRequestParametersItemDateTime 请求参数在url,header,cookie中
 	    type: string
 	    format: date-time
 
-snippet openapiRequestParametersItemArray 请求参数在url,header,cookie中出现, 参数类型array, 试用`,`分割数组
+snippet openapiRequestParametersItemArray request parameter in url, header or cookie, parameter type array, use `,` to separate array items
 	- name: ${1:parameter_name}
 	  in: ${2:query,header,path,cookie}
 	  description: ${3:parameter_description}
@@ -242,7 +242,7 @@ snippet openapiRequestParametersItemArray 请求参数在url,header,cookie中出
 	    items:
 	      type: ${6:integer,number,string,boolean}
 
-snippet openapiComponentSchema 定义一个可以被复用的对象, 通过 `$ref: '#/components/schemas/SchemaName'` 来使用
+snippet openapiComponentSchema define a reusable object, used via `$ref: '#/components/schemas/SchemaName'`
 	${1:SchemaName}:
 	  required:
 	    - field_name
@@ -250,41 +250,41 @@ snippet openapiComponentSchema 定义一个可以被复用的对象, 通过 `$re
 	  properties:
 	    openapiComponentSchemaField$0
 
-snippet openapiComponentSchemaFieldInteger 可服用对象字段integer
+snippet openapiComponentSchemaFieldInteger reusable object field integer
 	${1:field_name}:
 	  type: integer
 	  format: int32
 	  description: ${2:int}
 	  example: ${3:0}
 
-snippet openapiComponentSchemaFieldLong 可服用对象字段long
+snippet openapiComponentSchemaFieldLong reusable object field long
 	${1:field_name}:
 	  type: integer
 	  format: int64
 	  description: ${2:long}
 	  example: ${3:0}
 
-snippet openapiComponentSchemaFieldFloat 可服用对象字段float
+snippet openapiComponentSchemaFieldFloat reusable object field float
 	${1:field_name}:
 	  type: number
 	  format: float
 	  description: ${2:float}
 	  example: ${3:0.0}
 
-snippet openapiComponentSchemaFieldDouble 可服用对象字段double
+snippet openapiComponentSchemaFieldDouble reusable object field double
 	${1:field_name}:
 	  type: number
 	  format: double
 	  description: ${2:double}
 	  example: ${3:0.0}
 
-snippet openapiComponentSchemaFieldString 可服用对象字段string
+snippet openapiComponentSchemaFieldString reusable object field string
 	${1:field_name}:
 	  type: string
 	  description: ${2:string}
 	  example: ${3:}
 
-snippet openapiComponentSchemaFieldEnum 可服用对象字段enum
+snippet openapiComponentSchemaFieldEnum reusable object field enum
 	${1:field_name}:
 	  type: string
 	  description: ${2:string}
@@ -292,48 +292,48 @@ snippet openapiComponentSchemaFieldEnum 可服用对象字段enum
 	  enum:
 	    - $3
 
-snippet openapiComponentSchemaFieldBoolean 可服用对象字段boolean
+snippet openapiComponentSchemaFieldBoolean reusable object field boolean
 	${1:field_name}:
 	  type: boolean
 	  description: ${2:string}
 	  example: ${3:true}
 
-snippet openapiComponentSchemaFieldPassword 可服用对象字段password, 告知输入界面不应该明文显示输入信息。
+snippet openapiComponentSchemaFieldPassword reusable object field password, tells the UI not to show the input in plain text.
 	${1:field_name}:
 	  type: string
 	  format: password
 	  description: ${2:password}
 	  example: ${3:}
 
-snippet openapiComponentSchemaFieldDate 可服用对象字段date, 日期格式: YYYY-MM-DD, 比如1970-01-01
+snippet openapiComponentSchemaFieldDate reusable object field date, date format: YYYY-MM-DD, e.g. 1970-01-01
 	${1:field_name}:
 	  type: string
 	  format: date
 	  description: ${2:date}
 	  example: ${3:1970-01-01}
 
-snippet openapiComponentSchemaFieldDateTime 可服用对象字段dateTime, 非0时区日期格式: YYYY-MM-DDTHH:MM:SS± HH:MM(1970-01-01T00:00:00+08:00), 0时区日期格式: YYYY-MM-DDTHH:MM:SSZ(1970-01-01T00:00:00Z)
+snippet openapiComponentSchemaFieldDateTime reusable object field dateTime, non-UTC date format: YYYY-MM-DDTHH:MM:SS± HH:MM(1970-01-01T00:00:00+08:00), UTC date format: YYYY-MM-DDTHH:MM:SSZ(1970-01-01T00:00:00Z)
 	${1:field_name}:
 	  type: string
 	  format: date-time
 	  description: ${2:dateTime}
 	  example: ${3:1970-01-01T00:00:00Z}
 
-snippet openapiComponentSchemaFieldByte 可服用对象字段byte, 二进制数据以base64编码成字符串, 比如 `ZGF0YQo=` 
+snippet openapiComponentSchemaFieldByte reusable object field byte, binary data base64-encoded as a string, e.g. `ZGF0YQo=` 
 	${1:field_name}:
 	  type: string
 	  format: byte
 	  description: ${2:byte}
 	  example: ${3:ZGF0YQo=}
 
-snippet openapiComponentSchemaFieldBinary 可服用对象字段binary, 二进制原始数据,一般为一个文件 ,curl使用--data-binary传递, 比如curl -X POST 'http://example.com/upload' -H 'Content-Type: application/octet-stream' --data-binary @path/to/your/file 
+snippet openapiComponentSchemaFieldBinary reusable object field binary, raw binary data, usually a file, sent with curl --data-binary, e.g. curl -X POST 'http://example.com/upload' -H 'Content-Type: application/octet-stream' --data-binary @path/to/your/file 
 	${1:field_name}:
 	  type: string
 	  format: binary
 	  description: ${2:binary}
 	  example: ${3:}
 
-snippet openapiComponentSchemaFieldArray 可服用对象字段array, 子类型是简单类型
+snippet openapiComponentSchemaFieldArray reusable object field array, item type is a simple type
 	${1:field_name}:
 	  type: array
 	  description: ${2:array}
@@ -341,7 +341,7 @@ snippet openapiComponentSchemaFieldArray 可服用对象字段array, 子类型�
 	  items:
 	    type: ${4:integer,number,string,boolean}
 
-snippet openapiComponentSchemaFieldArrayObject 可服用对象字段array, 子类型是一个对象
+snippet openapiComponentSchemaFieldArrayObject reusable object field array, item type is an object
 	${1:field_name}:
 	  type: array
 	  description: ${2:array}
@@ -351,7 +351,7 @@ snippet openapiComponentSchemaFieldArrayObject 可服用对象字段array, 子�
 	    properties:
 	      openapiComponentSchemaField$0
 
-snippet openapiComponentSchemaFieldArrayRef 可服用对象字段array, 子类型引用其它对象
+snippet openapiComponentSchemaFieldArrayRef reusable object field array, item type references another object
 	${1:field_name}:
 	  type: array
 	  description: ${2:array}
@@ -359,7 +359,7 @@ snippet openapiComponentSchemaFieldArrayRef 可服用对象字段array, 子类�
 	  items:
 	    $ref: "#/components/schemas/${4:Object}"
 
-snippet openapiComponentSchemaFieldMap 可服用对象字段map,key无法指定固定是string,value类型是简单类型
+snippet openapiComponentSchemaFieldMap reusable object field map, key is always string and cannot be specified, value type is a simple type
 	${1:field_name}:
 	  type: object
 	  description: ${2:map}
@@ -367,7 +367,7 @@ snippet openapiComponentSchemaFieldMap 可服用对象字段map,key无法指定�
 	  additionalProperties:
 	    type: ${4:integer,number,string,boolean}
 
-snippet openapiComponentSchemaFieldMapObject 类可服用对象字段map,key无法指定固定是string,value型是一个对象
+snippet openapiComponentSchemaFieldMapObject reusable object field map, key is always string and cannot be specified, value type is an object
 	${1:field_name}:
 	  type: object
 	  description: ${2:map}
@@ -377,7 +377,7 @@ snippet openapiComponentSchemaFieldMapObject 类可服用对象字段map,key无�
 	    properties:
 	      openapiComponentSchemaField$0
 
-snippet openapiComponentSchemaFieldMapRef 可服用对象字段map,key无法指定固定是string,value类型引用其它对象
+snippet openapiComponentSchemaFieldMapRef reusable object field map, key is always string and cannot be specified, value type references another object
 	${1:field_name}:
 	  type: object
 	  description: ${2:map}
@@ -385,6 +385,6 @@ snippet openapiComponentSchemaFieldMapRef 可服用对象字段map,key无法指�
 	  additionalProperties:
 	    $ref: "#/components/schemas/${5:Object}"
 
-snippet openapiComponentSchemaFieldRef 可服用对象字段ref, 引用其它对象
+snippet openapiComponentSchemaFieldRef reusable object field ref, references another object
 	${1:field_name}:
 	  $ref: "#/components/schemas/${2:Object}"

@@ -1,51 +1,51 @@
-# 关键字
-snippet keyConst const说明符表示变量是只读的，不得被修改。
+# Keywords
+snippet keyConst the const specifier means the variable is read-only and must not be modified.
 	const
 
-snippet keyStatic 1. 用于局部变量(块作用域内部):表示该变量的值会在函数每次执行后得到保留，下次执行时不会进行初始化 2. 用于全局变量: 表示该变量只用于当前文件，其他源码文件不可以引用该变量，即该变量不会被链接（link）3. `static`修饰的变量，初始化时，值不能等于变量，必须是常量
+snippet keyStatic 1. on a local variable (inside block scope): the variable keeps its value between calls and is not re-initialized on the next call 2. on a global variable: the variable is only used in the current file and cannot be referenced from other source files, i.e. it is not linked 3. a `static` variable must be initialized with a constant, not another variable
 	static
 
-snippet keyAuto `auto`说明符表示该变量的存储，由编译器自主分配内存空间，且只存在于定义时所在的作用域，退出作用域时会自动释放。由于只要不是`extern`的变量（外部变量），都是由编译器自主分配内存空间的，这属于默认行为，所以该说明符没有实际作用，一般都省略不写。
+snippet keyAuto the `auto` specifier means the compiler allocates the variable's storage, which only exists in the scope where it is defined and is released automatically when leaving that scope. Since every non-`extern` (external) variable is allocated by the compiler anyway, this is the default behavior, so the specifier has no real effect and is usually omitted.
 	auto
 
-snippet keyExtern `extern`说明符表示，该变量在其他文件里面声明，没有必要在当前文件里面为它分配空间。通常用来表示，该变量是多个文件共享的。
+snippet keyExtern the `extern` specifier means the variable is declared in another file, so no space needs to be allocated for it in the current file. Usually used to indicate the variable is shared by multiple files.
 	extern
 
-snippet keyRegister `register`说明符向编译器表示，该变量是经常使用的，应该提供最快的读取速度，所以应该放进寄存器。但是，编译器可以忽略这个说明符，不一定按照这个指示行事。
+snippet keyRegister the `register` specifier tells the compiler the variable is used often and should be as fast to read as possible, so it should be put in a register. However, the compiler may ignore this specifier.
 	register
 
-snippet keyVolatile `volatile`说明符表示所声明的变量，可能会预想不到地发生变化（即其他程序可能会更改它的值），不受当前程序控制，因此编译器不要对这类变量进行优化,每次使用时都应该查询一下它的值。硬件设备的编程中，这个说明符很常用。
+snippet keyVolatile the `volatile` specifier means the declared variable may change unexpectedly (e.g. other programs may change its value), outside the control of the current program, so the compiler must not optimize it and should read its value every time it is used. Very common in hardware programming.
 	volatile
 
-snippet keyRestrict `restrict`说明符允许编译器优化某些代码。它只能用于指针，表明该指针是访问数据的唯一方式。
+snippet keyRestrict the `restrict` specifier lets the compiler optimize some code. It can only be used on pointers and indicates that the pointer is the only way to access the data.
 	restrict
 
-# 标准库
-snippet libAssert 断言assert包 #include <assert.h>
+# Standard library
+snippet libAssert assert library #include <assert.h>
 	#include <assert.h>
 
-snippet libCtype 文件定义了一系列字符处理函数的原型,`isalnum()`：是否为字母数字, `isalpha()`：是否为字母, `isdigit()`：是否为数字 `isxdigit()`：是否为十六进制数字符 `islower()`：是否为小写字母 `isupper()`：是否为大写字母 `isblank()`：是否为标准的空白字符（包含空格、水平制表符或换行符 `isspace()`：是否为空白字符（空格、换行符、换页符、回车符、垂直制表符、水平制表符等 `iscntrl()`：是否为控制字符，比如 Ctrl + B`isprint()`：是否为可打印字符 `isgraph()`：是否为空格以外的任意可打印字符 `ispunct()`：是否为标点符号（除了空格、字母、数字以外的可打印字符）
+snippet libCtype declares a set of character handling functions, `isalnum()`: alphanumeric, `isalpha()`: letter, `isdigit()`: digit `isxdigit()`: hexadecimal digit `islower()`: lowercase letter `isupper()`: uppercase letter `isblank()`: standard blank character (space, horizontal tab or newline `isspace()`: whitespace (space, newline, form feed, carriage return, vertical tab, horizontal tab, etc. `iscntrl()`: control character, e.g. Ctrl + B`isprint()`: printable character `isgraph()`: any printable character other than space `ispunct()`: punctuation (printable characters other than space, letters and digits)
 	#include <ctype.h>
 
-snippet libErrno 声明了一个 int 类型的 errno 变量，用来存储错误码（正整数）,如果这个变量有非零值，表示已经执行的程序发生了错误。if (errno != 0) {exit(EXIT_FAILURE);}
+snippet libErrno declares an int variable errno that stores an error code (positive integer); a non-zero value means the program has hit an error. if (errno != 0) {exit(EXIT_FAILURE);}
 	#include <errorno.h>
 
-snippet libFloat 定义了浮点数类型 float、double、long double 的一些宏，规定了这些类型的范围和精度。
+snippet libFloat defines macros for the floating-point types float, double and long double, specifying their range and precision.
 	#include <float.h>
 
-snippet libLimits 提供了用来定义各种整数类型（包括字符类型）取值范围的宏。
+snippet libLimits provides macros defining the value ranges of the integer types (including character types).
 	#include <limits.h>
 
-snippet libLocale 程序的本地化设置，主要影响以下的行为: 1.数字格式 2.货币格式 3.字符集 4.日期和时间格式
+snippet libLocale localization settings of the program, mainly affecting: 1. number format 2. currency format 3. character set 4. date and time format
 	#include <locale.h>
 
-snippet libMath 提供了很多数学函数
+snippet libMath provides many math functions
 	#include <math.h>
 
-snippet libSignal 提供了信号（即异常情况）的处理工具。所谓“信号”（signal），可以理解成系统与程序之间的短消息，主要用来表示运行时错误，或者发生了异常事件。
+snippet libSignal provides tools for handling signals (i.e. exceptional conditions). A "signal" can be thought of as a short message between the system and the program, mainly used to indicate runtime errors or exceptional events.
 	#include <signal.h>
 
-snippet libStdint 定义了一些固定宽度的整数类型别名 主要有下面三类 1. 宽度完全确定的整数`intN_t`，比如`int32_t`。 2. 宽度不小于某个大小的整数`int_leastN_t`，比如`int_least8_t` 3. 宽度不小于某个大小、并且处理速度尽可能快的整数`int_fastN_t`，比如`int_fast64_t`。
+snippet libStdint defines fixed-width integer type aliases, mainly three kinds 1. integers of exact width `intN_t`, e.g. `int32_t`. 2. integers of at least a given width `int_leastN_t`, e.g. `int_least8_t` 3. the fastest integers of at least a given width `int_fastN_t`, e.g. `int_fast64_t`.
 	#include <stdint.h>
 
 snippet libStdlib
@@ -54,13 +54,13 @@ snippet libStdlib
 snippet libTime
 	#include <time.h>
 
-snippet libWchar 宽字符使用两个或四个字节表示一个字符，导致 C 语言常规的字符处理函数都会失效。wchar.h 定义了许多宽字符专用的处理函数。
+snippet libWchar wide characters use two or four bytes per character, so the regular C character functions don't work on them. wchar.h defines many functions dedicated to wide characters.
 	#include <wchar.h>
 
-snippet libWctype wctype.h 提供 ctype.h 里面函数的宽字符版本。
+snippet libWctype wctype.h provides wide-character versions of the functions in ctype.h.
 	#include <wctype.h>
 
-# c语言代码片段
+# C language snippets
 
 snippet ifei if else if
 	if(${1:true}) {
@@ -94,13 +94,13 @@ snippet switch switch
 	}
 	${0}
 
-snippet if? 三目运算符
+snippet if? ternary operator
 	${1:expression} ? ${2:value1} : ${3:vaue2};
 	${0}
 
-# #流程控制
-# ##goto#流程控制
-# goto 的一个主要用法是跳出多层循环。
+# #Flow control
+# ##goto#Flow control
+# One main use of goto is breaking out of nested loops.
 # 
 # ```c
 # for(...) {
@@ -114,7 +114,7 @@ snippet if? 三目运算符
 #   }
 # }
 # bail:
-# goto 的另一个用途是提早结束多重判断。
+# Another use of goto is ending a chain of checks early.
 # ```c
 # if (do_something() == ERR)
 #   goto error;
@@ -126,324 +126,419 @@ snippet if? 三目运算符
 #   goto error;
 # ```
 # 
-# 上面示例有四个判断，只要有一个发现错误，就使用 goto 跳过后面的判断。
+# The example above has four checks; as soon as one finds an error, goto skips the remaining checks.
 # 
-# 注意，goto 只能在同一个函数之中跳转，并不能跳转到其他函数。
-snippet goto goto语句，跳转到label代码处
+# Note that goto can only jump within the same function, not into other functions.
+snippet goto goto statement, jump to the label
 	${1:label}: ${2}
 	
 	goto $1;
 
-# #数据类型
-# ##整数#数据类型
-# unsigned int`里面的`int`可以省略 可以定义成 unsigned i=1;
-snippet unsignedi 非负数整数,整数变量声明为`unsigned`的好处是，同样长度的内存能够表示的最大整数值，增大了一倍。比如，16位的`signed int`最大值为32,767，而`unsigned int`的>    最大值增大到了65,535。
+# #Data types
+# ##Integers#Data types
+# the `int` in `unsigned int` can be omitted, e.g. unsigned i=1;
+snippet unsignedi non-negative integer; the benefit of declaring an integer `unsigned` is that the same amount of memory can represent twice the maximum value. For example, the maximum of a 16-bit `signed int` is 32,767, while the maximum of an `unsigned int` grows to 65,535.
 	unsigned int ${1:i};
 
-# ###整数的子类型##整数#数据类型
-# - `short int`（简写为`short`）：占用空间不多于`int`，一般占用2个字节（整数范围为-32768～32767)。
-# - `long int`（简写为`long`）：占用空间不少于`int`，至少为4个字节。
-# - `long long int`（简写为`long long`）：占用空间多于`long`，至少为8个字节。
-# ###整数进制##整数#数据类型
-# 八进制使用`0`作为前缀，比如int i = 017;(等价于int i = 15;)。
-# 十六进制使用`0x`或`0X`作为前缀，比如int i = 0xf;(等价于int i = 15;)
-# ###整数类型的极限值##整数#数据类型
-# 有时候需要查看，当前系统不同整数类型的最大值和最小值，C 语言的头文件`limits.h`提供了相应的常量，比如`SCHAR_MIN`代表 signed char 类型的最小值`-128`，`SCHAR_MAX`代表 signed char 类型的最大值`127`。
-# 为了代码的可移植性，需要知道某种整数类型的极限值时，应该尽量使用这些常量。
-# - `SCHAR_MIN`，`SCHAR_MAX`：signed char 的最小值和最大值。
-# - `SHRT_MIN`，`SHRT_MAX`：short 的最小值和最大值。
-# - `INT_MIN`，`INT_MAX`：int 的最小值和最大值。
-# - `LONG_MIN`，`LONG_MAX`：long 的最小值和最大值。
-# - `LLONG_MIN`，`LLONG_MAX`：long long 的最小值和最大值。
-# - `UCHAR_MAX`：unsigned char 的最大值。
-# - `USHRT_MAX`：unsigned short 的最大值。
-# - `UINT_MAX`：unsigned int 的最大值。
-# - `ULONG_MAX`：unsigned long 的最大值。
-# - `ULLONG_MAX`：unsigned long long 的最大值。
-# ##浮点数#数据类型
-# float`类型占用4个字节（32位），其中8位存放指数的值和符号，剩下24位存放小数的值和符号。`float`类型至少能够提供（十进制的）6位有效数字，指数部分的范围为（十进制的）`-37`到`37`，即数值范围为10<sup>-37</sup>到10<sup>37</sup>
-#有时候，32位浮点数提供的精度或者数值范围还不够，C 语言又提供了另外两种更大的浮点数类型。
-# - `double`：占用8个字节（64位），至少提供13位有效数字。
-# - `long double`：通常占用16个字节。
-# 注意，由于存在精度限制，浮点数只是一个近似值，它的计算是不精确的，比如 C 语言里面`0.1 + 0.2`并不等于`0.3`，而是有一个很小的误差。
+# ###Integer subtypes##Integers#Data types
+# - `short int` (short form `short`): takes no more space than `int`, usually 2 bytes (range -32768
+#   to 32767).
+# - `long int` (short form `long`): takes no less space than `int`, at least 4 bytes.
+# - `long long int` (short form `long long`): takes more space than `long`, at least 8 bytes.
+# ###Integer bases##Integers#Data types
+# Octal uses the `0` prefix, e.g. int i = 017; (same as int i = 15;).
+# Hexadecimal uses the `0x` or `0X` prefix, e.g. int i = 0xf; (same as int i = 15;)
+# ###Integer type limits##Integers#Data types
+# Sometimes you need to know the maximum and minimum of the integer types on the current system. The
+# C header `limits.h` provides constants for this, e.g. `SCHAR_MIN` is the minimum of signed char
+# `-128`, `SCHAR_MAX` is the maximum of signed char `127`.
+# For portability, use these constants whenever you need the limits of an integer type.
+# - `SCHAR_MIN`, `SCHAR_MAX`: minimum and maximum of signed char.
+# - `SHRT_MIN`, `SHRT_MAX`: minimum and maximum of short.
+# - `INT_MIN`, `INT_MAX`: minimum and maximum of int.
+# - `LONG_MIN`, `LONG_MAX`: minimum and maximum of long.
+# - `LLONG_MIN`, `LLONG_MAX`: minimum and maximum of long long.
+# - `UCHAR_MAX`: maximum of unsigned char.
+# - `USHRT_MAX`: maximum of unsigned short.
+# - `UINT_MAX`: maximum of unsigned int.
+# - `ULONG_MAX`: maximum of unsigned long.
+# - `ULLONG_MAX`: maximum of unsigned long long.
+# ##Floating point#Data types
+# the float` type takes 4 bytes (32 bits): 8 bits store the exponent and its sign, the remaining 24
+# bits store the fraction and its sign. `float` provides at least 6 significant (decimal) digits,
+# with an exponent range of (decimal) `-37` to `37`, i.e. values from 10<sup>-37</sup> to
+# 10<sup>37</sup>
+#Sometimes the precision or range of a 32-bit float is not enough, so C provides two larger
+#floating-point types.
+# - `double`: takes 8 bytes (64 bits), provides at least 13 significant digits.
+# - `long double`: usually takes 16 bytes.
+# Note that because of limited precision, a float is only an approximation and its arithmetic is
+# inexact, e.g. in C `0.1 + 0.2` is not equal to `0.3` but has a tiny error.
 # ```c
 # if (0.1 + 0.2 == 0.3) // false
 # ```
-# ##布尔类型#数据类型
-# 头文件`stdbool.h`定义了另一个类型别名`bool`，并且定义了`true`代表`1`、`false`代表`0`。只要加载这个头文件，就可以使用这几个关键字。
+# ##Boolean type#Data types
+# The header `stdbool.h` defines another type alias `bool`, and defines `true` as `1` and `false` as
+# `0`. Including this header lets you use these keywords.
 # ```c
 # #include <stdbool.h>
 # bool flag = false;
 # ```
-# ## 溢出#数据类型
-# 每一种数据类型都有数值范围，如果存放的数值超出了这个范围（小于最小值或大于最大值），需要更多的二进制位存储，就会发生溢出。大于最大值，叫做向上溢>
-# 出（overflow）；小于最小值，叫做向下溢出（underflow）。
-# 一般来说，编译器不会对溢出报错，会正常执行代码，但是会忽略多出来的二进制位，只保留剩下的位，这样往往会得到意想不到的结果。所以，应该避免溢出。
+# ## Overflow#Data types
+# Every data type has a value range. If a value outside that range (below the minimum or above the
+# maximum) is stored, needing more bits, an overflow happens. Above the maximum is called
+# overflow; below the minimum is called underflow.
+# In general the compiler does not report overflow and runs the code normally, but it drops the
+# extra bits and keeps only the rest, which often gives unexpected results. So overflow should be
+# avoided.
 # ```c
 # unsigned char x = 255;
 # x = x + 1;
 # printf("%d\n", x); // 0
-# ##sizeof运算符#数据类型
-# `sizeof`是 C 语言提供的一个运算符，返回某种数据类型或某个值占用的字节数量。它的参数可以是数据类型的关键字，也可以是变量名或某个具体的值。
-# sizeof(int)=sizeof(1)=4		sizeof(3.4)=8 (浮点数的字面量一律存储为 double 类型)
-# ##精确宽度类型(exact-width integer type)，保证某个整数类型的宽度是确定的。#数据类型
-# `int8_t`：8位有符号整数。 `uint8_t`：8位无符号整数。 同理还有16，32，64位整数
-# 上面这些都是类型别名，编译器会指定它们指向的底层类型。比如，某个系统中，如果`int`类型为32位，`int32_t`就会指向`int`；如果`long`类型为32位，`i    nt32_t`则会指向`long`。
+# ##sizeof operator#Data types
+# `sizeof` is an operator provided by C that returns the number of bytes taken by a data type or a
+# value. Its argument can be a data type keyword, a variable name, or a concrete value.
+# sizeof(int)=sizeof(1)=4		sizeof(3.4)=8 (floating-point literals are always stored as double)
+# ##Exact-width integer types, which guarantee that the width of an integer type is fixed.#Data
+# types
+# `int8_t`: 8-bit signed integer. `uint8_t`: 8-bit unsigned integer. Likewise for 16, 32 and 64-bit
+# integers
+# These are all type aliases; the compiler decides which underlying type they refer to. For example,
+# on a system where `int` is 32 bits, `int32_t` refers to `int`; if `long` is 32 bits, `int32_t`
+# refers to `long`.
 
-# #指针
-# 指针是什么？首先，它是一个值，这个值代表一个内存地址，因此指针相当于指向某个内存地址的路标。
-# 字符`*`表示指针，通常跟在类型关键字的后面，表示指针指向的是什么类型的值。比如，`char*`表示一个指向字符的指针，`float*`表示一个指向`float`类型的值的指针。
-# * : 表示取指针指向地址的值 ， & ：表示取变量的地址
+# #Pointers
+# What is a pointer? First of all it is a value, and that value represents a memory address, so a
+# pointer is like a signpost pointing to a memory address.
+# The `*` character denotes a pointer; it usually follows a type keyword to indicate the type of
+# value pointed to. For example, `char*` is a pointer to a character, and `float*` is a pointer to a
+# `float` value.
+# * : gets the value at the address the pointer points to, & : gets the address of a variable
 # ```c
-# // foo 是指针类型，bar是intleix
+# // foo is a pointer type, bar is an int
 # int* foo , bar;
-# // 指向指针的指针,`foo`是一个指针，指向的还是一个指针，第二个指针指向的则是一个整数。
+# // pointer to a pointer: `foo` is a pointer that points to another pointer, and the second pointer
+# // points to an integer.
 # int** foo;
-# // &表示取变量的地址
+# // & gets the address of a variable
 # int v = 1; int* p = &v;
-# // 指针加法 ： * : 表示取指针指向地址的值 , 下面两个方法 p : 地址 , *p : p指向地址的值(为int值)
+# // pointer arithmetic : * : gets the value at the address the pointer points to; in the two lines
+# // below p : address, *p : the value at the address p points to (an int)
 # void increment(int* p) {
 # 	*p = *p + 1;
 # }
 # void showPointer(int* p) {
-#   // p+1 表示指针向内存地址的高位移动一个单位 而int占4位所以 newP - p = 4
-# 	int* newP = p + 1;printf("old &p is %p , new &p is %p \n", p, newP); // 输出 : old &p is 0x7fffc26541d0 , new &p is 0x7fffc26541d4
+#   // p+1 moves the pointer up one unit in memory, and an int takes 4 bytes, so newP - p = 4
+# 	int* newP = p + 1;printf("old &p is %p , new &p is %p \n", p, newP); // output : old &p is
+# 	0x7fffc26541d0 , new &p is 0x7fffc26541d4
 # }
-# int v = 1;increment(&v);printf("%d\n",v);// 输出2
-# // `&`运算符与`*`运算符互为逆运算
-# int i = 5; printf("%d\n",i == *(&i)); // 输出1(true)
-# // 返回内部变量指针无效，因为当函数结束运行时，内部变量就消失了，这时指向内部变量`i`的内存地址就是无效的，再去使用这个地址是非常危险的。
+# int v = 1;increment(&v);printf("%d\n",v);// output 2
+# // the `&` and `*` operators are inverses of each other
+# int i = 5; printf("%d\n",i == *(&i)); // output 1 (true)
+# // returning a pointer to a local variable is invalid: when the function ends, the local variable
+# // disappears, so the memory address of local `i` is invalid and using it is very dangerous.
 # int* print() {int i = 0; return &i;}
-# // 函数指针 比较特殊的是，C 语言还规定，函数名本身就是指向函数代码的指针，通过函数名就能获取函数地址。也就是说，`print`和`&print`是一回事。
+# // function pointers: notably, C also specifies that a function name is itself a pointer to the
+# // function's code, so the function's address can be obtained from its name. In other words,
+# // `print` and `&print` are the same thing.
 # void print(int n) {printf("%d\n",n);}
-# void (*print_ptr)(int) = &print; (*print_ptr)(10); /*等价于*/ print(10);
+# void (*print_ptr)(int) = &print; (*print_ptr)(10); /*same as*/ print(10);
 #  ```
 
-# #函数
-# ##函数原型#函数
+# #Functions
+# ##Function prototypes#Functions
 # int f();
 # int main() { f(); };
-# int f() {print("函数原型，先定义了f()方法使得f()可以被使用");}
-# ##系统函数#函数
-# 1. exit(int n) : `函数用来终止整个程序的运行。一旦执行到该函数，程序就会立即结束。该函数的原型定义在头文件`stdlib.h`里面。
-# 2. atexit()`函数，用来登记`exit()`执行时额外执行的函数，用来做一些退出程序时的收尾工作。该函数的原型也是定义在头文件`stdlib.h atexit()`的参数是一个函数指针(它的参数函数不能接受参数，也不能有返回值。)
-# ##函数说明符#函数
-# ###extern##函数说明符#函数
-#extern 对该变量/函数作"外部变量声明",表示该变量是一个已经定义的外部变量。有了此声明，就可以从“声明”处起，合法地使用该外部变量。
+# int f() {print("function prototype: f() is declared first so that it can be used");}
+# ##System functions#Functions
+# 1. exit(int n) : `terminates the whole program. As soon as this function is reached, the program
+#    ends immediately. Its prototype is in the header `stdlib.h`.
+# 2. the atexit()` function registers functions to run additionally when `exit()` is called, to do
+#    cleanup when the program exits. Its prototype is also in the header `stdlib.h; the argument of
+#    atexit()` is a function pointer (the function must take no arguments and return nothing.)
+# ##Function specifiers#Functions
+# ###extern##Function specifiers#Functions
+#extern makes an "external variable declaration" for the variable/function, meaning it is an
+#external variable already defined elsewhere. With this declaration, the external variable can
+#legally be used from the point of "declaration" on.
 #include <stdio.h>
 # int main(void)
 # {
 #     extern int g_X;
-#     printf("the gloal value is %d\n",int_g_X); // 输出 10
+#     printf("the gloal value is %d\n",int_g_X); // output 10
 #     return 0;
 # }
-# /*定义全局变量*/
+# /*define a global variable*/
 # int g_X = 10;
-# ###static##函数说明符#函数
-# 1. 默认情况下，每次调用函数时，函数的内部变量都会重新初始化，不会保留上一次运行的值。`static`说明符可以改变这种行为。
-# 2. 方法用static修饰后只能用在本文件内
-# static int f() { static int count = 1; count++; return count; } // 只能在本文件内调用f()
-# printf("%d , %d", f(), f()); // 输出 1 ， 2
-# ###const##函数说明符#函数
-# const等价于java 的 final
-# int* const p; // p = 0 报错 ， *p = 1 修改成功
-# const int* p; // p = 0 修改成功 ， *p = 1 报错
-# const int* const p; // p = 0 和 *p = 0 都报错
-# ##可变参数#函数
+# ###static##Function specifiers#Functions
+# 1. By default, each time a function is called its local variables are re-initialized and don't
+#    keep the previous value. The `static` specifier changes this.
+# 2. A function marked static can only be used within its own file
+# static int f() { static int count = 1; count++; return count; } // f() can only be called in this
+# file
+# printf("%d , %d", f(), f()); // output 1 , 2
+# ###const##Function specifiers#Functions
+# const is equivalent to java's final
+# int* const p; // p = 0 is an error, *p = 1 succeeds
+# const int* p; // p = 0 succeeds, *p = 1 is an error
+# const int* const p; // both p = 0 and *p = 0 are errors
+# ##Variadic arguments#Functions
 # ```c
 # double average(int argsLength, ...) {
 #   double total = 0;
-#   va_list ap; // 一个数据类型，用来定义一个可变参数对象。它必须在操作可变参数时，首先使用
-#   va_start(ap, argsLength); // 一个函数，用来初始化可变参数对象。它接受两个参数，第一个参数是可变参数对象，第二个参数是原始函数里面，可变参数之前的那个参数，用来为可变参数定位。
+#   va_list ap; // a data type used to define a variadic argument object. It must be used first when
+#   working with variadic arguments
+#   va_start(ap, argsLength); // a function that initializes the variadic argument object. It takes
+#   two arguments: the variadic argument object, and the parameter of the original function right
+#   before the variadic ones, used to locate them.
 #   for (int j = 1; j <= argsLength; ++j) {
-#     total += va_arg(ap, double); // ：一个函数，用来取出当前那个可变参数，每次调用后，内部指针就会指向下一个可变参数。它接受两个参数，第一个是可变参数对象，第二个是当前可变参数的类型。
+#     total += va_arg(ap, double); // : a function that fetches the current variadic argument; after
+#     each call the internal pointer moves to the next one. It takes two arguments: the variadic
+#     argument object and the type of the current argument.
 #   }
-#   va_end(ap); // 一个函数，用来清理可变参数对象。
+#   va_end(ap); // a function that cleans up the variadic argument object.
 #   return total / argsLength;
 # }
-# double ave = average(3, 1,2,3); // ave=2, 调用方式,请注意需要传递参数中的 argsLength
+# double ave = average(3, 1,2,3); // ave=2, how to call it; note that argsLength must be passed
 # ```
-snippet argsVariadicDefinition 可变参数定义,调用的时候需传递参数长度argsLength
+snippet argsVariadicDefinition variadic function definition; the argument count argsLength must be passed when calling
 	int ${1:argsLength}, ...
 
-snippet argsVariadicUse 可变参数使用
+snippet argsVariadicUse using variadic arguments
 	va_list ${1:var};
-	va_start($1, ${2:argsLength,'...'前的int变量});
+	va_start($1, ${2:argsLength, the int parameter before '...'});
 	for (int ${3:i}=0; $3<$2; $3++) {
-	    ${4:可变参数类型} ${5:var} = va_arg($1, $4);
+	    ${4:variadic argument type} ${5:var} = va_arg($1, $4);
 		$0
 	}
 	va_end($1);
 
-# #数组
+# #Arrays
 # ```c
-# int a[5] = {22, 37, 3490}; /*等价于*/ int a[] = {22, 37, 3490, 0, 0}; /*等价于*/  int a[5] = {[1]=22, 37, [3]=3490}
+# int a[5] = {22, 37, 3490}; /*same as*/ int a[] = {22, 37, 3490, 0, 0}; /*same as*/  int a[5] =
+# {[1]=22, 37, [3]=3490}
 # size_t length = sizeof(1) / sizeof(a[0]) 
-# // 由于数组成员都是同一个类型，每个成员的字节长度都是一样的，所以数组整体的字节长度除以某个数组员的字节长度，就可以得到数组的成员数量。
-# // 注意，`sizeof`返回值的数据类型是`size_t`，所以`sizeof(a) / sizeof(a[0])`的数据类型也是`size_t`。在`printf()`里面的占位符，要用`%zd`或`%zu`。
-# // 注意如果是f(int arr[]) { size_t len = sizeof(arr); } 会报错，因为f()函数中的arr数组作为参数传给函数时，是传给数组的地址，而不是传给整个的数组空间
+# // since all array members have the same type and byte length, dividing the byte length of the
+# // whole array by the byte length of one member gives the number of members.
+# // note that `sizeof` returns `size_t`, so `sizeof(a) / sizeof(a[0])` is also `size_t`. In
+# // `printf()` use the `%zd` or `%zu` placeholder.
+# // note that f(int arr[]) { size_t len = sizeof(arr); } is wrong, because when the arr array is
+# // passed to f() as a parameter, the address of the array is passed, not the whole array
 # ```
-snippet arrLength 数组长度
+snippet arrLength array length
 	size_t ${2:length}=sizeof(${1:arr_var})/sizeof($1[0]);
 	$0
 
-# ##数组的地址#数组
+# ##Array addresses#Arrays
 # ```c
-# //数组名等同于起始地址，也就是说，数组名就是指向第一个成员
+# // the array name is the same as the start address, i.e. the array name points to the first member
 # int sum(int* arr, int len); 
 # int a[5] = {11, 22, 33, 44, 55}; 
-# int* p = &a[0]; /*等价于*/ int* p = a;
-# // 例子 : 将数组起始地址作为数组
+# int* p = &a[0]; /*same as*/ int* p = a;
+# // example : using the array start address as an array
 # sum(a, 5); sum(&a[0], 5);
-# // int sum(int* arr, int len) /*等价于*/ int sum(int arr[], int len)
+# // int sum(int* arr, int len) /*same as*/ int sum(int arr[], int len)
 # int sum(int* arr, int len) {
 #   int i;
 #  	int arrays[] = {1,2,3}; 
 #   int total = 0;
 #   for (i = 0; i < len; i++) {
 #     total += arr[i];
-# 	  // total += *(arr++); // (arr实际为指针所以可以自增)数组名可以进行加法和减法运算，等同于在数组成员之间前后移动
-#     // arrays++ // 报错(数组名指向的地址是不能变的)
+# 	  // total += *(arr++); // (arr is actually a pointer so it can be incremented) array names
+# 	  // support addition and subtraction, which moves between array members
+#     // arrays++ // error (the address an array name points to cannot change)
 #	}
 #   return total;
 # }
-# // 多维数组中也适用
-# int a[4][2]; a[0][0] /*等价于*/ *(a[0] /*等价于*/ **a 
+# // also works for multidimensional arrays
+# int a[4][2]; a[0][0] /*same as*/ *(a[0] /*same as*/ **a 
 # a+1 = a[1] , a[0]+1 = a[0][1]
-# // 数组名指向的地址是不能更改的。声明数组时，编译器自动为数组分配了内存地址，这个地址与数组名是绑定的，不可更改，
+# // the address an array name points to cannot be changed. When an array is declared, the compiler
+# // allocates its memory address automatically and binds it to the array name permanently,
 # int a[5];
 # int b[5] = {1,2,3,4,5};
-# a=NULL; // 报错
-# a=b; // 报错 这也导致不能将一个数组名赋值给另外一个数组名。
+# a=NULL; // error
+# a=b; // error; this is also why one array name cannot be assigned to another.
 # ```
-# ##数组复制#数组
+# ##Copying arrays#Arrays
 # int* a; int b[] = {1,2,3}; memcpy(a, b, sizeof(b));
-snippet arrCopy 数组复制
-	memcpy(${1:目标数组名}, ${2:源数组名}, sizeof($2));
+snippet arrCopy copy an array
+	memcpy(${1:destination array}, ${2:source array}, sizeof($2));
 
-# ##数组参数#数组
-# ###二维数组参数##数组参数#数组
+# ##Array parameters#Arrays
+# ###2D array parameters##Array parameters#Arrays
 # in sum_array(arr[][2], int len);
-# // 函数`sum_array()`的参数是一个二维数组。第一个参数是数组本身（`a[][4]`），这时可以不写第一维的长度，因为它作为第二个参数，会传入函 数，但是一定要写第二维的长度`4`。
-# // 这是因为函数内部拿到的，只是数组的起始地址`a`，以及第一维的成员数量`2`。如果要正确计算数组的结束地址，还必须知道第一维每个成员的字节长度。写成`int a[][4]`，编译器就知道了，第一维每个成员本身也是一个数组，里面包含了4个整数，所以每个成员的字节长度就是`4 * sizeof(int)`。
-# ###变长数组作为参数##数组参数#数组
-# int sum_array(int n, int a[n]); // 数组`a[n]`是一个变长数组，它的长度取决于变量`n`的值, n要在a前面定义
+# // the parameter of `sum_array()` is a 2D array. The first parameter is the array itself
+# // (`a[][4]`); the length of the first dimension can be omitted since it is passed in as the
+# // second parameter, but the length of the second dimension `4` must be given.
+# // This is because the function only receives the start address `a` and the number of
+# // first-dimension members `2`. To compute the end address correctly, it also needs the byte
+# // length of each first-dimension member. With `int a[][4]`, the compiler knows each
+# // first-dimension member is itself an array of 4 integers, so each member's byte length is `4 *
+# // sizeof(int)`.
+# ###Variable-length arrays as parameters##Array parameters#Arrays
+# int sum_array(int n, int a[n]); // `a[n]` is a variable-length array whose length depends on `n`;
+# n must be declared before a
 # int sum = sum_array(4, (int []){1,2,3,4});
-snippet argsArrFunVarOne 方法中定义一个一维数组参数
+snippet argsArrFunVarOne declare a 1D array parameter in a function
 	int ${1:len}, ${2:int} ${3:arrays}[$1]$0
 
-snippet argsArrFunVarTow 方法中定义一个二维数组参数
+snippet argsArrFunVarTow declare a 2D array parameter in a function
 	int ${1:m}, int ${2:n} ${3:int} ${4:arrays}[$1][$2]$0
 
-# #字符串
-# C 语言没有单独的字符串类型，字符串被当作字符数组，即char 类型的数组。比如，字符串"Hello"等价于{'H','e','l','l','o','\0'} . '\0' = false
-# 所有字符串的最后一个字符，都是\0 。这样做的好处是，C 语言不需要知道字符串的长度，就可以读取内存里面的字符串，只要发现有一个字符是\0 ，那么就知道字符串结束了。所以char localStr[10];最多只能容纳9个字符的字符串。
-# ##字符串定义#字符串
+# #Strings
+# C has no separate string type; a string is treated as a character array, i.e. an array of char.
+# For example, the string "Hello" is equivalent to {'H','e','l','l','o','\0'} . '\0' = false
+# The last character of every string is \0. The benefit is that C can read a string in memory
+# without knowing its length: as soon as it finds a \0, it knows the string has ended. So char
+# localStr[10]; can hold a string of at most 9 characters.
+# ##Defining strings#Strings
 # ```c
-# char str[5]="Hello"; // 报错,因为字符串“hello”的实际长度6,在末尾有 '\0',如果定义的长度大于6(str[100]),则后面都填充'\0'
+# char str[5]="Hello"; // error, because the actual length of "hello" is 6 with the trailing '\0';
+# if the declared length is larger than 6 (str[100]), the rest is filled with '\0'
 # char str[6]={'H','e','l','l','o','\0'};
-# char str[]="Hello"; // 自动推断长度
+# char str[]="Hello"; // length inferred automatically
 # char* str="Hello";
 # char str[]="hello \
-# world"; // str = "hello world" 第一行尾部的反斜杠，将字符串拆成两行,上面这种写法有一个缺点，就是第二行必须顶格书写，如果想包含缩进，那么缩进也会被计入字符串
+# world"; // str = "hello world" the backslash at the end of the first line splits the string over
+# two lines. The downside is the second line must start at column 0; any indentation becomes part of
+# the string
 # char str[]="hel""lo"; // str = "hello"
 # ```
-# ##字符指针与字符数组的差异#字符串
+# ##Character pointers vs character arrays#Strings
 # ```c
-# // 1. 字符串指针(但用malloc()分配出来的可以修改)为常量无法修改,字符串数组可以被修改
-# // 原因是系统会将字符串的字面量保存在内存的常量区，这个区是不允许用户修改的。声明为指针时，指针变量存储的值是一个指向常量区的内存地址，因此用户不能通过这个地址去修改常量区
-# // 声明为数组时，编译器会给数组单独分配一段内存，字符串字面量会被编译器解释成字符数组，逐个字符写入这段新分配的内存之中，而这段新内存是允许修改的。
-# char* str="Hello"; str[0]='h'; // 报错
-# char str[]="Hello"; str[0]='h'; // 不报错,str被修改,str="hello"
-# // 2. 指针变量可以指向其它字符串。字符数组变量不能指向另一个字符串。
-# // 原因是数组变量所在的地址无法改变，或者说，编译器一旦为数组变量分配地址后，这个地址就绑定这个数组变量了，这种绑定关系是不变的。C 语言也因此规定，数组变量是一个不可修改的左值，即不能用赋值运算符为它重新赋值。
-# char* str="Hello"; str="hello"; // 不报错
-# char str[]="Hello"; str="hello"; // 报错
+# // 1. a string pointer (except one allocated with malloc()) points to a constant that cannot be
+# //    modified; a string array can be modified
+# // the reason is that the system stores string literals in the constant area of memory, which the
+# // user may not modify. When declared as a pointer, the pointer stores an address in the constant
+# // area, so the user cannot modify the constant area through it
+# // When declared as an array, the compiler allocates separate memory for the array; the string
+# // literal is interpreted as a character array and written character by character into that newly
+# // allocated memory, which can be modified.
+# char* str="Hello"; str[0]='h'; // error
+# char str[]="Hello"; str[0]='h'; // no error, str is modified, str="hello"
+# // 2. a pointer variable can point to another string. A character array variable cannot point to
+# //    another string.
+# // the reason is that the address of an array variable cannot change: once the compiler assigns an
+# // address to an array variable, that binding is permanent. That is why C specifies that an array
+# // variable is a non-modifiable lvalue, i.e. it cannot be reassigned with the assignment operator.
+# char* str="Hello"; str="hello"; // no error
+# char str[]="Hello"; str="hello"; // error
 # ```
-# ##字符串函数#字符串
-# - strlen(const char *) : 获取字符串长度 char s[50]="Hello"; strlen(s)=5; sizeof(s)=50;
-snippet strLength 获取字符串长度
+# ##String functions#Strings
+# - strlen(const char *) : get the string length char s[50]="Hello"; strlen(s)=5; sizeof(s)=50;
+snippet strLength get the string length
 	int ${2:length} = strlen(${1:str_var});
 
-# - strcpy(char *, const char *) : 复制字符串 。复制字符串之前，必须要保证第一个参数的长度不小于第二个参数，否则虽然不会报错，
-snippet strCopy 复制字符串,dest:必须是数组不能是指针，有返回值,必须要保证目标字符串的长度不小于源字符串参数，否则虽然不会报错
+# - strcpy(char *, const char *) : copy a string. Before copying, make sure the first argument is no
+#   shorter than the second, otherwise there's no error but
+snippet strCopy copy a string, dest: must be an array, not a pointer; returns a value; the destination must be no shorter than the source, otherwise there's no error but
 	strcpy(${1:dest}, ${2:src});
 
-# - strncpy(char *, const char *, unsigned long) : strncpy() 跟strcpy() 的用法完全一样，只是多了第3个参数，用来指定复制的最大字符数，防止溢出目标字符串变量的边界。  
-snippet strCopyN 复制n个长度src字符串,dest:必须是数组不能是指针，有返回值
+# - strncpy(char *, const char *, unsigned long) : strncpy() is used exactly like strcpy(), with an
+#   extra third parameter specifying the maximum number of characters to copy, to avoid overflowing
+#   the destination.
+snippet strCopyN copy n characters of the src string, dest: must be an array, not a pointer; returns a value
 	strncpy(${1:dest}, ${2:src},${3:n});
 
-# - strcat(char *, const char *) : 它接受两个字符串作为参数，把第二个字符串的副本添加到第一个字符串的末尾。
-snippet strCat 连接字符串,第一个参数只能是数组不能为指针，把第二个字符串的副本添加到第一个字符串的末尾,注意不要超过第一个字符串长度
-	strcat(${1:var}, ${2:追加字符串});
+# - strcat(char *, const char *) : takes two strings and appends a copy of the second string to the
+#   end of the first.
+snippet strCat concatenate strings; the first argument must be an array, not a pointer; appends a copy of the second string to the end of the first; take care not to exceed the length of the first string
+	strcat(${1:var}, ${2:string to append});
 
-# - strncat(char *, const char *, unsigned long) : strncat() 用于连接两个字符串，用法与strcat() 完全一致，只是增加了第三个参数，指定最大添加的字符数一旦达到指定的字符数，或者在源字符串中遇到空字符\0 ，就不再添加了。
-snippet strCatN 连接字符串,第一个参数只能是数组不能为指针,把第二个字符串的副本添加到第一个字符串的末尾,并指定长度n, strncat('world', 'ldz-delete', 3) -> 'worldldz'
-	strncat(${1:var}, ${2:追加字符串},${3:n});
+# - strncat(char *, const char *, unsigned long) : strncat() concatenates two strings, used exactly
+#   like strcat(), with a third parameter specifying the maximum number of characters to append; it
+#   stops once that many characters are appended or a null character \0 is reached in the source.
+snippet strCatN concatenate strings; the first argument must be an array, not a pointer; appends a copy of the second string to the end of the first, limited to n characters, strncat('world', 'ldz-delete', 3) -> 'worldldz'
+	strncat(${1:var}, ${2:string to append},${3:n});
 
-# - int strcmp(const char* s1, const char* s2) : 函数用于比较两个字符串的内容。如果s1 小于s2 ，strcmp() 返回值小于0；如果s1 大于s2 ，返回值大于0。
-# - strncmp() : 由于strcmp() 比较的是整个字符串，C 语言又提供了strncmp() 函数，只比较到指定的位置。
-# - sprintf(char* s, const char* format, ...) : 函数跟printf() 类似，但是用于将数据写入字符串s
-snippet strPrintf 函数跟printf() 类似，但是用于将数据写入字符串str,str为数组不能为指针,注意写入长度不要超过str长度
+# - int strcmp(const char* s1, const char* s2) : compares the contents of two strings. If s1 is less
+#   than s2, strcmp() returns a value less than 0; if s1 is greater than s2, it returns a value
+#   greater than 0.
+# - strncmp() : since strcmp() compares the whole string, C also provides strncmp(), which only
+#   compares up to a given position.
+# - sprintf(char* s, const char* format, ...) : like printf(), but writes the data into the string s
+snippet strPrintf like printf(), but writes the data into the string str; str must be an array, not a pointer; take care not to write past the length of str
 	sprintf(${1:str}, ${2:format}, ${3:...});
 
-# - snprintf(char*s, size_t n, const char* format, ...) : 用来控制写入变量的字符串不超过n - 1
-snippet strPrintfN 函数跟printf() 类似，但是用于将数据写入字符串str,并且控制写入变量的字符串不超过n - 1,str为数组不能为指针,注意写入长度不要超过str长度
+# - snprintf(char*s, size_t n, const char* format, ...) : limits the string written to the variable
+#   to at most n - 1 characters
+snippet strPrintfN like printf(), but writes the data into the string str, limited to at most n - 1 characters; str must be an array, not a pointer; take care not to write past the length of str
 	snprintf(${1:str}, ${2:n}, ${3:format}, ${4:...});
 
-# ##字符串数组#字符串
+# ##String arrays#Strings
 # char weekdays[7][10]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
-# char weekdays[][10]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} //二维数组第一维的长度由编译器根据后面的赋值
-# char* weekdays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} // 其实是一个一维数组，成员就是7个字符指针，每个指针指向一个字符串
-# #内存
-# 系统管理的内存，主要是函数内部的变量（局部变量）。这部分变量在函数运行时进入内存，函数运行结束后自动从内存卸载。这些变量存放的区域称为”栈“（stack），”栈“所在的内存是系统自动管理的。
-# 用户手动管理的内存，主要是程序运行的整个过程中都存在的变量（全局变量），这些变量需要用户手动从内存释放。如果使用后忘记释放，它就一直占用内存，直到程序退出，这种情况称为”内存泄漏“（memory leak）。这些变量所在的内存称为”堆“（heap），”堆“所在的内存是用户手动管理的。
-# ##void 指针#内存
-# void指针:只有内存块的地址信息，没有类型信息，等到使用该块内存的时候，再向编译器补充说明，里面的数据类型是什么。另一方面void 指针等同于无类型指针，可以指向任意类型的数据，但是不能解读数据,void 指针与其他所有类型指针之间是互相转换关系
+# char weekdays[][10]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} //
+# the length of the first dimension is determined by the compiler from the initializer
+# char* weekdays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"} //
+# actually a 1D array whose members are 7 character pointers, each pointing to a string
+# #Memory
+# Memory managed by the system is mainly the variables inside functions (local variables). They
+# enter memory when the function runs and are unloaded automatically when it ends. The area storing
+# them is called the "stack", and the stack's memory is managed automatically by the system.
+# Memory managed manually by the user is mainly variables that exist for the whole run of the
+# program (global variables), which the user must free manually. If you forget to free them after
+# use, they keep occupying memory until the program exits; this is called a "memory leak". The area
+# storing them is called the "heap", and the heap's memory is managed manually by the user.
+# ##void pointers#Memory
+# void pointer: has only the address of a memory block and no type information; the data type is
+# told to the compiler later when the memory is used. A void pointer is an untyped pointer that can
+# point to any type of data but cannot interpret it; void pointers convert to and from pointers of
+# any other type
 # ```c
 # int x = 10; 
-# void* p = &x; // 整数指针转为 void 指针
-# int* q = p; // void 指针转为整数指针
-# printf("%c\n", *p); // 报错(Argument type 'void' is incomplete):由于不知道 void 指针指向什么类型的值，所以不能用`*`运算符取出它指向的值。
+# void* p = &x; // convert an int pointer to a void pointer
+# int* q = p; // convert a void pointer to an int pointer
+# printf("%c\n", *p); // error (Argument type 'void' is incomplete): since the type of value a void
+# pointer points to is unknown, the `*` operator cannot fetch it.
 # ```
-# ##内存相关函数#内存
-# void* malloc(size_t size) : 函数用于分配内存，该函数向系统要求一段内存，系统就在“堆”里面分配一段连续的内存块给它。
+# ##Memory functions#Memory
+# void* malloc(size_t size) : allocates memory; it asks the system for a block of memory, and the
+# system allocates a contiguous block in the "heap".
 # ```c
 # int* p = (int*) malloc(sizeof(int));
-# // `malloc()`分配内存有可能分配失败，这时返回常量 NULL。Null 的值为0，是一个无法读写的内存地址，
-# if (p == NULL && !p) {printf("内存分配失败\n");}
+# // `malloc()` may fail to allocate memory, in which case it returns the constant NULL. NULL has
+# // the value 0, a memory address that cannot be read or written,
+# if (p == NULL && !p) {printf("memory allocation failed\n");}
 # *p = 12;
-# // `malloc()`用来创建数组，有一个好处，就是它可以创建动态数组，即根据成员数量的不同，而创建长度不同的数组。
+# // a benefit of creating arrays with `malloc()` is that it can create dynamic arrays, i.e. arrays
+# // whose length depends on the number of members.
 # int* arr = (int*)malloc(n * sizeof(int));
 # char* str = malloc(11);
-# strcpy(str, "hello world"); // 用malloc分配出来的字符串不是不可变的，可以被修改
+# strcpy(str, "hello world"); // a string allocated with malloc is not immutable and can be modified
 # ```
-snippet memoryMalloc 内存分配(分配在堆中),不会初始化内存,这个内存块会一直占用到程序运行结束(需要free(var)),分配内存有可能分配失败，这时返回常量 NULL。
+snippet memoryMalloc allocate memory (on the heap), not initialized; the block stays allocated until the program ends (needs free(var)); allocation may fail, in which case the constant NULL is returned.
 	${1:type}* ${2:var} = malloc(sizeof($1));
 	$0
 
-snippet memoryFree 用于释放`malloc()`函数分配的内存，，不释放内存块会一直占用到程序运行结束。分配的内存块一旦释放，就不应该再次操作已经释放的地址，包括重新`free()`
+snippet memoryFree frees memory allocated by `malloc()`; if not freed, the block stays allocated until the program ends. Once freed, the address must not be used again, including calling `free()` on it again
 	free(${1:var});
 	$0
 
 # ```c
 # int* p = calloc(10, sizeof(int));
 # 
-# // 等同于
+# // same as
 # int* p = malloc(sizeof(int) * 10);
 # memset(p, 0, sizeof(int) * 10);
 # ```
-snippet memoryCalloc 内存分配(分配在堆中),会将所分配的内存全部初始化为0。分配大小: n*size。这个内存块会一直占用到程序运行结束(需要free(var)),分配内存有可能分配失败，这时返回常量 NULL。
+snippet memoryCalloc allocate memory (on the heap), all initialized to 0. Allocated size: n*size. The block stays allocated until the program ends (needs free(var)); allocation may fail, in which case the constant NULL is returned.
 	void* ${3:var} = calloc(${1:n}, ${2:size});
 	$0
 
-# 修改已分配的内存块大小失败返回NULL。block=NULL等价于malloc(),size=0就会释放掉内存块。会复制原有数据,缩小:丢弃超出的部分>    优先在原有内存块上进行缩减,放大:不初始化内存,可以手动调用memset(),注意，`realloc()`不会对内存块进行初始化。
-snippet memoryRealloc 修改已分配的内存块大小失败返回NULL。block=NULL等价于malloc(),size=0就会释放掉内存块。会复制原有数据(需要free(var))
+# Resizes an allocated memory block; returns NULL on failure. block=NULL is equivalent to malloc(),
+# size=0 frees the block. The existing data is copied. Shrinking: the excess is discarded, shrinking
+# in place where possible. Growing: the new memory is not initialized, call memset() manually if
+# needed. Note that `realloc()` does not initialize the memory block.
+snippet memoryRealloc resizes an allocated memory block; returns NULL on failure. block=NULL is equivalent to malloc(), size=0 frees the block. The existing data is copied (needs free(var))
 	${1:block} = realloc($1, ${2:size};
 	$0
 
 # ```c
-# //不管传入的`dest`和`src`是什么类型的指针，将它们重新定义成一字节的 Char 指针，这样就可以逐字节进行复制。`*d++ = *s++`语句相当于先执行`*d = *s`（源字节的值复制给目标字节），然后各自移动到下一个字节。最后，返回复制后的`dest`指针，便于后续使用。
+# //whatever pointer types `dest` and `src` are, redefine them as one-byte char pointers so they can
+# //be copied byte by byte. `*d++ = *s++` first does `*d = *s` (copies the source byte to the
+# //destination byte), then moves each to the next byte. Finally it returns the `dest` pointer for
+# //later use.
 # void* my_memcpy(void* dest, void* src, int byte_count) {
 #   char* s = src;
 #   char* d = dest;
@@ -453,7 +548,7 @@ snippet memoryRealloc 修改已分配的内存块大小失败返回NULL。block=
 #   return dest;
 # }
 # ```
-snippet memoryMemcpy 用于将一块内存拷贝到另一块内存,指定复制长度n,目标区域与源区域不允许重叠,有重叠使用memmove()(需要free(var))
+snippet memoryMemcpy copies one memory block to another, n bytes; the destination and source must not overlap, use memmove() if they do (needs free(var))
 	memcpy(${1:dest}, ${2:src}, ${3:n});
 	$0
 
@@ -461,24 +556,31 @@ snippet memoryMemcpy 用于将一块内存拷贝到另一块内存,指定复制�
 # int a[100];
 # memmove(&a[0], &a[1], 99 * sizeof(int));
 # ```
-snippet memoryMemmove 函数用于将一段内存数据复制到另一段内存。允许目标区域与源区域有重叠。如果发生重叠，源区域的内容会被更改；如果没有重叠，它与`memcpy()`行为相同。(需要free(var))
+snippet memoryMemmove copies a section of memory to another. The destination and source may overlap. If they overlap, the source contents are changed; if not, it behaves like `memcpy()`. (needs free(var))
 	memmove(${1:dest}, ${2:src}, ${3:n});
 	$0
 
-snippet memoryMemcmp 比较两个内存区域,指定长度n,如果`s1`大于`s2`，返回大于0的整数；如果`s1`小于`s2`，返回小于0的整数。
+snippet memoryMemcmp compares two memory regions of length n; returns an integer greater than 0 if `s1` is greater than `s2`, and less than 0 if `s1` is less than `s2`.
 	int ${4:var} = memcmp(${1:s1}, ${2:s2}, ${3:n});
 
-# ##restrict(受限指针)#内存
-# 声明指针变量时，可以使用`restrict`说明符，告诉编译器，该块内存区域只有当前指针一种访问方式，其他指针不能读写该块内存。这种指针称为“受限指针”（restrict pointer）。但实际上能访问只是告诉编译器用于优化
+# ##restrict (restricted pointers)#Memory
+# When declaring a pointer variable you can use the `restrict` specifier to tell the compiler that
+# this pointer is the only way to access that memory, and no other pointer reads or writes it. Such
+# a pointer is called a "restrict pointer". In practice other access is still possible; it only
+# tells the compiler so it can optimize
 # ```c
 # int* restrict p;
 # p = malloc(sizeof(int));
 # 
 # int* q = p;
-# *q = 0; //不报错，但现在该内存有`p`和`q`两种访问方式, 后面通过`*q`对该内存区域赋值，会导致未定义行为。
+# *q = 0; //no error, but now the memory can be accessed via both `p` and `q`; assigning to the
+# *memory through `*q` afterwards is undefined behavior.
 # ```
 # #struct
-# `struct`关键字，允许自定义复合数据类型，将不同类型的值组合在一起,`struct`结构占用的存储空间(存储空间连续)，不是各个属性存储空间的总和，而是最大内存占用属性的存储空间的倍数，其他属性会添加空位与之对齐。这样可以提高读写效率。
+# The `struct` keyword lets you define composite data types that combine values of different types.
+# The storage of a `struct` (contiguous) is not the sum of its members' storage but a multiple of
+# the largest member's storage; the other members get padding to align with it. This improves
+# read/write efficiency.
 # ```c
 # struct foo {
 #   int a;
@@ -486,54 +588,63 @@ snippet memoryMemcmp 比较两个内存区域,指定长度n,如果`s1`大于`s2`
 #   char c;
 # };
 # printf("%lu\n", sizeof(struct foo)); // 24
-# // 上面示例中，struct foo 有三个属性，在64位计算机上占用的存储空间分别是：int a 占4个字节，指针char* b 占8个字节，char c 占1个字节。它们加起来，一共是13个字节（4 + 8 + 1）。但是实际上，struct foo 会占用24个字节，原因是它最大的内存占用属性是char* b 的8个字节，导致其他属性的存储空间也是8个字节，这样才可以对齐，导致整个struct foo 就是24个字节（8 * 3）。
-# // 多出来的存储空间，都采用空位填充，所以上面的struct foo 真实的结构其实是下面这样
+# // In the example above, struct foo has three members which on a 64-bit machine take: int a 4
+# // bytes, the pointer char* b 8 bytes, char c 1 byte. Together that is 13 bytes (4 + 8 + 1). But
+# // struct foo actually takes 24 bytes, because its largest member char* b takes 8 bytes, so the
+# // other members are also padded to 8 bytes for alignment, making struct foo 24 bytes (8 * 3).
+# // The extra space is filled with padding, so the real layout of struct foo above is actually like
+# // this
 # struct foo {
 #   int a;        // 4
-#   char pad1[4]; // 填充4字节
+#   char pad1[4]; // 4 bytes of padding
 #   char *b;      // 8
 #   char c;       // 1
-#   char pad2[7]; // 填充7字节
+#   char pad2[7]; // 7 bytes of padding
 # };
 # printf("%d\n", sizeof(struct foo)); // 24
-# // 为什么浪费这么多空间进行内存对齐呢？这是为了加快读写速度，把内存占用划分成等长的区块，就可以快速在 Struct 结构体中定位到每个属性的起始地址。
-# // 由于这个特性，在有必要的情况下，定义 Struct 结构体时，可以采用存储空间递增的顺序，定义每个属性，这样就能节省一些空间。
+# // Why waste so much space on alignment? To speed up reads and writes: dividing memory into
+# // equal-sized blocks makes it quick to locate the start address of each member in the struct.
+# // Because of this, when needed you can define the struct members in increasing order of size to
+# // save some space.
 # struct foo {
 #   char c;
 #   int a;
 #   char* b;
 # };
 # printf("%d\n", sizeof(struct foo)); // 16
-# // 上面示例中，占用空间最小的char c 排在第一位，其次是int a ，占用空间最大的char* b 排在最后。整个strct foo 的内存占用就从24字节下降到16字节。
+# // In the example above, the smallest member char c comes first, then int a, and the largest char*
+# // b last. The memory used by struct foo drops from 24 bytes to 16 bytes.
 # 
-# // 使用
+# // usage
 # struct foo f1 = {'c',3,"hello"};
-# // struct 的数据类型声明语句与变量的声明语句，可以合并为一个语句。
+# // the struct type declaration and the variable declaration can be combined into one statement.
 # struct book {
 #   char title[500];
 #   char author[100];
 #   float value;
 # } b1;
-# // 上面的语句同时声明了数据类型book 和该类型的变量b1 。如果类型标识符book 只用在这一个地方，后面不再用到，这里可以将类型名省略(struct 声明了一个匿名数据类型，然后又声明了这个类型的变量b1)。
+# // The statement above declares both the type book and a variable b1 of that type. If the type
+# // identifier book is only used here and nowhere else, the type name can be omitted (the struct
+# // declares an anonymous type and then a variable b1 of that type).
 # struct {
 #   char title[500];
 #   char author[100];
 #   float value;
 # } b1;
-# // 与其他变量声明语句一样，可以在声明变量的同时，对变量赋值。
+# // As with other variable declarations, you can assign a value while declaring the variable.
 # struct {
 #   char title[500];
 #   char author[100];
 #   float value;
 # } b1 = {"Harry Potter", "J. K. Rowling", 10.0},
 #   b2 = {"Cancer Ward", "Aleksandr Solzhenitsyn", 7.85};
-# // 指针变量也可以指向struct 结构。
+# // A pointer variable can also point to a struct.
 # struct book {
 #   char title[500];
 #   char author[100];
 #   float value;
 # }* b1;
-# // 或者写成两个语句
+# // or write it as two statements
 # struct book {
 #   char title[500];
 #   char author[100];
@@ -541,21 +652,23 @@ snippet memoryMemcmp 比较两个内存区域,指定长度n,如果`s1`大于`s2`
 # };
 # struct book* b1;
 # ```
-snippet structDefinition 定义一个struct结构,1.结构名:如果为空为匿名结构,匿名结构一定需要变量名 2.变量名:如果不为空则表示定义了一个struce变量,可以在变量名后直接赋值 = {} 3. 可以使用指针变量 * 变量名, 4. 例子 struct Book {char* name;}; 或 struct Book {char* name;} b1 = {'book name'};
-	struct ${1:结构名} {
+snippet structDefinition define a struct, 1. struct name: if empty it is an anonymous struct, which must have a variable name 2. variable name: if not empty it defines a struct variable, which can be assigned directly after the name = {} 3. a pointer variable can be used: * variable name, 4. example struct Book {char* name;}; or struct Book {char* name;} b1 = {'book name'};
+	struct ${1:struct name} {
 	$0
-	\} ${2:变量名};
+	\} ${2:variable name};
 
-snippet structInit 初始化一个struct类型的变量(给struct类型赋初始值) 如 : struct Book b1 = {'name'}
-	struct ${1:结构名} ${2:变量名} = {${3:按顺序的变量值}\};
+snippet structInit initialize a struct variable (assign initial values to a struct) e.g. : struct Book b1 = {'name'}
+	struct ${1:struct name} ${2:variable name} = {${3:member values in order}\};
 
-snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 typedef struct {char* name;} Book; Book var_name = {'name'}
+snippet structDefinitionTypedef simplify the definition with a typedef alias, usage: typedef struct {char* name;} Book; Book var_name = {'name'}
 	typedef struct {
 	    $0
-	} ${1:结构别名};
+	} ${1:struct alias};
 
-# ##struct复制#struct
-# struct 变量可以使用赋值运算符（= ），复制给另一个变量，这时会生成一个全新的副本。系统会分配一块新的内存空间，大小与原来的变量相同，把每个属性都复制过去，即原样生成了一份数据。这一点跟数组的复制不一样，务必小心。
+# ##Copying structs#struct
+# A struct variable can be copied to another variable with the assignment operator (=), which
+# creates a brand-new copy. The system allocates new memory of the same size and copies every member
+# over, producing an identical copy of the data. This differs from copying arrays, so be careful.
 # ```c
 # struct cat { char name[30]; short age; } a, b;
 # strcpy(a.name, "Hula");
@@ -564,10 +677,16 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 # b.name[0] = 'M';
 # printf("%s\n", a.name); // Hula
 # printf("%s\n", b.name); // Mula
-# // 但 如果cat.name类型char*(字符指针)这时a 赋值给b ，导致b.name 也是同样的字符指针，指向同一个地址，也就是说两个属性共享同一个地址。因为这时，struct 结构内部保存的是一个指针，而不是上一个例子的数组，这时复制的就不是字符串本身，而是它的指针。并且，这个时候也没法修改字符串，因为字符指针指向的字符串是不能修改的
+# // But if cat.name is a char* (character pointer), assigning a to b makes b.name the same
+# // character pointer pointing to the same address, i.e. both members share the same address. This
+# // is because the struct now stores a pointer rather than the array of the previous example, so
+# // the pointer is copied rather than the string itself. Also, the string cannot be modified in
+# // this case, because a string pointed to by a character pointer cannot be modified
 # ```
-# ##struct指针#struct
-# 如果将 struct 变量传入函数，函数内部得到的是一个原始值的副本,对于 struct 变量名，使用点运算符（. ）获取属性；对于 struct 变量指针，使用箭头运算符（-> ）获取属性。
+# ##Struct pointers#struct
+# When a struct variable is passed to a function, the function receives a copy of the original
+# value. For a struct variable name use the dot operator (.) to access members; for a struct pointer
+# use the arrow operator (->).
 # ```c
 # #include <stdio.h>
 # struct turtle {
@@ -576,23 +695,26 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 #   int age;
 # };
 # void happy(struct turtle t) {
-#   t.age = t.age + 1; // 为struct原始值的副本,无法修改传入的struct
+#   t.age = t.age + 1; // this is a copy of the original struct, so the passed-in struct cannot be
+#   modified
 # }
 # void happy(struct turtle* t) {
-#   // (*t).age 不能写成*t.age ，因为点运算符. 的优先级高于* 。*t.age 这种写法会将t.age 看成一个指针，然后取它对应的值，会出现无法预料的结果。
-#   (*t).age = (*t).age + 1; // 为指针可以修改传入struct内部值
-#   t->age = t->age + 1; // (*t).age 这样的写法很麻烦。C 语言就引入了一个新的箭头运算符（-> ），可以从 struct 指针上直接获取属性，大大增强了代码的可读性。
+#   // (*t).age cannot be written as *t.age, because the dot operator . has higher precedence than
+#   // *. *t.age treats t.age as a pointer and dereferences it, giving unpredictable results.
+#   (*t).age = (*t).age + 1; // it's a pointer, so the passed-in struct's members can be modified
+#   t->age = t->age + 1; // writing (*t).age is cumbersome, so C introduced the arrow operator (->),
+#   which accesses members directly from a struct pointer and greatly improves readability.
 # }
 # int main() {
 #   struct turtle myTurtle = {"MyTurtle", "sea turtle", 99};
 #   happy(myTurtle);
-#   printf("Age is %i\n", myTurtle.age); // 输出 99
+#   printf("Age is %i\n", myTurtle.age); // output 99
 #   happy(&myTurtle);
-#   printf("Age is %i\n", myTurtle.age); // 输出 101
+#   printf("Age is %i\n", myTurtle.age); // output 101
 #   return 0;
 # }
 # ```
-# ## struct嵌套#struct
+# ## Nested structs#struct
 # ```c
 # struct species {
 #   char* name;
@@ -603,19 +725,19 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 #   int age;
 #   struct species breed;
 # };
-# // 初始化带嵌套的struct
-# // 写法1
+# // initializing a nested struct
+# // form 1
 # struct fish shark = {"shark", 9, {"Selachimorpha", 500}};
 # struct species myBreed = {"Selachimorpha", 500};
-# // 写法2
+# // form 2
 # struct fish shark = {"shark", 9, myBreed};
-# // 写法3
+# // form 3
 # struct fish shark = {
 #   .name="shark",
 #   .age=9,
 #   .breed={"Selachimorpha", 500}
 # };
-# // 写法4
+# // form 4
 # struct fish shark = {
 #   .name="shark",
 #   .age=9,
@@ -623,13 +745,13 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 #   .breed.kinds=500
 # };
 # 
-# // 例子
+# // example
 # struct node {
 #   int data;
 #   struct node* next;
 # };
 # struct node* head;
-# // 生成一个三个节点的列表 (11)->(22)->(33)
+# // build a list of three nodes (11)->(22)->(33)
 # head = malloc(sizeof(struct node));
 # head->data = 11;
 # head->next = malloc(sizeof(struct node));
@@ -637,12 +759,12 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 # head->next->next = malloc(sizeof(struct node));
 # head->next->next->data = 33;
 # head->next->next->next = NULL;
-# // 遍历这个列表
+# // iterate over the list
 # for (struct node *cur = head; cur != NULL; cur = cur->next) {
 #   printf("%d\n", cur->data);
 # }
 # ```
-# ##位字段#struct
+# ##Bit fields#struct
 # ```c
 # struct {
 #   unsigned int field1 : 1;
@@ -653,10 +775,13 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 # } syntg;
 # synth.field1 = 0;
 # synth.field2 = 1;
-# // 属性后面的:1 ，表示指定这些属性只占用一个二进制位。synth.field1 与synth.field2 之间，有一个宽度为两个二进制位的未命名属性
+# // the :1 after a member means it occupies only one bit. Between synth.field1 and synth.field2
+# // there is an unnamed member two bits wide
 # ```
-# ##弹性数组成员#struct
-# 很多时候，不能事先确定数组到底有多少个成员。如果声明数组的时候，事先给出一个很大的成员数，就会很浪费空间。C 语言提供了一个解决方法，叫做弹性数组成员（flexible array member）。
+# ##Flexible array members#struct
+# Often you can't know in advance how many members an array will have. Declaring the array with a
+# large member count up front wastes a lot of space. C provides a solution called the flexible array
+# member.
 # ```c
 # struct vstring {
 #   int len;
@@ -664,37 +789,50 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 # };
 # struct vstring* str = malloc(sizeof(struct vstring) + n * sizeof(char));
 # str->len = n;
-# // chars 数组到底有多少个成员，可以在为vstring 分配内存时确定。
-# // 上面示例中，假定chars 数组的成员数量是n ，只有在运行时才能知道n 到底是多少。然后，就为struct vstring 分配它需要的内存：它本身占用的内存长度，再加上n 个数组成员占用的内存长度。最后，len 属性记录一下n 是多少。
-# // 这样就可以让数组chars 有n 个成员，不用事先确定，可以跟运行时的需要保持一致。
-# // 弹性数组成员有一些专门的规则。首先，弹性成员的数组，必须是 struct 结构的最后一个属性。另外，除了弹性数组成员，struct 结构必须至少还有一个其他属性。
+# // how many members the chars array has can be decided when allocating memory for vstring.
+# // In the example above, suppose the chars array has n members, and n is only known at run time.
+# // Then allocate the memory struct vstring needs: its own size plus the size of n array members.
+# // Finally, the len member records what n is.
+# // This lets the chars array have n members without deciding in advance, matching what is needed
+# // at run time.
+# // Flexible array members have some special rules. First, the flexible array member must be the
+# // last member of the struct. Also, besides the flexible array member, the struct must have at
+# // least one other member.
 # ```
-#Union 结构
-# 有时需要一种数据结构，不同的场合表示不同的数据类型。比如，如果只用一种数据结构表示水果的“量”，这种结构就需要有时是整数（6个苹果），有时是浮点数（1.5公斤草莓）。
-# C 语言提供了 Union 结构，用来自定义可以灵活变更的数据结构。它内部可以包含各种属性，但同一时间只能有一个属性，因为所有属性都保存在同一个内存地址，后面写入的属性会覆盖前面的属性。这样做的最大好处是节省空间。
+#Union
+# Sometimes you need a data structure that represents different data types in different situations.
+# For example, to represent a "quantity" of fruit with a single structure, it would sometimes need
+# to be an integer (6 apples) and sometimes a float (1.5 kg of strawberries).
+# C provides the Union for defining such flexible data structures. It can contain various members,
+# but only one at a time, because all members are stored at the same memory address and a later
+# write overwrites the earlier one. The main benefit is saving space.
 # ```c
 # union quantity {
 #   short count;
 #   float weight;
 #   float volume;
 # };
-# // 写法一
+# // form 1
 # union quantity q;
 # q.count = 4;
-# // 写法二
+# // form 2
 # union quantity q = {.count=4};
-# // 写法三:不指定属性名，就会赋值给第一个属性。
+# // form 3: without a member name, the first member is assigned.
 # union quantity q = {4};
 # printf("count is %i\n", q.count); // count is 4
-# printf("weight is %f\n", q.weight); // 未定义行为,输出 : weight is 0.000000 (float初始值)
+# printf("weight is %f\n", q.weight); // undefined behavior, output : weight is 0.000000 (float
+# initial value)
 # q.weight = 0.1;
-# printf("count is %i\n", q.count); // count is 1036831949 (未定义行为)
-# // 一旦为其他属性赋值，原先可以取到值的 `q.count` 属性就不再有效了。除了这一点，Union 结构的其他用法与 Struct 结构，基本上是一致的。
-# // Union 结构也支持指针运算符 `->`, 上面示例中，ptr 是q 的指针，那么ptr->weight 等同于q.weight 。
+# printf("count is %i\n", q.count); // count is 1036831949 (undefined behavior)
+# // Once another member is assigned, the `q.count` member that held a value is no longer valid.
+# // Apart from this, unions are used basically the same way as structs.
+# // Unions also support the pointer operator `->`; in the example above, ptr is a pointer to q, so
+# // ptr->weight is the same as q.weight.
 # union quantity* ptr;
 # ptr = &q;
 # printf("%f\n", ptr->weight); // 0.1
-# // Union 结构指针与它的属性有关，当前哪个属性能够取到值，它的指针就是对应的数据类型。
+# // A union pointer depends on its members: whichever member currently holds a value, the pointer
+# // has the corresponding data type.
 # union foo {
 #   int a;
 #   float b;
@@ -708,39 +846,43 @@ snippet structDefinitionTypedef 通过tpyeof取别名简化定义,使用如下 t
 # printf("%f\n", x.b);           // 3.141592
 # printf("%f\n", *foo_float_p);  // 3.141592
 # ```
-snippet unionDefinition 定义union结构,它内部可以包含各种属性，但同一时间只能有一个属性,后面写入的属性会覆盖前面的属性。 Union 结构指针与它的属性有关，当前哪个属性能够取到值，它的指针就是对应的数据类型。
-	union ${1:结构名} {
+snippet unionDefinition define a union; it can contain various members, but only one at a time, and a later write overwrites the earlier one. A union pointer depends on its members: whichever member currently holds a value, the pointer has the corresponding data type.
+	union ${1:union name} {
 	$0
 	};
 
-snippet unionDefinitionTypedef 定义union结构取别名, typedef union {int count; float width;} foo; foo f = {.count=1}
+snippet unionDefinitionTypedef define a union with an alias, typedef union {int count; float width;} foo; foo f = {.count=1}
 	typedef union {
 	$0
-	} ${1:结构别名};
+	} ${1:union alias};
 
-snippet unionInit 初始化union
-	union ${1:结构名} ${2:变量名} = {.${3:属性名}=${4:value}\};
+snippet unionInit initialize a union
+	union ${1:union name} ${2:variable name} = {.${3:member name}=${4:value}\};
 	$0
 
-# #enum(枚举)
-# 如果一种数据类型的取值只有少数几种可能，并且每种取值都有自己的含义，为了提高代码的可读性，可以将它们定义为 Enum 类型，中文名为枚举。
+# #enum
+# If a data type has only a few possible values, each with its own meaning, you can define them as
+# an Enum type to improve readability.
 # 
 # ```c
-# // 举没指定值则自动从0开始递增
+# // if no values are given, enum values start at 0 and increment automatically
 # enum colors {RED, GREEN, BLUE};
 # printf("%d\n", RED); // 0
 # printf("%d\n", GREEN);  // 1
 # printf("%d\n", BLUE);  // 2
 #
-# // 由于 Enum 的属性会自动声明为常量，所以有时候使用 Enum 的目的，不是为了自定义一种数据类型，而是为了声明一组常量
+# // Since Enum members are automatically declared as constants, sometimes Enum is used not to
+# // define a data type but to declare a group of constants
 # enum { ONE, TWO };
 # printf("%d %d", ONE, TWO);  // 0 1
 # 
-# // 还有一种不常见的写法，就是声明 Enum 类型时，在同一行里面为变量赋值。
-# // C 语言也允许为 ENUM 常量指定值，不过只能指定为整数
-# // Enum 常量可以是不连续的值。
-# // Enum 常量也可以是同一个值。
-# // 如果一组常量之中，有些指定了值，有些没有指定。那么，没有指定值的常量会从上一个指定了值的常量，开始自动递增赋值。
+# // There is also a less common form that assigns a variable on the same line as the Enum
+# // declaration.
+# // C also lets you assign values to ENUM constants, but only integers
+# // Enum constants can be non-consecutive values.
+# // Enum constants can also share the same value.
+# // If some constants in a group have values and some don't, the ones without values increment
+# // automatically from the previous constant that has a value.
 # enum {
 #   SHEEP = 1,
 #   WHEAT = -3,
@@ -751,125 +893,161 @@ snippet unionInit 初始化union
 # printf("%d\n",r); // 2
 # ```
 
-snippet enumDefinition 枚举定义:1.枚举没指定值则自动从0开始递增2.枚举可以指定值只能指定整数,可以指定为同一个值3.如果没指定值那么从上一个指定了值的枚举，开始自动递增赋值4.Enum 的属性会自动声明为常量5. typedef enum COLORS {RED, GREEN, BLUE}; enum COLORS r = RED; printf('%d', r);
-	enum ${1:枚举名} {
-	    ${2:枚举属性}
+snippet enumDefinition enum definition: 1. without values, enums start at 0 and increment automatically 2. enum values can only be integers, and can share a value 3. without a value, it increments from the previous enum that has one 4. Enum members are automatically declared as constants 5. typedef enum COLORS {RED, GREEN, BLUE}; enum COLORS r = RED; printf('%d', r);
+	enum ${1:enum name} {
+	    ${2:enum members}
 	\};
 
-snippet enumDefinitionTypedef 定义enum取别名, typedef enum {RED, GREEN, BLUE} COLORS; COLORS r = RED; printf('%d', r); // 0 printf('%d', GREEN); // 1
+snippet enumDefinitionTypedef define an enum with an alias, typedef enum {RED, GREEN, BLUE} COLORS; COLORS r = RED; printf('%d', r); // 0 printf('%d', GREEN); // 1
 	typedef enum {
 	    $0
-	\} ${1:enum别名};
+	\} ${1:enum alias};
 
-snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; enum colors r = RED;
-	enum ${1:枚举名} ${2:枚举变量名} = ${3:枚举属性};
+snippet enumDefinitionInit initialize an enum variable, enum colors {RED, GREEN, BLUE}; enum colors r = RED;
+	enum ${1:enum name} ${2:enum variable name} = ${3:enum member};
 	$0
 
-# #预处理器（Preprocessor)
-# C 语言编译器在编译程序之前，会先使用预处理器（preprocessor）处理代码。预处理器首先会清理代码，进行删除注释、多行语句合成一个逻辑行等工作。然后，执行`#`开头的预处理指令。本章介绍 C 语言的预处理指令。
-# 每个预处理指令都以`#`开头，放在一行的行首，指令前面可以有空白字符（比如空格或制表符）。`#`和指令的其余部分之间也可以有空格，但是为了兼容老的编译器，一般不留空格。
-# ##define(宏)#预处理器
-# `#define`是最常见的预处理指令，用来将指定的词替换成另一个词。它的参数分成两个部分，第一个参数就是要被替换的部分，其余参数是替换后的内容。每条替换规则，称为一个宏（macro）。
+# #Preprocessor
+# Before compiling a program, the C compiler first runs the code through the preprocessor. The
+# preprocessor first cleans the code up, removing comments and joining multi-line statements into
+# one logical line. Then it executes the preprocessing directives that start with `#`. This chapter
+# covers C's preprocessing directives.
+# Every preprocessing directive starts with `#` at the beginning of a line; whitespace (spaces or
+# tabs) may come before it. There may also be spaces between `#` and the rest of the directive, but
+# for compatibility with old compilers usually none is used.
+# ##define (macros)#Preprocessor
+# `#define` is the most common preprocessing directive; it replaces a given word with another. Its
+# arguments have two parts: the first is what gets replaced, the rest is the replacement. Each
+# replacement rule is called a macro.
 # ```c
-# // 指定将源码里面的`MAX`，全部替换成`100`。`MAX`就称为一个宏。
-# // 宏的名称不允许有空格，而且必须遵守 C 语言的变量命名规则，只能使用字母、数字与下划线（`_`），且首字符不能是数字。
+# // replaces every `MAX` in the source with `100`. `MAX` is called a macro.
+# // Macro names may not contain spaces and must follow C variable naming rules: only letters,
+# // digits and underscores (`_`), and must not start with a digit.
 # #define MAX 100
-# // 宏是原样替换，指定什么内容，就一模一样替换成什么内容。
+# // Macros are replaced verbatim: whatever content is given is substituted exactly.
 # #define HELLO "Hello, world"
-# // 相当于 printf("%s", "Hello, world");
+# // equivalent to printf("%s", "Hello, world");
 # printf("%s", HELLO);
-# // `#define`指令从`#`开始，一直到换行符为止。如果整条指令过长，可以在折行处使用反斜杠，延续到下一行。
+# // a `#define` directive runs from `#` to the end of the line. If it is too long, use a backslash
+# // at the line break to continue on the next line.
 # #define OW "C programming language is invented \
 # in 1970s."
-# // `#define`允许多重替换，即一个宏可以包含另一个宏。`FOUR`会被替换成`2*2`。
+# // `#define` allows nested replacement, i.e. one macro can contain another. `FOUR` is replaced
+# // with `2*2`.
 # #define TWO 2
 # #define FOUR TWO*TWO
-# // 注意，如果宏出现在字符串里面（即出现在双引号中），或者是其他标识符的一部分，就会失效，并不会发生替换。
-# // 下面示例中，双引号里面的`TWO`，以及标识符`TWOs`，都不会被替换。
+# // Note: a macro inside a string (in double quotes) or as part of another identifier has no effect
+# // and is not replaced.
+# // In the example below, the `TWO` inside double quotes and the identifier `TWOs` are not
+# // replaced.
 # printf("TWO\n"); // TWO
 # const TWOs = 22;
 # printf("%d\n", TWOs); // 22
-# // 同名的宏可以重复定义，只要定义是相同的，就没有问题。如果定义不同，就会报错。
-# // 正确
+# // A macro with the same name can be defined repeatedly as long as the definitions are identical.
+# // If they differ, it's an error.
+# // correct
 # #define FOO hello
 # #define FOO hello
-# // 报错
+# // error
 # #define BAR hello
 # #define BAR world
 # ```
-# ###带参数的宏##define(宏)#预处理器
-# 宏的强大之处在于，它的名称后面可以使用括号，指定接受一个或多个参数。注意，宏的名称与左边圆括号之间，不能有空格
-# 这种写法很像函数，但又不是函数，而是完全原样的替换，会跟函数有不一样的行为。
+# ###Macros with parameters##define (macros)#Preprocessor
+# The power of macros is that their name can be followed by parentheses specifying one or more
+# parameters. Note: there must be no space between the macro name and the opening parenthesis
+# This looks like a function but is not; it is a verbatim replacement and behaves differently from a
+# function.
 # ```c
 # #define SQUARE(X) X*X
-# // 替换成 z = 2*2;
+# // replaced with z = 2*2;
 # z = SQUARE(2);
-# // 这种写法很像函数，但又不是函数，而是完全原样的替换，会跟函数有不一样的行为。
-# // 下面面示例中，`SQUARE(3 + 4)`如果是函数，输出的应该是49（`7*7`）；宏是原样替换，所以替换成`3 + 4*3 + 4`，最后输出19。
+# // This looks like a function but is not; it is a verbatim replacement and behaves differently
+# // from a function.
+# // In the example below, if `SQUARE(3 + 4)` were a function it would output 49 (`7*7`); a macro is
+# // replaced verbatim, giving `3 + 4*3 + 4`, so it outputs 19.
 # printf("%d\n", SQUARE(3 + 4)) // 19
-# // 可以看到，原样替换可能导致意料之外的行为。解决办法就是在定义宏的时候，尽量多使用圆括号，这样可以避免很多意外
+# // As you can see, verbatim replacement can cause unexpected behavior. The fix is to use plenty of
+# // parentheses when defining macros, which avoids many surprises
 # #define SQUARE(X) ((X) * (X))
-# #define getchar() getc(stdin) // 宏的参数也可以是空的。这种情况其实可以省略圆括号，但是加上了，会让它看上去更像函数。
-# // 带参数的宏也可以嵌套，一个宏里面包含另一个宏。
+# #define getchar() getc(stdin) // a macro's parameter list can also be empty. The parentheses could
+# be omitted in that case, but including them makes it look more like a function.
+# // Macros with parameters can also be nested, one macro containing another.
 # #define QUADP(a, b, c) ((-(b) + sqrt((b) * (b) - 4 * (a) * (c))) / (2 * (a)))
 # #define QUADM(a, b, c) ((-(b) - sqrt((b) * (b) - 4 * (a) * (c))) / (2 * (a)))
 # #define QUAD(a, b, c) QUADP(a, b, c), QUADM(a, b, c)
 # ```
-# ###`#`运算符，`##`运算符##define(宏)#预处理器
-# 由于宏不涉及数据类型，所以替换以后可能为各种类型的值。如果希望替换后的值为字符串，可以在替换文本的参数前面加上`#`
+# ###`#` operator, `##` operator##define (macros)#Preprocessor
+# Since macros don't involve data types, the replacement can be a value of any type. If you want the
+# replaced value to be a string, put `#` before the parameter in the replacement text
 # ```c
 # #define STR(x) #x
-# // 等同于 printf("%s\n", "3.14159"); 如果`x`前面没有`#`，这会被解释成一个浮点数，有了`#`以后，就会被转换成字符串。
+# // equivalent to printf("%s\n", "3.14159"); without the `#` before `x`, this would be interpreted
+# // as a float; with `#`, it is converted to a string.
 # printf("%s\n", STR(3.14159));
 # #define XNAME(n) "x"#n
-# // 输出 x4, `#n`指定参数输出为字符串，再跟前面的字符串结合，最终输出为`"x4"`。如果不加`#`， #define XNAME(n) "x"n NAME(4)会编译失败
+# // outputs x4; `#n` makes the parameter a string, which is joined with the preceding string to
+# // give `"x4"`. Without `#`, #define XNAME(n) "x"n NAME(4) fails to compile
 # printf("%s\n", XNAME(4));
 # #define MK_ID(n) i##n
-# // `n`是宏`MK_ID`的参数，这个参数需要跟标识符`i`粘合在一起，这时`i`和`n`之间就要使用`##`运算符。替换后的文本`i1`、`i2`、`i3`是三个标识符，参数`n`是标识符的一部分。从这个例子可以看到，`##`运算符的一个主要用途是批量生成变量名和标识符
-# // 替换成 int i1, i2, i3;
+# // `n` is a parameter of the macro `MK_ID` and must be glued to the identifier `i`, so the `##`
+# // operator is used between `i` and `n`. The resulting `i1`, `i2`, `i3` are three identifiers,
+# // with the parameter `n` part of each. As this example shows, a main use of `##` is generating
+# // variable names and identifiers in bulk
+# // replaced with int i1, i2, i3;
 # int MK_ID(1), MK_ID(2), MK_ID(3);
 # ```
-# ###不定参数的宏##define(宏)#预处理器
-# 宏的参数还可以是不定数量的（即不确定有多少个参数），`...`表示剩余的参数,`...`只能替代宏的尾部参数
+# ###Variadic macros##define (macros)#Preprocessor
+# Macro parameters can also be variable in number (the number of arguments is not fixed); `...`
+# stands for the remaining arguments and can only replace the trailing parameters of a macro
 # ```c
 # #define X(a, b, ...) (10*(a) + 20*(b)), __VA_ARGS__
 # X(5, 4, 3.14, "Hi!", 12) // (10*(5) + 20*(4)), 3.14, "Hi!", 12
-# // `__VA_ARGS__`前面加上一个`#`号，可以让输出变成一个字符串。
+# // putting `#` before `__VA_ARGS__` turns the output into a string.
 # #define X(...) #__VA_ARGS__
 # printf("%s\n", X(1,2,3));  // Prints "1, 2, 3"
 # ```
-# ###undef##define(宏)#预处理器
-# `#undef`指令用来取消已经使用`#define`定义的宏
+# ###undef##define (macros)#Preprocessor
+# The `#undef` directive cancels a macro defined with `#define`
 # ```c
 # #define LIMIT 400
 # #undef LIMIT
 # ```
-# 上面示例的`undef`指令取消已经定义的宏`LIMIT`，后面就可以重新用 LIMIT 定义一个宏。有时候想重新定义一个宏，但不确定是否以前定义过，就可以先用`#undef`取消，然后再定义。因为同名的宏如果两次定义不一样，会报错，而`#undef`的参数如果是不存在的宏，并不会报错。
+# The `undef` directive in the example above cancels the macro `LIMIT`, after which LIMIT can be
+# defined again. When you want to redefine a macro but aren't sure whether it was defined before,
+# `#undef` it first and then define it. Defining a macro twice with different definitions is an
+# error, while `#undef` of a macro that doesn't exist is not.
 # ```bash
-# GCC 的`-U`选项可以在命令行取消宏的定义，相当于`#undef`。
+# GCC's `-U` option cancels a macro definition from the command line, equivalent to `#undef`.
 # $ gcc -ULIMIT foo.c
 # ```
-# ##include#预处理器
-# `#include`指令用于编译时将其他源码文件，加载进入当前文件。它有两种形式。
+# ##include#Preprocessor
+# The `#include` directive loads other source files into the current file at compile time. It has
+# two forms.
 # ```c
-# // 形式一 加载系统提供的文件,通常是标准库的库文件，不需要写路径。因为编译器会到系统指定的安装目录里面，去寻找这些文件
-# #include <foo.h> // 加载系统提供的文件
-# // 形式二 加载用户提供的文件,具体的路径取决于编译器的设置，可能是当前目录，或项目的工作目录。如果所要包含的文件在其他>位置，就需要指定路径
-# #include "foo.h" // 加载用户提供的文件
+# // form 1 loads a system-provided file, usually a standard library header, without a path, because
+# // the compiler looks for it in the system's install directories
+# #include <foo.h> // load a system-provided file
+# // form 2 loads a user-provided file; the actual path depends on the compiler settings, possibly
+# // the current directory or the project's working directory. If the file is elsewhere, specify the
+# // path
+# #include "foo.h" // load a user-provided file
 # #include "/usr/local/lib/foo.h"
 # ```
-# GCC 编译器的`-I`参数，也可以用来指定`include`命令中用户文件的加载路径。
+# The GCC `-I` option can also specify the search path for user files in `include` directives.
 # ```bash
 # $ gcc -Iinclude/ -o code code.c
 # ```
-# ## #if...#endif#预处理器
-# `#if...#endif`指令用于预处理器的条件判断，满足条件时，内部的行会被编译，否则就被编译器忽略。
+# ## #if...#endif#Preprocessor
+# The `#if...#endif` directive is the preprocessor's conditional: when the condition holds, the
+# lines inside are compiled; otherwise the compiler ignores them.
 # ```c
-# // `#if`后面的`0`，表示条件不成立。所以，内部的变量定义语句会被编译器忽略。`#if 0`这种写法常用来当作注释使用，不需要的代码就放在`#if 0`里面。
+# // the `0` after `#if` means the condition is false, so the variable definition inside is ignored
+# // by the compiler. `#if 0` is often used as a comment: put unneeded code inside `#if 0`.
 # #if 0
-#   const double pi = 3.1415; // 不会执行
+#   const double pi = 3.1415; // not executed
 # #endif
-# // 可以写if else 没有定义过的宏，等同于`0`。因此如果`UNDEFINED`是一个没有定义过的宏，那么`#if UNDEFINED`为伪，而`#if !UNDEFINED`为真。
+# // you can write if else; a macro that was never defined counts as `0`. So if `UNDEFINED` is an
+# // undefined macro, `#if UNDEFINED` is false and `#if !UNDEFINED` is true.
 # #if HAPPY_FACTOR == 0
 #   printf("I'm not happy!\n");
 # #elif HAPPY_FACTOR == 1
@@ -877,24 +1055,32 @@ snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; 
 # #else
 #   printf("I'm extra happy!\n");
 # #endif
-# // `#if`的常见应用就是打开（或关闭）调试模式。 通过gcc -DDEBUG=1 -o main main.c  指定宏(等价于在文件main.c中定义：#define DEBUG 1) ,  gcc -ULIMIT -o main main.c 取消DEBUG(等价于在main.c取消宏 #undef DEBUG) 
-# // 请注意gcc -DDEBUG=xxx -o main main.c  无法打开debug(只有将DEBUG这个宏定义为1才生效) 如果定义宏也无法打开debug,如果定义空宏(#define DEBUG)会编译报错
+# // A common use of `#if` is turning debug mode on (or off). Use gcc -DDEBUG=1 -o main main.c to
+# // define the macro (equivalent to #define DEBUG 1 in main.c), and gcc -ULIMIT -o main main.c to
+# // cancel DEBUG (equivalent to #undef DEBUG in main.c)
+# // Note that gcc -DDEBUG=xxx -o main main.c does not turn debug on (only defining DEBUG as 1
+# // works); defining the macro otherwise doesn't turn debug on either, and defining an empty macro
+# // (#define DEBUG) is a compile error
 # #if DEBUG
 # printf("value of i : %d\n", i);
 # printf("value of j : %d\n", j);
 # #endif
 # ```
 # ## #ifdef...#endif
-# `#ifdef...#endif`指令用于判断某个宏是否定义过。空宏(#define XXX) `#ifdef...#endif` 为真,空宏 `#if...#endif` 编译报错(因为会被替换)
-# 有时源码文件可能会重复加载某个库，为了避免这种情况，可以在库文件里使用`#define XXX`定义一个空宏。通过这个宏，判断库文件是否被加载了。
+# The `#ifdef...#endif` directive checks whether a macro has been defined. For an empty macro
+# (#define XXX), `#ifdef...#endif` is true, while `#if...#endif` is a compile error (because it gets
+# replaced)
+# Sometimes a source file may load a library more than once. To avoid that, define an empty macro
+# with `#define XXX` in the library file, and use it to check whether the library has been loaded.
 # ```c
 # #define EXTRA_HAPPY
-# #ifdef EXTRA_HAPPY // 空宏
-#   printf("I'm extra happy!\n"); // 输出 : I'm extra happy! 因为空宏(#define XXX)为真
+# #ifdef EXTRA_HAPPY // empty macro
+#   printf("I'm extra happy!\n"); // output : I'm extra happy! because an empty macro (#define XXX)
+#   is true
 # #else
 #   printf("I'm just regular\n");
 # #endif
-# // `#ifdef...#else...#endif`可以用来实现条件加载。
+# // `#ifdef...#else...#endif` can be used for conditional loading.
 # #ifdef MAVIS
 #   #include "foo.h"
 #   #define STABLES 1
@@ -903,11 +1089,12 @@ snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; 
 #   #define STABLES 2
 # #endif
 # ```
-# ## defined 运算符#预处理器
-# 上一节的`#ifdef`指令，等同于`#if defined`。使用这种语法，可以完成多重判断。
+# ## defined operator#Preprocessor
+# The `#ifdef` directive in the previous section is equivalent to `#if defined`. This syntax allows
+# multiple conditions.
 # ```c
-# // 这个运算符的一个应用，就是对于不同架构的系统，加载不同的头文件。
-# #if defined IBMPCi //  等价于 `#ifdef IBMPCi ` 但`#ifdef IBMPCi ` 只有一个if
+# // One use of this operator is loading different headers for different system architectures.
+# #if defined IBMPCi //  equivalent to `#ifdef IBMPCi `, but `#ifdef IBMPCi ` only allows one if
 #   #include "ibmpc.h"
 # #elif defined MAC
 #   #include "mac.h"
@@ -915,27 +1102,32 @@ snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; 
 #   #include "general.h"
 # #endif
 # ```
-# ## #ifndef...#endif#预处理器
-# `#ifndef...#endif`指令跟`#ifdef...#endif`正好相反。它用来判断，如果某个宏没有被定义过，则执行指定的操作。
-# `#ifndef`等同于`#if !defined`。
+# ## #ifndef...#endif#Preprocessor
+# The `#ifndef...#endif` directive is the opposite of `#ifdef...#endif`. It checks that a macro has
+# not been defined and then runs the given code.
+# `#ifndef` is equivalent to `#if !defined`.
 # ```c
-# // `#ifndef`常用于防止重复加载。举例来说，为了防止头文件`myheader.h`被重复加载，可以把它放在`#ifndef...#endif`里面加载。
+# // `#ifndef` is often used to prevent repeated loading. For example, to keep the header
+# // `myheader.h` from being loaded more than once, put it inside `#ifndef...#endif`.
 # #ifndef MYHEADER_H
 #   #define MYHEADER_H
 #   #include "myheader.h"
 # #endif
 # ```
-# ##预定义宏#预处理器
-# C 语言提供一些预定义的宏，可以直接使用。
-# - `__DATE__`：编译日期，格式为“Mmm dd yyyy”的字符串（比如 Nov 23 2021）。
-# - `__TIME__`：编译时间，格式为“hh:mm:ss”。
-# - `__FILE__`：当前文件名。
-# - `__LINE__`：当前行号。
-# - `__func__`：当前正在执行的函数名。该预定义宏必须在函数作用域使用。
-# - `__STDC__`：如果被设为1，表示当前编译器遵循 C 标准。
-# - `__STDC_HOSTED__`：如果被设为1，表示当前编译器可以提供完整的标准库；否则被设为0（嵌入式系统的标准库常常是不完整的）。
-# - `__STDC_VERSION__`：编译所使用的 C 语言版本，是一个格式为`yyyymmL`的长整数，C99 版本为“199901L”，C11 版本为“201112L”，C17 版本为“201710L”。
-# 下面示例打印这些预定义宏的值。
+# ##Predefined macros#Preprocessor
+# C provides some predefined macros that can be used directly.
+# - `__DATE__`: compile date, a string in the format "Mmm dd yyyy" (e.g. Nov 23 2021).
+# - `__TIME__`: compile time, in the format "hh:mm:ss".
+# - `__FILE__`: current file name.
+# - `__LINE__`: current line number.
+# - `__func__`: name of the currently executing function. This predefined macro must be used in
+#   function scope.
+# - `__STDC__`: if set to 1, the compiler conforms to the C standard.
+# - `__STDC_HOSTED__`: if set to 1, the compiler provides the full standard library; otherwise 0
+#   (standard libraries on embedded systems are often incomplete).
+# - `__STDC_VERSION__`: the C version used for compilation, a long integer in the format `yyyymmL`:
+#   "199901L" for C99, "201112L" for C11, "201710L" for C17.
+# The example below prints the values of these predefined macros.
 # ```c
 # #include <stdio.h>
 # int main(void) {
@@ -946,17 +1138,20 @@ snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; 
 #   printf("C Version: %ld\n", __STDC_VERSION__);
 # }
 # ```
-# ## #line#预处理器
-# `#line`指令用于覆盖预定义宏`__LINE__`，将其改为自定义的行号。后面的行将从`__LINE__`的新值开始计数
-# #line`还可以改掉预定义宏`__FILE__`，将其改为自定义的文件名。
+# ## #line#Preprocessor
+# The `#line` directive overrides the predefined macro `__LINE__`, changing it to a custom line
+# number. Following lines are counted from the new value of `__LINE__`
+# #line` can also change the predefined macro `__FILE__` to a custom file name.
 # ```c
-# #line 300 // 将下一行的行号重置为 300
-# #line 300 "newfilename" // 下一行的行号重置为`300`，文件名重置为`newfilename`。
+# #line 300 // reset the next line's number to 300
+# #line 300 "newfilename" // reset the next line's number to `300` and the file name to
+# `newfilename`.
 # ```
-# ## #error#预处理器
-# `#error`指令用于让预处理器抛出一个错误，终止编译。
+# ## #error#Preprocessor
+# The `#error` directive makes the preprocessor raise an error and stop compiling.
 # ```c
-# // 上面示例指定，如果编译器不使用 C11 标准，就中止编译。GCC 编译器会像下面这样报错。
+# // The example above stops compiling if the compiler does not use the C11 standard. GCC reports
+# // the error like this.
 # #if __STDC_VERSION__ != 201112L
 #   #error Not C11
 # #endif
@@ -966,57 +1161,59 @@ snippet enumDefinitionInit 使用初始化enum, enum colors {RED, GREEN, BLUE}; 
 # newish.c:14:2: error: #error Not C11
 # ```
 # ```c
-# // 上面示例中，编译器一旦发现`INT`类型的最大值小于`100,000`，就会停止编译。
+# // In the example above, the compiler stops compiling as soon as it finds that the maximum of
+# // `INT` is less than `100,000`.
 # #if INT_MAX < 100000
 #   #error int type is too small
 # #endif
 # ```
-# ## #pragma#预处理器
-# `#pragma`指令用来修改编译器属性。
+# ## #pragma#Preprocessor
+# The `#pragma` directive modifies compiler properties.
 # ```c
-# // 使用 C99 标准
+# // use the C99 standard
 # #pragma c9x on
 # ```
-# 上面示例让编译器以 C99 标准进行编译。
-# #file io操作
-snippet fileOpen 打开一个文件流,1. #include <stdio.h> 2. FILE* file = fopen('文件路径','模式'); 3. 需要关闭文件流 : fclose(file); 4. 模式如下 r:读可以返回NULL w:写,覆盖文件 a:写,尾部追加内容 r+:读写,头部追加内容 w+:读写,覆盖文件,实际无法读旧文件 a+:读写,尾部追加内容 b:以二进制流进行读写 x:独占模式/报错,文件存在失败,打开后不允许其它程序操作 5. 文件路径可以是设备文件比如标准输入/输出/异常 stdin stdout stderr
+# The example above makes the compiler compile with the C99 standard.
+# #file io operations
+snippet fileOpen open a file stream, 1. #include <stdio.h> 2. FILE* file = fopen('file path','mode'); 3. the stream must be closed : fclose(file); 4. modes: r: read, may return NULL w: write, overwrite the file a: write, append to the end r+: read/write, from the start w+: read/write, overwrite the file, the old content cannot actually be read a+: read/write, append to the end b: read/write as a binary stream x: exclusive mode / error, fails if the file exists, other programs may not operate on it once opened 5. the file path can be a device file such as standard input/output/error stdin stdout stderr
 	FILE* ${1:file} = fopen("${2:filePath}", "${3:model}");
 	$0
 	fclose($1);
 
-snippet fileClose 关闭文件,成功返回0,失败返回EOF(文件结尾标志)EOF=-1
+snippet fileClose close a file; returns 0 on success, EOF (end-of-file marker) on failure, EOF=-1
 	fclose(${1:file});
 	$0
 
-snippet fileOpenRe 打开一个文件流,但直接关联到某个已经打开的文件指针 1. #include <stdio.h>  2. 返回值是它的第三个参数 3. 会自动关闭原先已经打开的文件,如果文件指针并没有指向已经打开的文件,则freopen等同于fopen 4. freopen('output.txt', 'w', stdout)此后向`stdout`写入的内容，都会写入`output.txt`
+snippet fileOpenRe open a file stream associated directly with an already open file pointer 1. #include <stdio.h>  2. returns its third argument 3. automatically closes the file previously opened; if the file pointer does not refer to an open file, freopen is the same as fopen 4. after freopen('output.txt', 'w', stdout) everything written to `stdout` goes to `output.txt`
 	${1:file} = freopen("${2:filePath}", "${2:modeel}", $1);
 	$0
 	fclose($1);
 
-snippet fileGetChar 读取一个文件的一个字符int类型,读取失败或到结尾返回EOF 1. int c;while((c = getc(file)) != EOF) {printf('%c',c);} 2. getc/fgetc 功能一致,只是`getc()`一般用宏来实现，而`fgetc()`是函数实现。
+snippet fileGetChar read one character from a file as an int; returns EOF on failure or at the end 1. int c;while((c = getc(file)) != EOF) {printf('%c',c);} 2. getc/fgetc do the same thing, except `getc()` is usually implemented as a macro and `fgetc()` as a function.
 	int ${2:c} = getc(${1:file});
 	$0
 
-snippet filePutChar 向文件写入一个字符1. fputc(int char, FILE *stream) 2. `fputc()`与`putc()`的用法是一样只是`putc()`通常是使用宏来实现，而`f    putc()`只作为函数来实现 3. 写入失败返回EOF
+snippet filePutChar write one character to a file 1. fputc(int char, FILE *stream) 2. `fputc()` is used the same way as `putc()`, except `putc()` is usually implemented as a macro and `fputc()` only as a function 3. returns EOF on failure
 	putc(${1:c}, ${2:file});
 	$0
 
-snippet filePrintf 文件写入格式化字符串，用法与printf()类似,1. fprintf可以替代printf: fprintf(stdout, 'Hello, world!\n'); 2. 写入失败返回EOF
+snippet filePrintf write a formatted string to a file, used like printf(), 1. fprintf can replace printf: fprintf(stdout, 'Hello, world!\n'); 2. returns EOF on failure
 	fprintf(${1:file},"${2:str}");
 
-snippet fileScanf 用于按照给定的模式，从文件中读取内容，用法跟scanf()类似 1. while(fscanf(file, ''%s', words) == 1) {puts(words);} 依次读取文件的每个词，将它们一行打印一个，直到文件结束
-	fscanf(${1:file}, "${2:格式比如%s}", ${3:读取到那个变量});
+snippet fileScanf reads content from a file according to a given pattern, used like scanf() 1. while(fscanf(file, ''%s', words) == 1) {puts(words);} reads each word of the file in turn and prints one per line until the end of the file
+	fscanf(${1:file}, "${2:format such as %s}", ${3:variable to read into});
 	$0
 
 # ```c
 # #include <stdio.h>
 # int main(void) {
 #   FILE* fp;
-#   char s[1024];  // 数组必须足够大，足以放下一行
+#   char s[1024];  // the array must be large enough to hold a line
 #   int linecount = 0;
 #   fp = fopen("hello.txt", "r");
 #   while (fgets(s, sizeof s, fp) != NULL)
-#     printf("%d: %s", ++linecount, s); // 每读取一行，都会输出行号和该行的内容。
+#     printf("%d: %s", ++linecount, s); // prints the line number and the line's content for each
+#     line read.
 #   fclose(fp);
 # 
 #   char words[10];
@@ -1024,17 +1221,18 @@ snippet fileScanf 用于按照给定的模式，从文件中读取内容，用�
 #   while (fgets(words, 10, stdin) != NULL) {
 #     if (words[0] == 'q' && words[1] == '\n')
 #       break;
-#     puts(words); // 如果用户输入的字符串大于9个字符，`fgets()`会多次读取。直到遇到`q` + 回车键，才会退出循环
+#     puts(words); // if the user enters more than 9 characters, `fgets()` reads multiple times. It
+#     exits the loop only on `q` + Enter
 #   }
 # 
 # puts("Done.");
 # }
 # ```
-snippet fileGets 从文件读取指定长度并且以换行符结尾字符串到str(char[]),即假设一行有个10个字符指定1024长度只能读取11个字符最后一个字符为换行,但指定7长度第一次读取前6个字符,第二次读取后4个字符+换行符,返回str,while ((char* ss  = fgets(char s[], sizeof s, fp)) != NULL){printf('%d: %s', ++linecount, ss/s);}
+snippet fileGets reads a string of the given length ending at a newline from a file into str (char[]); e.g. if a line has 10 characters, with length 1024 it reads 11 characters, the last being the newline, but with length 7 the first read gets the first 6 characters and the second read the last 4 + newline; returns str, while ((char* ss  = fgets(char s[], sizeof s, fp)) != NULL){printf('%d: %s', ++linecount, ss/s);}
 	fgets(${1:str}, sizeof $1, ${2:file}));
 	$0
 
-snippet filePuts `fputs()`函数用于向文件写入字符串，和`puts()`函数只有一点不同，那就是它不会在字符串末尾添加换行符,如果第二个参数为`stdout`（标准输出），就是将内容输出到计算机屏幕，等同于`printf()`
+snippet filePuts the `fputs()` function writes a string to a file; the only difference from `puts()` is that it does not add a newline at the end. If the second argument is `stdout` (standard output), the content goes to the screen, like `printf()`
 	fputs(${1:str}, ${2:file});
 	$0
 
@@ -1048,8 +1246,10 @@ snippet filePuts `fputs()`函数用于向文件写入字符串，和`puts()`函�
 # int main(void) {
 #     FILE* fp;
 #     unsigned char bytes[] = {5, 37, 0, 88, 255, 12};
-#     fp = fopen("output.bin", "wb"); // 写入二进制文件时，`fopen()`要使用`wb`模式打开，表示二进制写入
-#     fwrite(bytes, sizeof(char), sizeof(bytes), fp); // output.bin 用十六进制编辑器打开内容如下: 05 25 00 58 ff 0c
+#     fp = fopen("output.bin", "wb"); // when writing a binary file, open it with `fopen()` in `wb`
+#     mode, meaning binary write
+#     fwrite(bytes, sizeof(char), sizeof(bytes), fp); // opening output.bin in a hex editor shows:
+#     05 25 00 58 ff 0c
 #     fclose(fp);
 #   
 #     struct clientData myClient = {1, "foo bar"};
@@ -1070,7 +1270,7 @@ snippet filePuts `fputs()`函数用于向文件写入字符串，和`puts()`函�
 #         printf("\n");
 #     }
 #     fclose(fp);
-# 	// 输出
+# 	// output
 # 	1 2 3 4 5 6 7 8 9 10 
 # 	11 12 13 14 15 16 17 18 19 20 
 # 	21 22 23 24 25 26 27 28 29 30 
@@ -1084,58 +1284,67 @@ snippet filePuts `fputs()`函数用于向文件写入字符串，和`puts()`函�
 #   return 0;
 # }
 # ```
-snippet fileWirte 一次性写入较大的数据块，主要用途是将数组数据一次性写入文件，适合写入二进制数据。size_t fwrite(const void* ptr,size_t size,size_t nmemb,FILE* fp); ptr：数组指针 size：每个数组成员的大小，单位字节 nmemb：数组成员的数量 fp：要写入的文件指针 1. 返回成功写入的数组成员的数量 2. 可以写入任何数据比如char c[], struct clientData c[10] 3. 可以配合fread() 读取回来 代码片段`fileRead` 4. 打开文件model为`b`
+snippet fileWirte writes a large block of data at once, mainly to write array data to a file in one go; suitable for binary data. size_t fwrite(const void* ptr,size_t size,size_t nmemb,FILE* fp); ptr: array pointer size: size of each array member in bytes nmemb: number of array members fp: file pointer to write to 1. returns the number of array members successfully written 2. can write any data, e.g. char c[], struct clientData c[10] 3. can be read back with fread(), snippet `fileRead` 4. open the file with mode `b`
 	fwrite(${1:arr},sizeof($1[0]),sizeof($1) / sizeof($1[0]),${2:file});
 
-snippet fileRead fread()用于一次性从文件读取较大的数据块到数组中适合读取二进制数据,size_t fread(void* ptr,size_t size,size_t nmemb,FILE* fp);ptr：数组指针 size：每个数组成员的大小，单位字节 nmemb：数组成员的数量 fp：要写入的文件指针 1. 返回成功读取的数组成员的数量 2. 可以读取任何数据比如char c[] struct clientData c[10] 3. 可以配合fwrite() 读取回来 代码片段`fileWrite` 4. 打开文件model为`b`
+snippet fileRead fread() reads a large block of data from a file into an array at once; suitable for binary data, size_t fread(void* ptr,size_t size,size_t nmemb,FILE* fp);ptr: array pointer size: size of each array member in bytes nmemb: number of array members fp: file pointer to read from 1. returns the number of array members successfully read 2. can read any data, e.g. char c[] struct clientData c[10] 3. pairs with fwrite(), snippet `fileWrite` 4. open the file with mode `b`
 	fread(${1:arr},sizeof($1[0]),sizeof($1) / sizeof($1[0]),${2:file});
 
-snippet fileEof 判断文件的内部指针是否指向文件结尾(返回非0到结尾否则返回0),诸如`fgetc()`这样的文件读取函数，如果返回 EOF，有两种可能，一种可能是已读取到文件结尾，另一种可能是出现读取错误。`feof()`可以用来判断到底是那一种情况。
+snippet fileEof checks whether the file's internal pointer is at the end of the file (returns non-zero at the end, otherwise 0). When a read function such as `fgetc()` returns EOF, there are two possibilities: the end of the file was reached, or a read error occurred. `feof()` tells which.
 	feof(${1:file})
 
 # ```c
-# // 下面的示例逆向输出文件的所有字节。
+# // The example below prints all bytes of a file in reverse.
 # for (count = 1L; count <= size; count++) {
 #   fseek(fp, -count, SEEK_END);
 #   ch = getc(fp);
 # }
 # ```
-snippet fileSeek 改变文件的读写位置:文件指针都有一个内部指示器记录当前打开的文件的读写位置（file position），即下一次读写从哪里开始. 参数如下1. file:文件 2. offset:距离基准（第三个参数）的字节数(long 类型),如果为负值向文件开始处移动,最好只用来操作二进制文件因为文本文件的字符有不同的编码，某个位置的准确字节位置不容易确定 3.whence: 位置基准(枚举)`SEEK_SET`（文件开始处）、`SEEK_CUR `（内部指针的当前位置）、`SEEK_END`（文件末尾 4. 返回值为非零值移动失败如移动的距离超出文件的范围
+snippet fileSeek change the read/write position of a file: every file pointer has an internal indicator recording the read/write position (file position) of the open file, i.e. where the next read/write starts. Parameters 1. file: the file 2. offset: number of bytes (long) from the reference point (third argument); negative moves towards the start of the file; best used only on binary files, since text file characters have different encodings and the exact byte position is hard to determine 3. whence: reference point (enum) `SEEK_SET` (start of file), `SEEK_CUR ` (current position of the internal pointer), `SEEK_END` (end of file 4. a non-zero return value means the move failed, e.g. the distance is beyond the file's range
 	fseek(${1:file}, ${2:offset}, ${3:whence})
 
-snippet fileTell 返回文件内部指示器的当前位置,即文件开始处到当前位置的字节数，0表示文件开始处。如果发生错误，ftell()返回-1L
+snippet fileTell returns the current position of the file's internal indicator, i.e. the number of bytes from the start of the file; 0 is the start. On error ftell() returns -1L
 	long int ${2:offset} = fteel(${1:file});
 	$0
 
-snippet fileRewind 文件的内部指示器回到文件开始处,而且会清除当前文件的错误指示器,基本等价于fseek(fp, 0l, seek_set),但无返回值
+snippet fileRewind moves the file's internal indicator back to the start of the file and clears the file's error indicator; basically equivalent to fseek(fp, 0l, seek_set) but returns nothing
 	rewind(${1:file});
 
 # ```c
-# // `fseek()`和`ftell()`有一个潜在的问题，那就是它们都把文件大小限制在 long int 类型能表示的范围内。这看起来相当大，但是在32位计算机上，long int 的长度为4个字节，能够表示的范围最大为 4GB。随着存储设备的容量迅猛增长，文件也越来越大，往往会超出这个范围。鉴于此，C 语言新增了两个处理大文件的新定位函数：`fgetpos()`和`fsetpos()`。
-# // `fgetpos()`函数会将文件内部指示器的当前位置，存储在指针变量`pos`。该函数接受两个参数，第一个是文件指针，第二个存储指示器位置的变量。变量`pos`必须是通过调用`fgetpos()`方法获得的
+# // `fseek()` and `ftell()` share a potential problem: they limit file size to the range of long
+# // int. That sounds large, but on a 32-bit machine long int is 4 bytes, so the maximum is 4GB. As
+# // storage capacity grows rapidly, files get larger and often exceed this. So C added two new
+# // positioning functions for large files: `fgetpos()` and `fsetpos()`.
+# // `fgetpos()` stores the current position of the file's internal indicator in the pointer
+# // variable `pos`. It takes two arguments: the file pointer and the variable storing the position.
+# // The variable `pos` must be obtained by calling `fgetpos()`
 # 
 # fpos_t file_pos;
 # fgetpos(fp, &file_pos);
-# // 一系列文件操作之后
+# // after a series of file operations
 # fsetpos(fp, &file_pos);
 # ```
-#  所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面的操作出错了
-#  `ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`。
-#  `clearerr()`函数用来重置出错指示器。
-snippet fileClearErr 重置出错指示器,所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面的操作出错了,`ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`
+#  Every file operation function records an error state in the file pointer when it fails. Later
+#  operations can read the error indicator to know that an earlier operation failed
+#  The `ferror()` function returns the state of the error indicator. If an earlier operation failed,
+#  `ferror()` returns a non-zero integer (meaning true), otherwise `0`.
+#  The `clearerr()` function resets the error indicator.
+snippet fileClearErr reset the error indicator; every file operation function records an error state in the file pointer when it fails, and later operations can read the error indicator to know an earlier operation failed; `ferror()` returns the state of the error indicator: a non-zero integer (meaning true) if an earlier operation failed, otherwise `0`
 	clearerr(${1:file});
 
-snippet fileError 所有的文件操作函数如果执行失败，都会在文件指针里面记录错误状态。后面的操作只要读取错误指示器，就知道前面>     的操作出错了,`ferror()`函数用来返回错误指示器的状态。如果前面的操作出现错误，`ferror()`就会返回一个非零整数（表示 true），否则返回`0`,可用clearerr()重置出错指示器
+snippet fileError every file operation function records an error state in the file pointer when it fails, and later operations can read the error indicator to know an earlier operation failed; `ferror()` returns the state of the error indicator: a non-zero integer (meaning true) if an earlier operation failed, otherwise `0`; reset it with clearerr()
 	ferror(${1:file})
 
-snippet fileRemove 删除文件,`remove()`返回`0`，否则返回非零值。删除文件必须是在文件关闭的状态下。如果是用`fopen()`打开的文件，必须先用`fclose()`关闭后再删除。
+snippet fileRemove delete a file; `remove()` returns `0` on success, otherwise non-zero. The file must be closed before deleting; a file opened with `fopen()` must be closed with `fclose()` first.
 	remove("${1:file_path}");
 	$0
 
-snippet fileRename `rename()`函数用于文件改名，也用于移动文件。如果改名成功，`rename()`返回`0`，否则返回非零值，改名后的文件不能与现有文件同名。另外，如果要改名的文件已经打开了，必须先关闭，然后再改名，对打开的文件进行改名会失败
+snippet fileRename the `rename()` function renames a file and can also move it. Returns `0` on success, otherwise non-zero; the new name must not match an existing file. Also, an open file must be closed before renaming; renaming an open file fails
 	rename("${1:old_file_path}", "${2:new_file_name}");
 	$0
 
-# # #c语言关键字
-# - const : 常量
-# - extern : 对该变量/函数作"外部变量声明",表示该变量是一个已经定义的外部变量。有了此声明，就可以从“声明”处起，合法地使用该外部变量
+# # #C language keywords
+# - const : constant
+# - extern : makes an "external variable declaration" for the variable/function, meaning it is an
+#   external variable already defined elsewhere. With this declaration, the external variable can
+#   legally be used from the point of "declaration" on

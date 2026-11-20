@@ -1,4 +1,4 @@
-snippet group_concat group by 的时候concat某个字段
+snippet group_concat concat a field when using group by
 	GROUP_CONCAT(${1:column})
 
 snippet concat Join two strings
@@ -13,7 +13,7 @@ snippet lower Convert to lowercase
 snippet upper Convert to uppercase
 	UPPER(${1:string})
 
-snippet substring 截取子字符串。SELECT SUBSTRING('Hello World', 1, 5);  -- 返回 'Hello'
+snippet substring Extract a substring. SELECT SUBSTRING('Hello World', 1, 5);  -- returns 'Hello'
 	SUBSTRING(${1:string}, ${2:start}, ${3:length})
 
 snippet trim
@@ -22,34 +22,34 @@ snippet trim
 snippet replace
 	REPLACE(${1:string}, ${2:find}, ${3:replace})
 
-snippet abs ABS(): 返回绝对值。
+snippet abs ABS(): returns the absolute value.
 	ABS(${1:number})
 
-snippet round ROUND(): 四舍五入。SELECT ROUND(123.4567, 2);  -- 返回 123.46
+snippet round ROUND(): round half up. SELECT ROUND(123.4567, 2);  -- returns 123.46
 	ROUND(${1:number}, ${2:decimals})
 
-snippet floor FLOOR(): 向下取整。SELECT FLOOR(12.34);  -- 返回 12
+snippet floor FLOOR(): round down. SELECT FLOOR(12.34);  -- returns 12
 	FLOOR(${1:number})
 
-snippet ceil 向上取整, SELECT CEIL(12.34);  -- 返回 13
+snippet ceil round up, SELECT CEIL(12.34);  -- returns 13
 	CEIL(${1:number})
 
-snippet rand 返回 0 到 1 之间的随机浮点数
+snippet rand returns a random float between 0 and 1
 	RAND()
 
-snippet curdate 返回当前日期, YYYY-MM-DD格式
+snippet curdate returns the current date, in YYYY-MM-DD format
 	CURDATE()
 
-snippet now 返回当前日期和时间。YYYY-MM-DD HH:MM:SS 格式
+snippet now returns the current date and time. YYYY-MM-DD HH:MM:SS format
 	NOW()
 
-snippet date_add DATE_ADD(): 向日期添加指定时间, SELECT DATE_ADD('2023-01-01', INTERVAL 10 DAY);  -- 返回 '2023-01-11'
+snippet date_add DATE_ADD(): add a given interval to a date, SELECT DATE_ADD('2023-01-01', INTERVAL 10 DAY);  -- returns '2023-01-11'
 	DATE_ADD(${1:date}, INTERVAL ${2:value} ${3:unit})
 
-snippet date_sub 从日期中减去指定时间。SELECT DATE_SUB('2023-01-11', INTERVAL 10 DAY);  -- 返回 '2023-01-01'
+snippet date_sub subtract a given interval from a date. SELECT DATE_SUB('2023-01-11', INTERVAL 10 DAY);  -- returns '2023-01-01'
 	DATE_SUB(${1:date}, INTERVAL ${2:value} ${3:unit})
 
-snippet datediff 返回两个日期之间的天数, SELECT DATEDIFF('2023-01-11', '2023-01-01');  -- 返回 10
+snippet datediff returns the number of days between two dates, SELECT DATEDIFF('2023-01-11', '2023-01-01');  -- returns 10
 	DATEDIFF(${1:end_date}, ${2:start_date})
 
 snippet count

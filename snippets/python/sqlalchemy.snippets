@@ -1,50 +1,53 @@
 #######################################
-########sqlalchemy是一个orm框架########
+########sqlalchemy is an orm framework########
 #######################################
 
-# 安装
+# Installation
 # 1. pip3 install mysql-connector sqlalchemy
 
 
 
-snippet sqlEngineMysql sqlalchemy 创建一个MySql引擎,1. from sqlalchemy.engine.create import create_engine 2. pip3 install mysql-connector 3. connect_args={'auth_plugin': 'mysql_native_password'} 如果MySQL密码使用mysql_native_password认 4. 相当于连接池,也可以定义连接数
-	${6:engine} = create_engine('mysql+mysqlconnector://${1:账号}:${2:密码}@${3:IP地址}:${4:端口号}/${5:数据库名称}')
+snippet sqlEngineMysql sqlalchemy create a MySql engine, 1. from sqlalchemy.engine.create import create_engine 2. pip3 install mysql-connector 3. connect_args={'auth_plugin': 'mysql_native_password'} if the MySQL password uses mysql_native_password auth 4. acts as a connection pool; the number of connections can also be set
+	${6:engine} = create_engine('mysql+mysqlconnector://${1:username}:${2:password}@${3:IP address}:${4:port}/${5:database name}')
 	$0
 
-snippet sqlSession sqlalchemy 创建一个Session,对于数据库的操作要通过Session. 1. 需要sqlEngineMysql(代码片段)生成的engine 2. from sqlalchemy.orm import sessionmaker 3. from sqlalchemy.orm.session import Session  4. 使用完后需要执行 session.commit() 和 session.close() 归还连接给pool 5. orm操作使用session进行,session相当于一个连接
+snippet sqlSession sqlalchemy create a Session; database operations go through the Session. 1. needs the engine created by sqlEngineMysql (snippet) 2. from sqlalchemy.orm import sessionmaker 3. from sqlalchemy.orm.session import Session  4. after use call session.commit() and session.close() to return the connection to the pool 5. orm operations use the session; a session is like a connection
 	${2:DBSession} = sessionmaker(bind=${1:engine})
 	${3:session} :Session = $2()
 	$0
 
-# tablename 指明了模型对应的数据表名称，在 Player 模型中对采用的变量名进行定义， 变量名需要和数据表中的字段名称保持一致，采用 Column 对字段进行定义
+# tablename sets the table name the model maps to. In the Player model, the variable names must
+# match the column names in the table, and each column is defined with Column
 # 
-# | 类型     | 解释                                         | 用法                                                  |
-# | -------- | -------------------------------------------- | ----------------------------------------------------- |
-# | Integer  | 整数类型                                     | Column(Integer, primary_key=True, autoincrement=True) |
-# | Float    | 浮点类型                                     | Column(Float(3, 2))                                   |
-# | Decimal  | 定点类型                                     |                                                       |
-# | Boolean  | 布尔类型                                     |                                                       |
-# | Date     | datetime.date 日期类型                       |                                                       |
-# | Time     | datetime.time 时间类型                       |                                                       |
-# | String   | 字符类型,使用时候需要指定长度,区别于Text类型 | Column(String(255))                                   |
-# | Text     | 文本类型                                     |                                                       |
-# | enum     | 枚举类型                                     |                                                       |
-# | LONGTEXT | 长文本类型                                   |                                                       |
+# | Type     | Description                           | Usage                                       |
+# |----------+---------------------------------------+---------------------------------------------|
+# | Integer  | integer type                          | Column(Integer, primary_key=True,           |
+# |          |                                       | autoincrement=True)                         |
+# | Float    | floating-point type                   | Column(Float(3, 2))                         |
+# | Decimal  | fixed-point type                      |                                             |
+# | Boolean  | boolean type                          |                                             |
+# | Date     | datetime.date date type               |                                             |
+# | Time     | datetime.time time type               |                                             |
+# | String   | string type, length required, unlike  | Column(String(255))                         |
+# |          | Text                                  |                                             |
+# | Text     | text type                             |                                             |
+# | enum     | enum type                             |                                             |
+# | LONGTEXT | long text type                        |                                             |
 # 
-# 除了指定 Column 的数据类型以外， 我们也可以指定 Column 的参数， 这些参数可以帮我们对对象创建列约束：
+# Besides the Column data type, we can also pass Column arguments that create column constraints:
 # 
-# | 属性          | 解释                       |
-# | ------------- | -------------------------- |
-# | default       | 默认值                     |
-# | nullable      | 是否可有                   |
-# | primary_key   | 是否为主键                 |
-# | unique        | 是否唯一                   |
-# | autoincrement | 是否自动增长               |
-# | onupdate      | 更新的时候执行的函数       |
-# | name          | 该属性在数据库中的字段映射 |
-snippet sqlModel sqlalchemy 创建一个model用于数据库映射1. from sqlalchemy.sql.schema import Column 2. from sqlalchemy.sql.sqltypes import String, Integer ,Float 3. from sqlalchemy.ext.declarative import declarative_base 
+# | Attribute     | Description                        |
+# |---------------+------------------------------------|
+# | default       | default value                      |
+# | nullable      | whether it can be null             |
+# | primary_key   | whether it is the primary key      |
+# | unique        | whether it is unique               |
+# | autoincrement | whether it auto-increments         |
+# | onupdate      | function executed on update        |
+# | name          | column name mapped in the database |
+snippet sqlModel sqlalchemy create a model for database mapping 1. from sqlalchemy.sql.schema import Column 2. from sqlalchemy.sql.sqltypes import String, Integer ,Float 3. from sqlalchemy.ext.declarative import declarative_base 
 	class ${1:class_name}(declarative_base()):
 	    __tablename__ = '${2:table_name}'
-	    # 表结构
+	    # table structure
 	    id = Column(Integer, primary_key=True, autoincrement=True)
 		$0

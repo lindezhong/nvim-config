@@ -1,46 +1,46 @@
-snippet createSqliteTable 创表语句基础
+snippet createSqliteTable basic create table statement
 	CREATE TABLE ${1:table} 
 	-- ${2:comment}
 	(
-	  id INTEGER PRIMARY KEY AUTOINCREMENT, -- 主键
-	  gmt_create TEXT DEFAULT (datetime('now', 'localtime')) NOT NULL,  -- 创建时间
-	  gmt_modified TEXT DEFAULT (datetime('now', 'localtime')) NOT NULL, -- 更新时间
-	  is_deleted INTEGER DEFAULT '0', -- 逻辑删除 0:未删除 1:已删除
+	  id INTEGER PRIMARY KEY AUTOINCREMENT, -- primary key
+	  gmt_create TEXT DEFAULT (datetime('now', 'localtime')) NOT NULL,  -- creation time
+	  gmt_modified TEXT DEFAULT (datetime('now', 'localtime')) NOT NULL, -- update time
+	  is_deleted INTEGER DEFAULT '0', -- logical delete 0: not deleted 1: deleted
 	  $0
 	);
 
-snippet columnSqliteNull null类型NULL, 一个没有值的字段
+snippet columnSqliteNull null type NULL, a field with no value
 	${1:column_name} NULL -- ${2:comment}$0
 
-snippet columnSqliteInteger int类型INTEGER, 用于存储整数，存储大小可以在 1 到 8 字节之间，根据值的大小决定。
+snippet columnSqliteInteger int type INTEGER, stores integers; storage size is 1 to 8 bytes depending on the magnitude of the value.
 	${1:column_name} INTEGER NOT NULL DEFAULT '${2:0}' -- ${3:comment}$0
 
-snippet columnSqliteReal float类型REAL, 用于存储浮点数（实数），通常为 8 字节（双精度浮点数）。
+snippet columnSqliteReal float type REAL, stores floating-point numbers (reals), usually 8 bytes (double precision).
 	${1:column_name} REAL NOT NULL DEFAULT '${2:0}' -- ${3:comment}$0
 
-snippet columnSqliteText str类型TEXT, 用于存储文本字符串，可以是任意大小的字符串，实际上是以 UTF-8 或 UTF-16 编码存储。
+snippet columnSqliteText str type TEXT, stores text strings of any size, actually stored in UTF-8 or UTF-16 encoding.
 	${1:column_name} TEXT NOT NULL DEFAULT '${2:}' -- ${3:comment}$0
 
-snippet columnSqliteBlob byte类型BLOB, 用于存储二进制数据（Binary Large Object），大小可以是任意的。
+snippet columnSqliteBlob byte type BLOB, stores binary data (Binary Large Object) of any size.
 	${1:column_name} TEXT NOT NULL DEFAULT '${2:}' -- ${3:comment}$0
 
-snippet columnSqliteDatetime SQLite 没有一个单独的用于存储日期和/或时间的存储类，但 SQLite 能够把日期和时间存储为 TEXT(格式为YYYY-MM-DD HH:MM:SS.SSS 的日期)、REAL(从公元前 4714 年 11 月 24 日格林尼治时间的正午开始算起的天数。) 或 INTEGER(从 1970-01-01 00:00:00 UTC 算起的秒数。) 值
+snippet columnSqliteDatetime SQLite has no separate storage class for dates and/or times, but SQLite can store dates and times as TEXT (dates in the format YYYY-MM-DD HH:MM:SS.SSS), REAL (number of days since noon in Greenwich on November 24, 4714 B.C.) or INTEGER (number of seconds since 1970-01-01 00:00:00 UTC) values
 	columnSqliteText
 
-snippet columnSqliteAddAfter 添加一个字段,在另一个字段后, 例子 ALTER TABLE table ADD column TEXT COMMENT 'comment' AFTER last_column;
+snippet columnSqliteAddAfter add a column after another column, example ALTER TABLE table ADD column TEXT COMMENT 'comment' AFTER last_column;
 	ALTER TABLE ${1:table}
 	ADD ${3:column} AFTER ${2:last_column};
 
-snippet columnSqliteAdd 添加一个字段,在表字段最后添加, 例子 ALTER TABLE table ADD column TEXT COMMENT 'comment';
+snippet columnSqliteAdd add a column at the end of the table, example ALTER TABLE table ADD column TEXT COMMENT 'comment';
 	ALTER TABLE ${1:table}
 	ADD ${2:column} ;
 
-snippet columnSqliteAlter 修改一个字段,例子ALTER TABLE table MODIFY column TEXT COMMENT 'comment';
+snippet columnSqliteAlter modify a column, example ALTER TABLE table MODIFY column TEXT COMMENT 'comment';
 	ALTER TABLE ${1:table}
 	MODIFY ${2:column} ;
 
-snippet indexSqliteAdd 添加普通索引, 普通索引可以包含重复值，增加基于某列的查询性能
+snippet indexSqliteAdd add a normal index; a normal index may contain duplicate values and improves query performance on that column
 	CREATE INDEX idx_${3:index_name_is_column_name_list} ON ${1:table_name} (${2:column_name});
 
-snippet indexSqliteAddUnique 添加唯一索引, 唯一索引与普通索引类似，但不允许列中存在重复值
+snippet indexSqliteAddUnique add a unique index; a unique index is like a normal index but does not allow duplicate values in the column
 	CREATE UNIQUE INDEX uniq_${3:index_name_is_column_name_list} ON ${1:table_name} (${2:column_name});

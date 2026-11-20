@@ -1,113 +1,182 @@
-# 设计模式
+# Design Patterns
 
-## 资料
-1. 官方代码: https://wickedlysmart.com/head-first-design-patterns/
-2. github代码仓库: https://github.com/bethrobson/Head-First-Design-Patterns
+## Resources
+1. Official code: https://wickedlysmart.com/head-first-design-patterns/
+2. GitHub code repository: https://github.com/bethrobson/Head-First-Design-Patterns
 
 
-## OO(面向对象)基础知识
+## OO (object-oriented) basics
 
-### OO基础
+### OO basics
 
-- 抽象
-- 封装
-- 多态
-- 继承
+- Abstraction
+- Encapsulation
+- Polymorphism
+- Inheritance
 
-### OO原则/设计原则
+### OO principles / design principles
 
-- 封装变化: 识别应用中变化的方面,把它们和不变的方面分开
+- Encapsulate what varies: identify the aspects of your application that vary and separate them from
+  what stays the same
 
-- 针对接口编程,而不是针对实现编程
-    > 针对接口编程真正的意思是针对超类型编程.  
-    > 接口一词在这里有多个含义.  接口是一个概念也是java的一个构造.  针对接口编程不必真的使用java的接口.  
-    > 要点是通过针对超类型编程来利用多态,这样实际的运行时对象不会被锁定到代码  
+- Program to an interface, not an implementation
+    > Programming to an interface really means programming to a supertype.  
+    > The word interface is overloaded here. Interface is a concept as well as a Java construct.
+    > Programming to an interface doesn't have to mean using a Java interface.  
+    > The point is to exploit polymorphism by programming to a supertype, so that the actual runtime
+    > object isn't locked into the code  
 
-- 优先使用组合而不是继承(组合优于继承)
-    > 如果我们依靠继承,那么我们的行为只能在编译时静态地决定.  
-    > 换句话说,我们只得到超类给我们的行为或者覆盖它们.  
-    > 使用组合,我们可以用我们喜欢的方式在运行时混合与匹配
+- Favor composition over inheritance
+    > If we rely on inheritance, our behavior can only be determined statically at compile time.  
+    > In other words, we only get the behavior the superclass gives us, or we override it.  
+    > With composition, we can mix and match behavior any way we like at runtime
 
-- 尽量做到交互对象之间的松耦合设计
+- Strive for loosely coupled designs between objects that interact
 
-- 开放-关闭原则: 类应该对扩展开放(继承,组合,委托等),但对修改关闭(无需修改已有的代码)
-    > 我们的目标是允许类容易扩展以容纳新的行为,而不用修改已有的代码
+- Open-Closed Principle: classes should be open for extension (inheritance, composition, delegation,
+  etc.) but closed for modification (no need to change existing code)
+    > Our goal is to allow classes to be easily extended to incorporate new behavior without
+    > modifying existing code
 
-- 依赖倒置原则: 依赖抽象, 不依赖具体类, 对于实例化方面可以使用 [工厂方法](#工厂方法)
-    > 这个原则很像 '针对接口编程,而不是针对实现编程' .  
-    > 但该原则更强调抽象, 该原则说明, 高层组件不应该依赖于低层组件  
-    > 而它们都依赖于抽象, 比如比萨店 PizzaStore 就是高层组件, 比萨 Pizza 实现就是低层组件  
-    > 具体查看[工厂方法的依赖倒置](#工厂方法的依赖倒置)  
-    > 依赖倒置原则指南  
-    > 1. 变量不应该持有具体类的引用 : 如果使用new, 就会持有具体类, 通过使用工厂方法来绕开
-    > 2. 类不应该派生自具体类 : 如果派生自具体类, 就会依赖具体类. 派生自一个抽象类/接口
-    > 3. 方法不应该覆盖其任何基类的已实现的方法 : 如果覆盖已实现的方法, 那么基类就不是一个真正适合被继承的抽象, 基类中这些已实现的方法, 应该由所有子类共享
+- Dependency Inversion Principle: depend on abstractions, not on concrete classes; for instantiation
+  you can use the [Factory Method](#factory-method)
+    > This principle sounds a lot like 'program to an interface, not an implementation'.  
+    > But this principle puts more emphasis on abstraction; it says high-level components should not
+    > depend on low-level components  
+    > rather, both should depend on abstractions. For example, the pizza store PizzaStore is a
+    > high-level component and the Pizza implementations are low-level components  
+    > See [Dependency inversion in Factory Method](#dependency-inversion-in-factory-method) for
+    > details  
+    > Guidelines for the Dependency Inversion Principle  
+    > 1. No variable should hold a reference to a concrete class: using new holds a concrete class;
+    >    get around it with a factory method
+    > 2. No class should derive from a concrete class: deriving from a concrete class makes you
+    >    depend on it. Derive from an abstract class/interface instead
+    > 3. No method should override an implemented method of any of its base classes: if you override
+    >    an implemented method, the base class wasn't really an abstraction suitable for
+    >    inheritance; implemented methods in the base class should be shared by all subclasses
 
-- 最少知识原则: 只和你的密友谈话
-    > 当在你设计一个系统时, 对于任何对象, 豆芽注意它所交互类的数量, 以及它和这些类如何交互  
-    > 这个原则防止我们创建有大量的类在一起的设计, 免得系统一部分的变化会连锁影响到其他部分  
-    > 最少知识原则要求只调用以下范围的方法  
-    > 1. 对象自身  
-    > 2. 作为参数传给方法的对象  
-    > 3. 该方法创建或实例化的任何对象  
-    > 4. 对象的任何组件(成员变量)  
+- Principle of Least Knowledge: talk only to your immediate friends
+    > When designing a system, for any object, be careful about the number of classes it interacts
+    > with and how it interacts with them  
+    > This principle prevents us from creating designs with a large number of classes coupled
+    > together, so that changes in one part of the system don't cascade to other parts  
+    > The Principle of Least Knowledge says we should only invoke methods that belong to  
+    > 1. the object itself  
+    > 2. objects passed in as a parameter to the method  
+    > 3. any object the method creates or instantiates  
+    > 4. any components of the object (member variables)  
     >  
-    > 比如 a.getB().getC() 该方式就违反了原则
+    > e.g. a.getB().getC() violates this principle
 
-- 好莱坞原则: 不要打电话给(调用)我们, 我们会打电话给(调用)你
-    > 好莱坞原则给我们一种防止 "依赖腐烂" 的方法. "依赖腐烂"的例子如高层组件依赖于低层组件, 低层组件又依赖于高层组件, 而高层组件又依赖于横向组件. 当腐烂蔓延时, 没有人能轻易理解系统是这么设计的  
-    > 有了好莱坞原则, 我们允许低层组件把自己挂钩进系统, 但由高层组件决定和三需要它们, 以及怎样需要它们. 换句话说高层组件对低层组件的态度是 "不要打电话给(调用)我们, 我们会打电话给(调用)你"  
-    > 低层组件经常会最终调用在其继承层次之上定义的方法, 但我们要避免创建低层组件和高层组件之间显式的环状依赖  
-    > 依赖倒置原则(避免使用具体类,尽可能利用抽象)和好莱坞原则(建造框架或组件技巧,以便低层组件可以挂钩进计算中,而不产生高层组件和低层组件的循环依赖)都有解耦的目的,但如何避免设计中的依赖上, 依赖倒置原则的陈诉要强烈和通用得多  
-    > 好莱坞原则例子: [好莱坞原则于模板方法](#好莱坞原则于模板方法)  
-    > 以下设计模式采用了好莱坞原则  
-    > 1. 模板方法模式
-    > 2. 工厂方法
-    > 3. 观察者模式
+- The Hollywood Principle: don't call us, we'll call you
+    > The Hollywood Principle gives us a way to prevent "dependency rot". Dependency rot happens
+    > when high-level components depend on low-level components, which depend on high-level
+    > components, which depend on sideways components... When rot sets in, nobody can easily
+    > understand how the system was designed  
+    > With the Hollywood Principle, we allow low-level components to hook themselves into a system,
+    > but the high-level components decide when they are needed and how. In other words, high-level
+    > components treat low-level components as "don't call us, we'll call you"  
+    > Low-level components often end up calling methods defined above them in the inheritance
+    > hierarchy, but we want to avoid creating explicit circular dependencies between low-level and
+    > high-level components  
+    > The Dependency Inversion Principle (avoid concrete classes, use abstractions as much as
+    > possible) and the Hollywood Principle (a technique for building frameworks or components so
+    > that low-level components can hook into the computation without creating circular dependencies
+    > between high-level and low-level components) both aim at decoupling, but the Dependency
+    > Inversion Principle makes a much stronger and more general statement about how to avoid
+    > dependencies in design  
+    > Example of the Hollywood Principle: [The Hollywood Principle and Template
+    > Method](#the-hollywood-principle-and-template-method)  
+    > The following design patterns use the Hollywood Principle  
+    > 1. Template Method pattern
+    > 2. Factory Method
+    > 3. Observer pattern
 
-- 单一责任原则: 一个类应该自由一个变化的原因
-    > 类的每个责任都是一个潜在变化的区域. 超过一个责任,意味着超过一个变化的区域.  
-    > 这个原则指导我们要让每个类保持单一责任  
-    > `内聚`: 当一个模块或一个类围绕一组相关功能来设计时, 我们说它具有高内聚; 反之, 当它围绕一组相关不功能设计时, 我们说它具体有低内聚  
+- Single Responsibility Principle: a class should have only one reason to change
+    > Every responsibility of a class is an area of potential change. More than one responsibility
+    > means more than one area of change.  
+    > This principle guides us to keep each class to a single responsibility  
+    > `Cohesion`: when a module or class is designed around a set of related functions, we say it
+    > has high cohesion; when it is designed around a set of unrelated functions, we say it has low
+    > cohesion  
 
-## 设计模式简介
+## Introduction to design patterns
 
-### 创建型模式
+### Creational patterns
 
-1. [工厂方法模式](#工厂方法) : 定义了一个创建对象的接口, 但由子类决定要实例化那个类. 工厂方法让类把实例化推迟到子类
-2. [抽象工厂模式](#抽象工厂模式) : 提供一个接口来创建相关或依赖对象的家族, 而不需要指定具体类
-2. [生成器模式](#生成器模式) : 将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示
-3. [原型模式](#原型模式) : 用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象.使你能够复制已有对象， 而又无需使代码依赖它们所属的类。
-4. [单例模式](#单例模式/单件模式) : 确保一个类只有一个实例, 并提供一个全局访问点
+1. [Factory Method pattern](#factory-method): defines an interface for creating an object, but lets
+   subclasses decide which class to instantiate. Factory Method lets a class defer instantiation to
+   subclasses
+2. [Abstract Factory pattern](#abstract-factory-pattern): provides an interface for creating
+   families of related or dependent objects without specifying their concrete classes
+2. [Builder pattern](#builder-pattern): separates the construction of a complex object from its
+   representation, so that the same construction process can create different representations
+3. [Prototype pattern](#prototype-pattern): specifies the kinds of objects to create using a
+   prototypical instance, and creates new objects by copying this prototype. Lets you copy existing
+   objects without making your code dependent on their classes.
+4. [Singleton pattern](#singleton-pattern): ensures a class has only one instance, and provides a
+   global point of access to it
 
-### 结构型模式
+### Structural patterns
 
-1. [适配器模式](#适配器模式) : 将一个类的接口(对象)转换成客户期望的另一个接口(对象). 适配器让原本不兼容的类可合作. 这使得客户从所实现的接口解耦
-2. [桥接模式](#桥接模式) : 将抽象和实现解耦，使得两者可以独立地变化
-3. [组合模式](#组合模式) :  允许你将对象组合成树形结构来表现 部分-整体 层次结构. 组合让客户可以统一处理 个别对象(叶子节点) 和 对象组合 (非叶子节点)
-4. [装饰者模式](#装饰者模式) : 动态地将额外责任附加到对象上.对于扩展功能,装饰者提供子类化之外的弹性替代方案
-5. [外观模式](#外观模式) :  为子系统中的一组接口提供了一个统一的接口. 外观定义了一个更高级的接口, 使得子系统更容易使用.
-6. [享元模式](#享元模式) : 使用共享对象可有效地支持大量的细粒度的对象
-7. [代理模式](#代理模式) : 为另一个对象提供一个替身或占位符来控制对这个对象的访问
+1. [Adapter pattern](#adapter-pattern): converts the interface (object) of a class into another
+   interface (object) the client expects. Adapter lets classes work together that couldn't otherwise
+   because of incompatible interfaces. This decouples the client from the implemented interface
+2. [Bridge pattern](#bridge-pattern): decouples an abstraction from its implementation so that the
+   two can vary independently
+3. [Composite pattern](#composite-pattern): lets you compose objects into tree structures to
+   represent part-whole hierarchies. Composite lets clients treat individual objects (leaf nodes)
+   and compositions of objects (non-leaf nodes) uniformly
+4. [Decorator pattern](#decorator-pattern): attaches additional responsibilities to an object
+   dynamically. Decorators provide a flexible alternative to subclassing for extending functionality
+5. [Facade pattern](#facade-pattern): provides a unified interface to a set of interfaces in a
+   subsystem. Facade defines a higher-level interface that makes the subsystem easier to use.
+6. [Flyweight pattern](#flyweight-pattern): uses sharing to support large numbers of fine-grained
+   objects efficiently
+7. [Proxy pattern](#proxy-pattern): provides a surrogate or placeholder for another object to
+   control access to it
 
-### 行为模式
+### Behavioral patterns
 
-1. [责任链模式](#责任链模式) : 使多个对象都有机会处理请求，从而避免了请求的发送者和接受者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。
-2. [命令模式](#命令模式) : 把请求封装为对象, 以便用不同的请求/队列或者日志请求来参数化其它对象, 并支持可以撤销的操作
-3. [迭代器模式](#迭代器模式) : 提供一种方式, 可以访问一个聚合对象中的元素而又不暴露其潜在的表示
-4. [中介者模式](#中介者模式) : 用一个中介对象封装一系列的对象交互，中介者使各对象不需要显示地相互作用，从而使其耦合松散，而且可以独立地改变它们之间的交互(该模式会限制对象之间的直接交互， 迫使它们通过一个中介者对象进行合作。)
-5. [备忘录模式](#备忘录模式) : 在不破坏封装性的前提下，捕获一个对象的内部状态，并在该对象之外保存这个状态。这样以后就可将该对象恢复到原先保存的状态。
-6. [观察者模式](#观察者模式) : 定义对象之间的一对多依赖,这样一来,当一个对象改变状态时,它的所有依赖都会收到他嗯直并自动更新
-7. [状态模式](#状态模式) : 允许对象(Context)在内部状态改变时改变其行为. 对象(Context)看起来好像改变了它的类
-8. [策略模式](#策略模式) : 定义了一个算法族,分别封装起来,是的他们之间可以相互变换.策略让算法的变化独立使用它的客户
-9. [模板方法模式](#模板方法模式) : 在一个方法中定义一个算法的骨架, 而把一些步骤延迟到子类. 莫把方法使得子类可以在不改变算法结构的情况下, 重新定义算法的某些步骤.它是一个把算法算法定义为一组步骤的方法. 这些步骤中的一个或多个被定义为抽象的, 由子类实现
-10. [访问者模式](#访问者模式) : 封装一些作用于某种数据结构中的各元素的操作，它可以在不改变数据结构的前提下定义作用于这些元素的新的操作
-11. [解释器模式](#解释器模式) : 给定一门语言，定义它的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子
+1. [Chain of Responsibility pattern](#chain-of-responsibility-pattern): gives more than one object a
+   chance to handle a request, avoiding coupling between the sender and receiver of the request.
+   Chains the receiving objects and passes the request along the chain until an object handles it.
+2. [Command pattern](#command-pattern): encapsulates a request as an object, letting you
+   parameterize other objects with different requests, queues or log requests, and supports undoable
+   operations
+3. [Iterator pattern](#iterator-pattern): provides a way to access the elements of an aggregate
+   object without exposing its underlying representation
+4. [Mediator pattern](#mediator-pattern): uses a mediator object to encapsulate a set of object
+   interactions; the mediator keeps objects from referring to each other explicitly, which loosens
+   their coupling and lets their interactions vary independently (the pattern restricts direct
+   communication between objects and forces them to collaborate only via a mediator object.)
+5. [Memento pattern](#memento-pattern): without violating encapsulation, captures an object's
+   internal state and stores it outside the object, so the object can later be restored to that
+   state.
+6. [Observer pattern](#observer-pattern): defines a one-to-many dependency between objects so that
+   when one object changes state, all its dependents are notified and updated automatically
+7. [State pattern](#state-pattern): allows an object (Context) to alter its behavior when its
+   internal state changes. The object (Context) will appear to change its class
+8. [Strategy pattern](#strategy-pattern): defines a family of algorithms, encapsulates each one, and
+   makes them interchangeable. Strategy lets the algorithm vary independently from the clients that
+   use it
+9. [Template Method pattern](#template-method-pattern): defines the skeleton of an algorithm in a
+   method, deferring some steps to subclasses. Template Method lets subclasses redefine certain
+   steps of an algorithm without changing the algorithm's structure. It is a method that defines an
+   algorithm as a set of steps, one or more of which are abstract and implemented by subclasses
+10. [Visitor pattern](#visitor-pattern): encapsulates operations that act on the elements of some
+    data structure, letting you define new operations on these elements without changing the data
+    structure
+11. [Interpreter pattern](#interpreter-pattern): given a language, defines a representation for its
+    grammar along with an interpreter that uses the representation to interpret sentences in the
+    language
 
-## 策略模式
-策略模式: 定义了一个算法族,分别封装起来,是的他们之间可以相互变换.策略让算法的变化独立使用它的客户
+## Strategy Pattern
+Strategy pattern: defines a family of algorithms, encapsulates each one, and makes them
+interchangeable. Strategy lets the algorithm vary independently from the clients that use it
 
-### 策略模式类图
+### Strategy pattern class diagram
 
 ```plantuml
 @startuml
@@ -123,23 +192,23 @@ strategy.execute()
 end note
 
 note top of Context
-上下文(Context) 维护指向具体策略的引用，
-且仅通过策略接口与该对象进行交流。
+The Context maintains a reference to a concrete strategy,
+and communicates with that object only via the strategy interface.
 
-当上下文需要运行算法时， 
-它会在其已连接的策略对象上调用执行方法。 
-上下文不清楚其所涉及的策略类型与算法的执行方式。
+When the context needs to run the algorithm,
+it calls the execution method on its linked strategy object.
+The context doesn't know what type of strategy it works with or how the algorithm is executed.
 end note
 
 interface Strategy {
     + doOperation()
 }
 note top of Strategy
-策略(Strategy) 接口是所有具体策略的通用接口， 
-它声明了一个上下文用于执行策略的方法。
+The Strategy interface is common to all concrete strategies,
+it declares a method the context uses to execute a strategy.
 end note
 
-package "具体策略实现" as ConcreteStrategy {
+package "Concrete strategy implementations" as ConcreteStrategy {
     class ConcreteStrategyA implements Strategy {
         + doOperation()
     }
@@ -149,14 +218,14 @@ package "具体策略实现" as ConcreteStrategy {
 }
 
 note bottom of ConcreteStrategy
-具体策略(Concrete Strategies)
-实现了上下文所用算法的各种不同变体。
+Concrete Strategies
+implement different variations of an algorithm the context uses.
 end note
 
 class Client {}
 note left of Client
-客户端(Client) 会创建一个特定策略对象并将其传递给上下文。 
-上下文则会提供一个设置器以便客户端在运行时替换相关联的策略。
+The Client creates a specific strategy object and passes it to the context.
+The context exposes a setter which lets clients replace the strategy associated with it at runtime.
 end note
 
 note bottom of Client
@@ -171,50 +240,53 @@ end note
 
 Client -up-> Context
 Client .right.> ConcreteStrategy
-Context *-right-- Strategy : Context(上下文)这个类的executeStrategy()被调用\n会委托给Strategy.doOperation()来处理
+Context *-right-- Strategy : When Context's executeStrategy() is called\nit delegates to \
+Strategy.doOperation()
 
 @enduml
 ```
 
-### 策略模式例子:鸭塘模拟游戏
-下面例子中鸭子(客户)使用了算法(飞行行为,鸭子行为),不同实现用于替换
+### Strategy pattern example: duck pond simulation game
+In the example below, ducks (clients) use algorithms (fly behavior, quack behavior), with different
+implementations that can be swapped
 
-joe上班的公司做了一款相当成功的鸭塘模拟游戏SimUDuck.游戏中会出现各种鸭子,一边戏水,一边嘎嘎叫.
+Joe works at a company that makes a highly successful duck pond simulation game, SimUDuck. The game
+shows a variety of duck species swimming and quacking.
 ```plantuml
 @startuml
 page 1x10
-package "封装的飞行行为" #DDDDDD {
+package "Encapsulated fly behavior" #DDDDDD {
     
     interface FlyBehavior {
         + void fly()
     }
 
-    note top of FlyBehavior : 飞行接口
+    note top of FlyBehavior : Fly interface
     class FlyWithWings implements FlyBehavior {
     }
-    note bottom of FlyWithWings : 实现鸭子飞行
+    note bottom of FlyWithWings : Implements duck flying
     class FlyNoWay implements FlyBehavior {
     }
-    note bottom of FlyNoWay : 什么都不做不会飞
+    note bottom of FlyNoWay : Does nothing, can't fly
 }
 
-package "封装的鸭子行为" #DDDDDD {
+package "Encapsulated quack behavior" #DDDDDD {
     interface QuackBehavior {
         + void quack()
     }
-    note top of QuackBehavior : 嘎嘎叫接口
+    note top of QuackBehavior : Quack interface
     class Quack implements QuackBehavior {
     }
-    note bottom of Quack : 实现鸭子的嘎嘎叫\n真的嘎嘎叫
+    note bottom of Quack : Implements duck quacking\na real quack
     class Squeak implements QuackBehavior {
     }
-    note bottom of Squeak : 橡皮鸭嘎嘎叫\n名为嘎嘎叫\n实为啊啊叫
+    note bottom of Squeak : Rubber duck quack\ncalled quack\nactually a squeak
     class MuteQuack implements QuackBehavior {
         + void quack()
     }
-    note bottom of MuteQuack : 名为嘎嘎叫\n其实不出声
+    note bottom of MuteQuack : Called quack\nbut actually silent
 }
-package "鸭子" #DDDDDD {
+package "Ducks" #DDDDDD {
     abstract class Duck {
         - FlyBehavior flyBehavior
         - QuackBehavior quackBehavior
@@ -228,16 +300,16 @@ package "鸭子" #DDDDDD {
     }
 
     note left of Duck::setFlyBehavior
-        修改飞行行为
+        Change the fly behavior
     end note
     note left of Duck::setQuackBehavior
-        修改嘎嘎叫行为
+        Change the quack behavior
     end note
-    note "行为变量声明为行为'接口'类型" as N1
+    note "Behavior variables are declared as the behavior 'interface' type" as N1
     N1 --> Duck::flyBehavior #000000
     N1 --> Duck::quackBehavior #000000
 
-    note "这些方法取代fly()和quack()" as N2
+    note "These methods replace fly() and quack()" as N2
     N2 --> Duck::performQuack #000000
     N2 --> Duck::performFly #000000
 
@@ -246,13 +318,13 @@ package "鸭子" #DDDDDD {
     QuackBehavior <-- Duck
 
     class MallardDuck extends Duck {}
-    note bottom of MallardDuck : 野鸭会嘎嘎叫也会飞行
+    note bottom of MallardDuck : A mallard quacks and flies
     class RedheadDuck extends Duck {}
-    note bottom of RedheadDuck : 红发鸭所有行为更野鸭一样处理外观
+    note bottom of RedheadDuck : A redhead duck behaves just like a mallard, differs in appearance
     class RubberDuck extends Duck {}
-    note bottom of RubberDuck : 橡皮鸭会啊啊叫但不会飞行
+    note bottom of RubberDuck : A rubber duck squeaks but can't fly
     class DecoyDuck extends Duck {}
-    note bottom of DecoyDuck : 诱饵鸭会嘎嘎叫但不会飞行
+    note bottom of DecoyDuck : A decoy duck quacks but can't fly
 }
 @enduml
 
@@ -260,45 +332,45 @@ package "鸭子" #DDDDDD {
 
 ```java
 
-// 叫声行为
+// Quack behavior
 public interface QuackBehavior {
     public void quack();
 }
 
-// 实现鸭子的嘎嘎叫真的嘎嘎叫
+// Implements duck quacking: a real quack
 public class Quack implements QuackBehavior {
     public void quack() {
         System.out.println("Quack");
     }
 }
 
-// 橡皮鸭嘎嘎叫名为嘎嘎叫实为啊啊叫
+// Rubber duck quack: called quack, actually a squeak
 public class MuteQuack implements QuackBehavior {
     public void quack() {
         System.out.println("<< Silence >>");
     }
 }
 
-// 名为嘎嘎叫其实不出声
+// Called quack, but actually silent
 public class Squack implements QuackBehavior {
     public void quack() {
         System.out.println("Squack");
     }
 }
 
-// 飞行行为
+// Fly behavior
 public interface FlyBehavior {
     public void fly();
 }
 
-// 实现鸭子飞行
+// Implements duck flying
 public class FlyWithWings implements FlyBehavior {
     public void fly() {
         System.out.println("fly");
     }
 }
 
-// 什么都不做不会飞
+// Does nothing, can't fly
 public class FlyNoWay implements FlyBehavior {
     public void fly() {
         System.out.println("not fly");
@@ -306,7 +378,7 @@ public class FlyNoWay implements FlyBehavior {
 }
 
 
-// 鸭子抽象类
+// Abstract duck class
 public abstract class Duck {
     protected QuackBehavior quackBehavior;
     protected FlyBehavior flyBehavior;
@@ -318,9 +390,9 @@ public abstract class Duck {
         this.quackBehavior = quackBehavior;
     }
 
-    // 为了执行嘎嘎叫,Duck只要让quackBehavior所引用的对象为嘎嘎叫即可.
-    // 在这部分代码中我们不关心具体Duck是那种对象
-    // 只要它知道这么quack()就可以了
+    // To perform the quack, a Duck just asks the object referenced by quackBehavior to quack.
+    // In this part of the code we don't care what kind of Duck object it is,
+    // all we care about is that it knows how to quack()
     public void performQuack() {
         quackBehavior.quack();
     }
@@ -329,81 +401,86 @@ public abstract class Duck {
         flyBehavior.fly();
     }
 
-    // 识别应用中变化的方面,把它们和不变的方面分开
+    // Identify the aspects that vary and separate them from what stays the same
     public abstract void swim() {
-        System.out.println("所有的鸭子都会漂浮，甚至是游泳");
+        System.out.println("All ducks float, even decoys!");
     }
     public abstract void display();
 
 }
 
-// 野鸭会嘎嘎叫也会飞行
+// A mallard quacks and flies
 public class MallardDuck extends Duck {
-    // 实例化Duck的quackBehavior flyBehavior
+    // Instantiate the Duck's quackBehavior and flyBehavior
     public MallardDuck() {
-        // MallardDuck 使用Quack类来处理嘎嘎叫,因此 performQuack() 被调用时,嘎嘎叫的责任被委托给Quack对象我们得到了真正的嘎嘎叫
+        // MallardDuck uses the Quack class to handle its quack, so when performQuack() is called,
+        // the responsibility for the quack is delegated to the Quack object and we get a real quack
         this.quackBehavior = new Quack();
         this.flyBehavior = new FlyWithWings();
     }
 
     public void display() {
-        System.out.println("我是一个红色的野鸭");
+        System.out.println("I'm a real red mallard");
     }
 }
 
 
-// 测试类
+// Test class
 public class MiniDuckSimulator {
     public static void main(String[] args) {
         Duck mallard = new MallardDuck();
-        mallard.performQuack(); // 输出 Quack
-        mallard.performFly(); // 输出 fly
+        mallard.performQuack(); // prints Quack
+        mallard.performFly(); // prints fly
 
-        // 改变为不会飞行
+        // Change to not flying
         mallard.setFlyBehavior(new FlyNoWay());
-        mallard.performFly(); // 输出 not fly
+        mallard.performFly(); // prints not fly
     }
 }
 
 ```
 
-## 观察者模式
+## Observer Pattern
 
-### 观察者模式定义
+### Observer pattern definition
 
-定义对象之间的一对多依赖,这样一来,当一个对象改变状态时,它的所有依赖都会收到他嗯直并自动更新
+Defines a one-to-many dependency between objects so that when one object changes state, all of its
+dependents are notified and updated automatically
 
-#### 主题/观察者
+#### Subject/Observer
 
 ```plantuml
 @startuml
 
-circle 主题对象 {}
-note top of 主题对象 : 持有状态的对象(状态改变为8)
+circle SubjectObject {}
+note top of SubjectObject : The object holding the state (state changes to 8)
 
-package "观察者" <<Cloud>> #DDDDDD {
+package "Observers" <<Cloud>> #DDDDDD {
     circle mouse {}
     circle dog {}
     circle duck {}
     circle cat {}
 }
 
-主题对象 --> mouse : 8
-主题对象 --> dog : 8
-主题对象 --> duck : 8
-主题对象 --> cat : 8
+SubjectObject --> mouse : 8
+SubjectObject --> dog : 8
+SubjectObject --> duck : 8
+SubjectObject --> cat : 8
 note right on link
-当主题内的数据有改变,就会通知观察者
+When the data in the subject changes, the observers are notified
 end note
 
 @enduml
 ```
 
-主题和和观察者定义了一对多关系.当主题有变化时,会通知众多观察者.观察者是主题的依赖者,当主题的状态变化,观察者被通知.
+The subject and observers define a one-to-many relationship. When the subject changes, many
+observers are notified. The observers depend on the subject: when the subject's state changes, the
+observers are notified.
 
-观察者模式有几种不同的实现方式,但大多数围绕着包括主题和观察者接口的类设计
+There are several ways to implement the Observer pattern, but most revolve around a class design
+that includes Subject and Observer interfaces
 
-#### 观察者模式类图
+#### Observer pattern class diagram
 
 ```plantuml
 @startuml
@@ -414,25 +491,27 @@ interface Subject {
     + notifyObservers()
 }
 note left of Subject
-主题(Subject)接口.
-对象使用这个接口注册为观察者,
-或把自己从观察者中移除
+The Subject interface.
+Objects use this interface to register as observers,
+or to remove themselves from being observers
 
-会向其他对象发送值得关注的事件。 
-事件会在发布者自身状态改变或执行特定行为后发生。 
-发布者中包含一个允许新订阅者加入和当前订阅者离开列表的订阅构架。
+sends events of interest to other objects.
+These events occur when the publisher changes its state or executes some behaviors.
+Publishers contain a subscription infrastructure that lets new subscribers join and current
+subscribers leave the list.
 end note
 interface Observer {
     + update(contxt)
 }
 note right of Observer
-观察者(Observer)
-所有潜在的观察者需要实现观察者接口.
-这个接口只有方法update(),当主题状态改变时被调用
+Observer
+All potential observers need to implement the Observer interface.
+This interface has just one method, update(), which gets called when the Subject's state changes
 
-观察者通常需要一些上下文信息来正确地处理更新。
-因此， 主题通常会将一些上下文数据作为通知方法的参数进行传递。 
-主题也可将自身作为参数进行传递， 使观察者直接获取所需的数据。
+Observers usually need some contextual information to handle the update correctly.
+For this reason, subjects often pass some context data as arguments of the notification method.
+The subject can also pass itself as an argument, letting the observer fetch any required data
+directly.
 end note
 
 class ConcreteSubject implements Subject {
@@ -447,17 +526,17 @@ class ConcreteSubject implements Subject {
     + setState()
 }
 note bottom of ConcreteSubject 
-具体的主题(ConcreteSubject)
-一个具体的主题总是实现Subject(主题)接口
-除了注册和移除方法,具体主题还实现了notifyObservers()方法
-此方法用于在状态改变时更新当前所有观察者
+ConcreteSubject
+A concrete subject always implements the Subject interface
+In addition to the register and remove methods, the concrete subject implements notifyObservers()
+which is used to update all the current observers whenever the state changes
 end note
 note left of ConcreteSubject::notifyObservers
 for(Observer observer : observers)
     observer.update(this)
 end note
 note left of ConcreteSubject::setState
-具体主题也可能有设置和独具状态的方法
+The concrete subject may also have methods for setting and getting its state
 
 state = newState
 notifyObservers()
@@ -465,17 +544,18 @@ end note
 
 class ConcreteObserver implements Observer {
     + update(context)
-    // 其他观察者方法()
+    // other observer methods()
 }
 note bottom of ConcreteObserver
-具体观察者(ConcreteObserver)可以是实现观察者接口的类\n每个观察者注册具体主题以接收更新
+A ConcreteObserver can be any class that implements the Observer interface\nEach observer registers
+with a concrete subject to receive updates
 end note
 
 class Client {}
 
 note top of Client
-客户端(Client) 会分别创建发布者和订阅者对象， 
-然后为订阅者注册发布者更新。
+The Client creates publisher and subscriber objects separately,
+and then registers the subscribers for publisher updates.
 
 Observer observer = new ConcreteObserver();
 subject.registerObserver(observer);
@@ -485,38 +565,47 @@ end note
 Client --> Subject
 Client ..> Observer
 
-Subject "1" -right-> "n" Observer : 每个主题可以有许多观察者
+Subject "1" -right-> "n" Observer : Each subject can have many observers
 ConcreteSubject -right-> ConcreteObserver
 
 
 @enduml
 ```
 
-### 观察者模式要点
+### Observer pattern key points
 
-1. 观察者模式定义对象之间的一对多关系
-2. 主题使用通用接口更新观察者
-3. 任何具体类型的观察者都可以参与该模式,只要它们实现观察者接口
-4. 观察者是松耦合的,处理知道它们实现观察者接口之外,主题对它们的其他事情不知情.
-5. 使用该模式时,你可以从主题推或拉数据(拉被认为更 "正确")
-6. Swing 大量使用观察者模式,许多 GUI 框架也是这样
-7. 你也会在其他很多地方发现该模式,包括 RxJava , JavaBeans 和 RMI , 以及其他语言的框架, 像 Cocoa , Swift 和 JavaScript 事件
-8. 观察者模式和出版/订阅模式相关.出版/订阅模式用于更复杂得多主题和/或多消息类型的情形.
-9. 观察者模式是一个常用的模式,当我们学习模型-视图-控制器(MVC)时,还会看到它
+1. The Observer pattern defines a one-to-many relationship between objects
+2. Subjects update observers using a common interface
+3. Observers of any concrete type can participate in the pattern as long as they implement the
+   Observer interface
+4. Observers are loosely coupled: the subject knows nothing about them other than that they
+   implement the Observer interface.
+5. When using the pattern, you can push or pull data from the subject (pull is considered more
+   "correct")
+6. Swing makes heavy use of the Observer pattern, as do many GUI frameworks
+7. You'll also find the pattern in many other places, including RxJava, JavaBeans and RMI, as well
+   as frameworks in other languages, like Cocoa, Swift and JavaScript events
+8. The Observer pattern is related to the Publish/Subscribe pattern, which is for more complex
+   situations with multiple subjects and/or multiple message types.
+9. The Observer pattern is a commonly used pattern, and we'll see it again when we learn about
+   Model-View-Controller (MVC)
 
-### 观察者模式探讨
+### Observer pattern discussion
 
-1. 主题一有状态的变化就通知所有的观察者,但某个状态的变化只是部分观察者关心
-2. 主题为啥不给特定的观察者状态变化而是把所有状态都给出去
-3. 观察者为啥不主动拉取主题状态
-4. 观察者不要依赖特的通知次序
+1. The subject notifies all observers of any state change, but a given state change may only matter
+   to some observers
+2. Why doesn't the subject give specific observers only the state changes they need, instead of
+   handing out all state
+3. Why don't observers pull the subject's state themselves
+4. Observers should not depend on a specific notification order
 
-### 观察者例子:气象观测站
-有一个气象观测站需要追踪当前天气并且有个对象WeatherData追踪当前天气状况,WeatherData对象如下
+### Observer example: weather station
+A weather station needs to track the current weather, and a WeatherData object tracks the current
+weather conditions. The WeatherData object looks like this
 ```plantuml
 @startuml
 
-package "主题" #DDDDDD {
+package "Subject" as SubjectPackage #DDDDDD {
     interface Subject {
         + registerObserver()
         + removeObserver()
@@ -532,44 +621,51 @@ package "主题" #DDDDDD {
         + getPressure()
         + measurementsChanged()
     }
-    note "这三个方法返回最近的气候测量,分别为温度,湿度,气压" as N1
+    note as N1
+    These three methods return the most recent weather measurements: temperature, humidity and
+    pressure
+    end note
     N1 --> WeatherData::getTemperature #000000
     N1 --> WeatherData::getHumidity #000000
     N1 --> WeatherData::getPressure #000000
     note left of WeatherData::measurementsChanged()
-    无论何时 WeatherData 更新了值
-    measurementsChanged()方法被调用
+    Whenever WeatherData has updated values
+    the measurementsChanged() method is called
     end note
 }
 
-package "观察者" #DDDDDD {
+package "Observers" #DDDDDD {
     interface DisplayElement {
         + display()
     }
     interface Observer {
         + update()
     }
-    note top of Observer : 所有气象组件都实现 Observer 接口\n这样就给了 Subject 一个共同的接口\n当需要更新观察者时调用它
+    note top of Observer
+    All weather components implement the Observer interface
+    This gives the Subject a common interface
+    to call when it's time to update the observers
+    end note
     Subject --> Observer : observers
     
        
     class CurrentConditionsDisplay implements Observer,DisplayElement {
         + update()
-        + display() {//显示当前测量值}
+        + display() {//display current measurements}
     }
     CurrentConditionsDisplay --> WeatherData : subject
     
     class ThirdPartyDisplay implements Observer,DisplayElement {
         + update()
-        + display() {//显示基于测量值的其他内容}
+        + display() {//display something else based on the measurements}
     }
     class StatisticsDisplay implements Observer,DisplayElement {
         + update()
-        + display() {//显示平均值,最小值和最大测量值}
+        + display() {//display average, min and max measurements}
     }
     class ForecastDisplay implements Observer,DisplayElement {
         + update()
-        + display() {//显示预报}
+        + display() {//display the forecast}
     }
 }
 
@@ -579,28 +675,31 @@ package "观察者" #DDDDDD {
 ```java
 
 public interface Subject {
-    // 这两个方法都用一个Observer作为参数,即要注册或被移除的Observer
+    // Both of these methods take an Observer as an argument, i.e. the Observer to register or
+    // remove
     public void registerObserver(Observer o);
     public void removeObserver(Observer o);
-    // 当Subject的状态改变时,这个方法会被调用,以通知所有的观察者
+    // This method is called to notify all observers when the Subject's state has changed
     public void notifyObservers();
 }
 
 public interface Observer {
-    // 这些都是当气象测量数据变化时观察者从Subject获取的状态值
+    // These are the state values the observers get from the Subject when the weather measurements
+    // change
     public void update(float temp, float humidity, float pressure);
 }
 
-// DisplayElement 接口只包含一个方法 display(), 当显示元素需要显示时,调用此方法
+// The DisplayElement interface has just one method, display(), called when a display element needs
+// to be displayed
 public interface DisplayElement {
     public void display();     
 }
 
 
 import java.util.*;
-// WeatherData 实现 Subject 接口
+// WeatherData implements the Subject interface
 public class WeatherData implements Subject {
-    // 我们添加一个 List 来持有 Observer
+    // We add a List to hold the Observers
     private List<Observer> observers;
     private float temperature;
     private float humidity;
@@ -627,7 +726,7 @@ public class WeatherData implements Subject {
         notifyObservers();
     }
 
-   // 模拟气象站测量到气象数据变化时候嗲用
+   // Called when the weather station detects a change in the weather data (simulated)
     public void setMeasurements(float temperature, float humidity, float pressure) {
         this.temperature = temperature;
         this.humidity = humidity;
@@ -649,8 +748,9 @@ public class WeatherData implements Subject {
 
 }
 
-// 这个接口实现了 Observer 方法所以它可以从 WeatherData 对象中获取变化
-// 它也实现了 DisplayElement 因为我们的 API 打算要求所有显示元素实现这个接口
+// This implements Observer so it can get changes from the WeatherData object
+// It also implements DisplayElement because our API requires all display elements to implement this
+// interface
 public class CurrentConditionsDisplay implements Observer, DisplayElement { 
     private float temperature;
     private float humidity;
@@ -673,7 +773,7 @@ public class CurrentConditionsDisplay implements Observer, DisplayElement {
     } 
 }
 
-// 测试程序
+// Test program
 public class WeatherStation {
       
     public static void main(String[] args) {
@@ -695,11 +795,11 @@ public class WeatherStation {
 
 ```
 
-### Java 内置的观察者模式
+### Java's built-in Observer pattern
 
-#### ~~Java Observer Observable 类~~
+#### ~~Java Observer Observable classes~~
 
-在 java9 中已经废弃不讨论
+Deprecated in Java 9, not discussed
 
 #### JavaBean PropertyChangeEvent
 
@@ -718,33 +818,33 @@ public class PropertyChangeEventMain {
         bean.setName("java bean 1");
         bean.setName("java bean 2");
 
-        // id未发生变化不发送事件
+        // Don't send an event if the id didn't change
         bean.setId(1L);
     }
 
 
-    // 这个例子自身即是主题又是观察者
+    // This example is both the subject and an observer
     static class JavaBean implements PropertyChangeListener, Serializable {
 
         private Long id;
         private String name;
 
-        // 这个是一个主题
+        // This is a subject
         private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
         public JavaBean() {
-            // 注册监听所有变化(所有变化观察者)
+            // Register to listen for all changes (all-changes observer)
             pcs.addPropertyChangeListener(this);
-            // 注册只是监听 id 的变化(id变化观察者)
+            // Register to listen only for id changes (id-change observer)
             pcs.addPropertyChangeListener("id", this);
-            // 注册只是监听 name 的变化(name变化观察者)
+            // Register to listen only for name changes (name-change observer)
             pcs.addPropertyChangeListener("name", this);
         }
 
         /**
-         * 观察者update(),即 Observer.update()
+         * Observer update(), i.e. Observer.update()
          *
-         * @param evt 事件/消息
+         * @param evt event/message
          */
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
@@ -761,7 +861,8 @@ public class PropertyChangeEventMain {
             Long oldId = this.id;
             this.id = id;
 
-            // 发送 id 已经变更事件, 类似于主题notifyObservers(),即Subject.notifyObservers()
+            // Fire the id-changed event, similar to the subject's notifyObservers(), i.e.
+            // Subject.notifyObservers()
             pcs.firePropertyChange("id", oldId, id);
         }
 
@@ -773,7 +874,8 @@ public class PropertyChangeEventMain {
             String oldName = this.name;
             this.name = name;
 
-            // 发送 name 已经变更事件, 类似于主题notifyObservers(),即Subject.notifyObservers()
+            // Fire the name-changed event, similar to the subject's notifyObservers(), i.e.
+            // Subject.notifyObservers()
             pcs.firePropertyChange("name", oldName, name);
         }
     }
@@ -781,22 +883,23 @@ public class PropertyChangeEventMain {
 
 ```
 
-## 装饰者模式
+## Decorator Pattern
 
-`装饰者模式` 动态地将额外责任附加到对象上.对于扩展功能,装饰者提供子类化之外的弹性替代方案
+`Decorator pattern` attaches additional responsibilities to an object dynamically. Decorators
+provide a flexible alternative to subclassing for extending functionality
 
-### 装饰者模式类图
+### Decorator pattern class diagram
 
 ```plantuml
 @startuml
 
-title 装饰者模式类图
+title Decorator pattern class diagram
 
 class Client {}
 
 note top of Client
-客户端(Client) 可以使用多层装饰来封装部件，
-只要它能使用通用接口与所有对象互动即可。
+The Client can wrap components in multiple layers of decorators,
+as long as it works with all objects via the common interface.
 
 a = new ConcreteComponent();
 b = ConcreteDecoratorB(a);
@@ -810,7 +913,7 @@ interface Component {
 }
 
 note top of Component
-部件(Component)声明封装器和被封装对象的公用接口。
+The Component declares the common interface for both wrappers and wrapped objects.
 end note
 
 class BaseDecorator implements Component {
@@ -821,11 +924,11 @@ class BaseDecorator implements Component {
 }
 
 note bottom of BaseDecorator
-基础装饰(Base Decorator)
-类拥有一个指向被封装对象的引用成员变量。 
-该变量的类型应当被声明为通用部件接口， 
-这样它就可以引用具体的部件和装饰。 
-装饰基类会将所有操作委派给被封装的对象。
+Base Decorator
+class has a field for referencing a wrapped object.
+The field's type should be declared as the component interface
+so it can contain both concrete components and decorators.
+The base decorator delegates all operations to the wrapped object.
 end note
 note left of BaseDecorator::BaseDecorator
 this.wrappee = wrappee
@@ -839,16 +942,16 @@ class ConcreteDecorator extends BaseDecorator {
     + extra()
 }
 note bottom of ConcreteDecorator
-具体装饰类(Concrete Decorators)
-定义了可动态添加到部件的额外行为。 
-具体装饰类会重写装饰基类的方法， 
-并在调用父类方法之前或之后进行额外的行为。
+Concrete Decorators
+define extra behaviors that can be added to components dynamically.
+Concrete decorators override methods of the base decorator
+and execute their behavior either before or after calling the parent method.
 end note
 note left of ConcreteDecorator::exectue
-// 添加额外行为
+// add extra behavior
 extra();
 super.exectue();
-// 添加额外行为
+// add extra behavior
 extra();
 end note
 
@@ -856,60 +959,81 @@ class ConcreteComponent implements Component {
     + exectue()
 }
 note bottom of ConcreteComponent
-具体部件(Concrete Component) 类是被封装对象所属的类。 
-它定义了基础行为， 但装饰类可以改变这些行为。
+The Concrete Component is the class of objects being wrapped.
+It defines the basic behavior, which can be altered by decorators.
 end note
 
 
 Client -right-> Component
 
-' 样式控制无意义
+' style control, no meaning
 BaseDecorator -right[hidden]-> ConcreteComponent
 
 @enduml
 ```
 
-### 装饰者模式要点
+### Decorator pattern key points
 
-1. 继承是扩展形式之一,但未必是达到弹性设计的最佳方式
-2. 在我们的设计中,允许行为可以被扩展,而无需修改已有代码
-3. 组合和委托经常可以用来运行时添加新行为
-4. 装饰者模式提供了子类化扩展行为的替代品
-5. 装饰者模式涉及一群装饰者类,这些类用来包装具体组件
-6. 装饰者类反映了它们所装饰组件类型(事实上,它们和所装饰的组件类型相同,都经过了继承或接口实现)
-7. 装饰者通过对组件的方法调用之前(或/和之后,甚至在那一刻)添加功能改变其组件的行为
-8. 你可以用任意数目装饰者来包裹一个组件
-9. 装饰者一般对组件的客户是透明的,除非客户依赖于组件的具体类型
-10. 装饰者会导致设计中出现许多小对象,过度使用会让代码变得复杂
-11. 适配器包装一个对象以改变其接口, 装饰者包装一个对象以添加新的行为和责任, 而外观 "包装" 一群对象以简化其接口, 三者代码大体一致单意图不一样
+1. Inheritance is one form of extension, but not necessarily the best way to achieve flexibility in
+   our designs
+2. In our designs we should allow behavior to be extended without modifying existing code
+3. Composition and delegation can often be used to add new behaviors at runtime
+4. The Decorator pattern provides an alternative to subclassing for extending behavior
+5. The Decorator pattern involves a set of decorator classes that are used to wrap concrete
+   components
+6. Decorator classes mirror the type of the components they decorate (in fact, they are the same
+   type as the components they decorate, either through inheritance or interface implementation)
+7. Decorators change the behavior of their components by adding new functionality before and/or
+   after (or even in place of) method calls to the component
+8. You can wrap a component with any number of decorators
+9. Decorators are typically transparent to the client of the component, unless the client relies on
+   the component's concrete type
+10. Decorators can result in many small objects in our design, and overuse can be complex
+11. An adapter wraps an object to change its interface, a decorator wraps an object to add new
+    behaviors and responsibilities, and a facade "wraps" a set of objects to simplify; the code of
+    the three is largely the same but the intent differs
 
-### 装饰者模式探讨
+### Decorator pattern discussion
 
-- 装饰者有着和所装饰对象相同的超类型
-- 你可以用一个或多个装饰者包裹一个对象
-- 鉴于装饰者有着和所装饰对象相同的超类型,在需要原始对象的场合,我们可以传递一个被装饰的对象
-- ***装饰者在委托给所装饰对象之前或之后添加自己的行为,来在做剩下的工作***
-- 对象可以在任何时候被装饰,因此我们可以在运行时用任意数量的装饰者动态地装饰对象,只要我们乐意
-- 被装饰的对象尽量使用组合而不是继承,这样我们可以用我们喜欢的方式在运行时混合与匹配装饰者,而不是在编译时静态地决定
-- 装饰者模式容易造成大量的小类(参考 java.io 类)
-- 装饰者模式有类型问题:如果代码中依赖特定类型,如果引入装饰者就会出问题
-    > 比如在starbuzz咖啡中如果 HouseBlend 作了类似打折的事情,一旦我用装饰者包裹 HouseBlend , 代码就不工作了  
-    > 只是知道最外层的装饰者,比如对于starbuzz咖啡中如果一个带 Mocha,Soy,Whip的DarkRoast,编码时荣誉引用到Soy而不是Whip,这意味者订单中不包含Whip  
-    > 无法户欧链条上的其他装饰,比如对于starbuzz咖啡中如果一个带 Mocha,Soy,Whip的DarkRoast,只是知道最外层
-- 装饰者模式会增加实例化组件所需代码的复杂度,一旦用了装饰者,你不只要实例化组件,还要把它包裹进装饰者中
-- 组件: 查看 [starbuzz咖啡类图](#starbuzz咖啡类图) 的Beverage注释和package咖啡/具体组件
+- Decorators have the same supertype as the objects they decorate
+- You can use one or more decorators to wrap an object
+- Given that the decorator has the same supertype as the object it decorates, we can pass around a
+  decorated object in place of the original (wrapped) object
+- ***The decorator adds its own behavior before and/or after delegating to the object it decorates
+  to do the rest of the job***
+- Objects can be decorated at any time, so we can decorate objects dynamically at runtime with as
+  many decorators as we like
+- Decorated objects should use composition rather than inheritance, so we can mix and match
+  decorators any way we like at runtime, rather than deciding statically at compile time
+- The Decorator pattern tends to produce lots of small classes (see the java.io classes)
+- The Decorator pattern has typing problems: if code depends on specific types, introducing
+  decorators breaks it
+    > e.g. in Starbuzz Coffee, if HouseBlend does something like a discount, then as soon as I wrap
+    > HouseBlend with decorators, the code stops working  
+    > You only know the outermost decorator, e.g. in Starbuzz Coffee for a DarkRoast with Mocha, Soy
+    > and Whip, code could end up referencing Soy instead of Whip, which means the order doesn't
+    > include Whip  
+    > You can't look at other decorators in the chain, e.g. in Starbuzz Coffee for a DarkRoast with
+    > Mocha, Soy and Whip, you only know the outermost one
+- The Decorator pattern increases the complexity of the code needed to instantiate a component: once
+  you use decorators, you not only instantiate the component but also wrap it in decorators
+- Component: see the Beverage note and the coffee/concrete component package in the [Starbuzz Coffee
+  class diagram](#starbuzz-coffee-class-diagram)
 
-### 与代理模式区别
+### Difference from the Proxy pattern
 
-TODO 代补充
+TODO to be added
 
-### 装饰者模式例子: starbuzz咖啡
+### Decorator pattern example: Starbuzz Coffee
 
-starbuzz咖啡是以扩张速度最快闻名的咖啡连锁店. 如果你在街角看到它的店, 沿街望去, 还会看到另一家店  
-因为扩张实在太快, 他们着急更新其下单系统, 以匹配他们的饮料供应需求
+Starbuzz Coffee has made a name for itself as the fastest-growing coffee shop around. If you've seen
+one on your local corner, look across the street; you'll see another one.  
+Because they've grown so quickly, they're scrambling to update their ordering systems to match their
+beverage offerings
 
-当他们第一次经如业务时, 类设计像这样, 除了咖啡本身, 你也可以要求各种调料, 如摩卡,奶泡...  
-这样设计简直类爆炸
+When they first went into business they designed their classes like this; in addition to your
+coffee, you can also ask for several condiments like mocha, whip...  
+This design is a class explosion
 ```plantuml
 @startuml
 
@@ -920,23 +1044,23 @@ abstract class Beverage {
     + cost()
 }
 
-note top of Beverage : 饮料
+note top of Beverage : Beverage
 
 class DarkRoast extends Beverage {
     + cost()
 }
-note bottom of DarkRoast : 深度烘培咖啡
+note bottom of DarkRoast : Dark roast coffee
 
 class DarkRoastWithMochaWhip extends Beverage {
     + cost()
 }
 
-note bottom of DarkRoastWithMochaWhip : 深度烘培摩卡奶泡咖啡
+note bottom of DarkRoastWithMochaWhip : Dark roast with mocha and whip
 
 @enduml
 ```
 
-#### starbuzz咖啡类图
+#### Starbuzz Coffee class diagram
 
 ```plantuml
 @startuml
@@ -946,87 +1070,90 @@ abstract class Beverage {
 
     + getDescription()
     + {abstract} cost()
-    // 其他有用的方法()
+    // other useful methods()
 }
-note top of Beverage : Beverage/饮料 作为抽象组件
+note top of Beverage : Beverage acts as the abstract component
 
-package "咖啡/具体组件" #DDDDDD {
+package "Coffee/concrete components" #DDDDDD {
     
     class HouseBlend extends Beverage {
         + cost()
     }
-    note bottom of HouseBlend : 品类: 家常综合 \n 价格: $ .89
+    note bottom of HouseBlend : Type: House Blend \n Price: $ .89
 
     class DarkRoast extends Beverage {
         + cost()
     }
-    note bottom of DarkRoast : 品类: 深度烘培 \n 价格: $ .99
+    note bottom of DarkRoast : Type: Dark Roast \n Price: $ .99
     
     class Espresso extends Beverage {
         + cost()
     }
-    note bottom of Espresso : 品类: 低咖啡因 \n 价格: $ 1.05
+    note bottom of Espresso : Type: Decaf \n Price: $ 1.05
     
     class Decaf extends Beverage {
         + cost()
     }
-    note bottom of Decaf : 品类: 浓缩 \n 价格: $ 1.99
+    note bottom of Decaf : Type: Espresso \n Price: $ 1.99
 }
 
-package "调料/装饰者" #DDDDDD {
+package "Condiments/decorators" #DDDDDD {
     abstract class CondimentDecorator extends Beverage {
         - Beverage beverage
         
         + {abstract} getDescription()
     }
-    note top of CondimentDecorator : 调料装饰者\n装饰者有着和所装饰对象相同的超类型
+    note top of CondimentDecorator
+    Condiment decorator
+    Decorators have the same supertype as the objects they decorate
+    end note
     note right of CondimentDecorator::beverage
-    这里是对装饰者将包裹的 Beverage 的引用
-    被装饰的对象尽量使用组合而不是继承
-    这样我们可以用我们喜欢的方式在运行时混合与匹配装饰者
-    而不是在编译时静态地决定
+    This is the reference to the Beverage the decorator will wrap
+    Decorated objects should use composition rather than inheritance
+    so we can mix and match decorators any way we like at runtime
+    rather than deciding statically at compile time
     end note
     note right of CondimentDecorator::getDescription
-    我们打算要求所有调料装饰者都重新实现 getDescription() 方法
-    我们希望描述不仅包含饮料也包含装饰饮料的每一样东西
+    We're going to require that all condiment decorators reimplement getDescription()
+    We want the description to include not only the beverage but everything decorating it
     end note
-    CondimentDecorator --> Beverage : 组件
+    CondimentDecorator --> Beverage : component
 
     class Milk extends CondimentDecorator {
         + cost()
         + getDescription()
     }
-    note bottom of Milk : 品类: 热奶 \n 价格: $ 0.10
+    note bottom of Milk : Type: Steamed milk \n Price: $ 0.10
     
     class Mocha extends CondimentDecorator {
         + cost()
         + getDescription()
     }
-    note bottom of Mocha : 品类: 摩卡 \n 价格: $ 0.20
+    note bottom of Mocha : Type: Mocha \n Price: $ 0.20
 
     class Soy extends CondimentDecorator {
         + cost()
         + getDescription()
     }
-    note bottom of Soy : 品类: 豆奶 \n 价格: $ 0.15
+    note bottom of Soy : Type: Soy \n Price: $ 0.15
 
     class Whip extends CondimentDecorator {
         + cost()
         + getDescription()
     }
-    note bottom of Whip : 品类: 奶泡 \n 价格: $ 0.10
+    note bottom of Whip : Type: Whip \n Price: $ 0.10
 
 }
 
 @enduml
 ```
-#### 深度烘培摩卡奶泡 代码
+#### Dark Roast with Mocha and Whip: code
 
 ```java
 
-// 饮料
+// Beverage
 public abstract class Beverage {
-    String description = "未知饮料";
+    String description = "Unknown Beverage";
   
     public String getDescription() {
         return description;
@@ -1035,10 +1162,10 @@ public abstract class Beverage {
     public abstract double cost();
 }
 
-// 家常综合咖啡
+// House blend coffee
 public class HouseBlend extends Beverage {
     public HouseBlend() {
-        description = "家常综合咖啡";
+        description = "House Blend Coffee";
     }
 
     public double cost() {
@@ -1046,10 +1173,10 @@ public class HouseBlend extends Beverage {
     }
 }
 
-// 深度烘培咖啡
+// Dark roast coffee
 public class DarkRoast extends Beverage {
     public DarkRoast() {
-        description = "深度烘培咖啡";
+        description = "Dark Roast Coffee";
     }
 
     public double cost() {
@@ -1057,11 +1184,11 @@ public class DarkRoast extends Beverage {
     }
 }
 
-// 低咖啡因咖啡
+// Decaf coffee
 public class Espresso extends Beverage {
 
     public Espresso() {
-        description = "低咖啡因咖啡";
+        description = "Decaf Coffee";
     }
 
     public double cost() {
@@ -1069,10 +1196,10 @@ public class Espresso extends Beverage {
     }
 }
 
-// 浓缩咖啡
+// Espresso
 public class Decaf extends Beverage {
     public Decaf() {
-        description = "浓缩咖啡";
+        description = "Espresso";
     }
 
     public double cost() {
@@ -1080,23 +1207,23 @@ public class Decaf extends Beverage {
     }
 }
 
-// 调料装饰者
+// Condiment decorator
 public abstract class CondimentDecorator extends Beverage {
     Beverage beverage;
 
-    // 我们打算要求所有调料装饰者都重新实现 getDescription() 方法
-    // 我们希望描述不仅包含饮料也包含装饰饮料的每一样东西
+    // We're going to require that all condiment decorators reimplement getDescription()
+    // We want the description to include not only the beverage but everything decorating it
     public abstract String getDescription();
 }
 
-// 热奶
+// Steamed milk
 public class Milk extends CondimentDecorator {
     public Milk(Beverage beverage) {
         this.beverage = beverage;
     }
 
     public String getDescription() {
-        return beverage.getDescription() + ", 热奶";
+        return beverage.getDescription() + ", Steamed Milk";
     }
 
     public double cost() {
@@ -1104,14 +1231,14 @@ public class Milk extends CondimentDecorator {
     }
 }
 
-// 摩卡
+// Mocha
 public class Mocha extends CondimentDecorator {
     public Mocha(Beverage beverage) {
         this.beverage = beverage;
     }
 
     public String getDescription() {
-        return beverage.getDescription() + ", 摩卡";
+        return beverage.getDescription() + ", Mocha";
     }
 
     public double cost() {
@@ -1119,14 +1246,14 @@ public class Mocha extends CondimentDecorator {
     }
 }
 
-// 豆奶
+// Soy
 public class Soy extends CondimentDecorator {
     public Soy(Beverage beverage) {
         this.beverage = beverage;
     }
 
     public String getDescription() {
-        return beverage.getDescription() + ", 豆奶";
+        return beverage.getDescription() + ", Soy";
     }
 
     public double cost() {
@@ -1134,14 +1261,14 @@ public class Soy extends CondimentDecorator {
     }
 }
 
-// 奶泡
+// Whip
 public class Whip extends CondimentDecorator {
     public Whip(Beverage beverage) {
         this.beverage = beverage;
     }
 
     public String getDescription() {
-        return beverage.getDescription() + ", 奶泡";
+        return beverage.getDescription() + ", Whip";
     }
 
     public double cost() {
@@ -1149,28 +1276,28 @@ public class Whip extends CondimentDecorator {
     }
 }
 
-// 下单测试代码
+// Order test code
 public class StarbuzzCoffee {
 
     public static void main(String args[]) {
 
-        // 要一杯浓缩咖啡,不加调料,打印出他的描述和价格
+        // Order an espresso, no condiments, and print its description and cost
         Beverage beverage = new Espresso();
         System.out.println(beverage.getDescription()
                 + " $" + beverage.cost());
 
-        // 做一个 深度烘培咖啡
+        // Make a DarkRoast object
         Beverage beverage2 = new DarkRoast();
-        // 用一个摩卡包裹它
+        // Wrap it with a Mocha
         beverage2 = new Mocha(beverage2);
-        // 用第二个摩卡包裹它
+        // Wrap it in a second Mocha
         beverage2 = new Mocha(beverage2);
-        // 用一个奶泡包裹它
+        // Wrap it in a Whip
         beverage2 = new Whip(beverage2);
         System.out.println(beverage2.getDescription()
                 + " $" + beverage2.cost());
 
-        // 给我们一份家常豆奶奶泡咖啡
+        // Give us a HouseBlend with Soy and Whip
         Beverage beverage3 = new HouseBlend();
         beverage3 = new Soy(beverage3);
         beverage3 = new Mocha(beverage3);
@@ -1178,7 +1305,7 @@ public class StarbuzzCoffee {
         System.out.println(beverage3.getDescription()
                 + " $" + beverage3.cost());
 
-        // 最后给我们一份 深度烘培摩卡奶泡卡咖啡
+        // Finally give us a Dark Roast with Mocha and Whip
         Beverage beverage4 = new DarkRoast();
         beverage4 = new Mocha(beverage4);
         beverage4 = new Whip(beverage4);
@@ -1191,7 +1318,7 @@ public class StarbuzzCoffee {
 
 ```
 
-#### 深度烘培摩卡奶泡咖啡 调用流程
+#### Dark Roast with Mocha and Whip: call flow
 
 ```plantuml
 @startuml
@@ -1210,54 +1337,54 @@ package "Whip" <<Cloud>> #DDDDDD {
 
 cost --> WhipCost
 note top  on link
-1. 首先,我们调用最外层装饰者 Whip上 的 cost()
+1. First, we call cost() on the outermost decorator, Whip
 end note
 
 WhipCost --> MochaCost
 note left on link
-2. Whip 调用 Mocha上 的cost()
+2. Whip calls cost() on Mocha
 end note
 
 MochaCost --> DarkRoastCost
 note left on link
-3.. Mocha 调用 DarkRoast 上的cost()
+3.. Mocha calls cost() on DarkRoast
 end note
 
 MochaCost <-- DarkRoastCost : 0.99
 note left on link
-4. DarkRoast 返回其价值 99 美分
+4. DarkRoast returns its cost, 99 cents
 end note
 
 WhipCost <-- MochaCost : 0.20
 note left on link
-5. Mocha 把自己的价钱 20 美分添加到来自 DarkRoast 的结果,并返回新的总计值 $ 1.19
+5. Mocha adds its cost, 20 cents, to the result from DarkRoast, and returns the new total, $ 1.19
 end note
 cost <-- WhipCost : 0.10
 note right on link
-6. Whip 把自己的总计 10 美分家到 Mocha 的返回值,并返回最终结果 $ 1.29
+6. Whip adds its total, 10 cents, to the result from Mocha, and returns the final result, $ 1.29
 end note
 
 @enduml
 ```
 
-### 装饰者模式在java的应用 java.io
+### Decorator pattern in Java: java.io
 
-以 InputStream 为例
+Taking InputStream as an example
 ```plantuml
 @startuml
 
 skinparam linetype ortho
 interface InputStream {}
 
-package "具体实现/具体组件" #DDDDDD {
+package "Concrete implementations/concrete components" #DDDDDD {
     class FileInputStream implements InputStream {}
     class StringBufferInputStream implements InputStream {}
     class ByteArrayInputStream implements InputStream {}
 }
 
-package "装饰者" #DDDDDD {
+package "Decorators" #DDDDDD {
     abstract FilterInputStream implements InputStream {}
-    note top of FilterInputStream : FilterInputStream 是一个抽象装饰者
+    note top of FilterInputStream : FilterInputStream is an abstract decorator
 
     class PushbackInputStream extends FilterInputStream {}
     class BufferedInputStream extends FilterInputStream {}
@@ -1270,8 +1397,9 @@ package "装饰者" #DDDDDD {
 ```java
 import java.io.*;              
 
-// 把输入流中所有的大写字符转成小写
-// 比如读入 "I know the Decorator Pattern therefore I RULE" -> "i know the decorator pattern therefore i rule" 
+// Convert all uppercase characters in the input stream to lowercase
+// e.g. reading "I know the Decorator Pattern therefore I RULE" -> "i know the decorator pattern
+// therefore i rule"
 public class LowerCaseInputStream extends FilterInputStream {
   
     public LowerCaseInputStream(InputStream in) {
@@ -1294,7 +1422,7 @@ public class LowerCaseInputStream extends FilterInputStream {
 
 import java.io.*;
 
-// 测试类
+// Test class
 public class InputTest {
     public static void main(String[] args) throws IOException {
         int c;
@@ -1330,43 +1458,58 @@ public class InputTest {
 
 ```
 
-## 工厂模式
+## Factory Pattern
 
-### 背景
+### Background
 
-当你使用new操作符时, 你无疑是在实例化一个具体类,因此这肯定是一个实现而不是接口.  
-在技术上,new操作符没有错,有问题的是"变化",以及它对使用new的影响.  
-比如你的代码针对接口编写, 那么通过多态它可以和任何这个接口的实现类一起工作.  
-但你的代码利用了大量的具体类时,一旦加入新的具体类, 就必须修改代码  
-怎样把应用中所有实例化具体类的代码拿出来分离,或者封装起来,这样不会影响应用的其他部分  
-> 工厂模式主要用来封装实例化行为, 这样客户在实例化对象时, 只依赖接口, 而不是具体类, 也可以避免代码中的重复
+When you use the new operator you are certainly instantiating a concrete class, so that's definitely
+an implementation, not an interface.  
+Technically there's nothing wrong with new; the problem is "change" and how change affects our use
+of new.  
+If your code is written to an interface, then through polymorphism it will work with any class that
+implements that interface.  
+But when your code makes use of lots of concrete classes, adding a new concrete class means changing
+the code  
+How can we take all the code that instantiates concrete classes out of the application and separate
+or encapsulate it, so it doesn't affect the rest of the application  
+> The Factory pattern is mainly used to encapsulate instantiation, so that clients depend only on
+> interfaces rather than concrete classes when instantiating objects; it also avoids duplication in
+> the code
 
-### 工厂模式讨论
-1. 如果只有一个 ConcreteCreator (具体创建者) 工厂方法模式也可以将唱片的实现解耦,也不影响Creator(因为Creator没有和任何ConcreteCreator紧耦合)
-2. 工厂方法模式的每个ConcreteCreator(具体创建者)都类似于简单工厂模式
-3. 工厂方法的Creator类可以时具体的Creator这样就有一个缺省的实现
+### Factory pattern discussion
+1. Even with only one ConcreteCreator, the Factory Method pattern still decouples the product
+   implementation and doesn't affect the Creator (since the Creator isn't tightly coupled to any
+   ConcreteCreator)
+2. Each ConcreteCreator in the Factory Method pattern is similar to a Simple Factory
+3. The Creator class in Factory Method can be a concrete Creator, providing a default implementation
 
-### 工厂方法要点
-1. 所有工厂方法都封装对象的创建
-2. 简单工厂不是一个真正的设计模式, 但依然可以作为一个简单的方法, 将客户从具体类解耦
-3. 工厂方法靠继承: 对象创建被委托给子类, 子类实现工厂方法来创建对象
-4. 抽象工厂靠对象组合: 对象创建在工厂接口暴露的方法中实现
-5. 所欧工厂模式都通过减少应用对具体类的依赖, 促进了松耦合
-6. 工厂方法的意图, 是允许一个类延迟实例化到其子类
-7. 抽象工厂的意图, 是创建相关对象家族, 不必依赖于其具体类
-8. 依赖倒置原则指导我们避免依赖具体类型, 尽量依赖抽象
-9. 工厂是强有力的技巧, 让我们针对抽象编码, 而不是针对具体类
+### Factory Method key points
+1. All factories encapsulate object creation
+2. Simple Factory isn't a true design pattern, but it's still a simple way to decouple clients from
+   concrete classes
+3. Factory Method relies on inheritance: object creation is delegated to subclasses, which implement
+   the factory method to create objects
+4. Abstract Factory relies on object composition: object creation is implemented in methods exposed
+   in the factory interface
+5. All factory patterns promote loose coupling by reducing the dependency of your application on
+   concrete classes
+6. The intent of Factory Method is to allow a class to defer instantiation to its subclasses
+7. The intent of Abstract Factory is to create families of related objects without depending on
+   their concrete classes
+8. The Dependency Inversion Principle guides us to avoid dependencies on concrete types and to
+   strive for abstractions
+9. Factories are a powerful technique for coding to abstractions, not concrete classes
 
-### 简单工厂
+### Simple Factory
 
-简单工厂不是一个真正的模式,更多是一种编程习惯
+Simple Factory isn't really a pattern; it's more of a programming idiom
 
-#### 简单工厂例子,比萨简单工厂
+#### Simple Factory example: a simple pizza factory
 
-假设你有一家比萨店, 店里能制作多种比萨, 
-有天你想要添加一些流行风味的比萨: 蛤蜊(Clam)比萨, 素食(Veggie)比萨 ,
-并且希腊(Greek)比萨销售不佳,因此你决定将它从菜单中去除
-所以初始代码如下
+Suppose you have a pizza store that makes several kinds of pizza.
+One day you want to add some trendy pizza flavors: Clam pizza and Veggie pizza,
+and Greek pizza hasn't been selling well, so you decide to take it off the menu
+So the initial code looks like this
 ```java
 
 public class PizzaStore {
@@ -1376,7 +1519,7 @@ public class PizzaStore {
         if (type.equals("cheese")) {
             pizza = new CheesePizza();
         } 
-        /* 希腊(Greek)比萨销售不佳,因此你决定将它从菜单中去除
+        /* Greek pizza hasn't been selling well, so you decide to take it off the menu
         else if (type.equals("greek")) {
             pizza = new GreekPizza();
         }
@@ -1384,20 +1527,20 @@ public class PizzaStore {
         else if (type.equals("pepperoni")) {
             pizza = PepperoniPizza();
         } 
-        //  有天你想要添加一些流行风味的比萨: 蛤蜊(Clam)比萨, 素食(Veggie)比萨
+        //  One day you want to add some trendy pizza flavors: Clam pizza and Veggie pizza
         else if (type.equals("clam")) {
             pizza = ClamPizza();
         } else if (type.equals("veggie")) {
             pizza = VeggiePizza();
         }
     
-        // 准备比萨
+        // prepare the pizza
         pizza.perpare();
-        // 烘焙比萨
+        // bake the pizza
         pizza.bake();
-        // 切割比萨
+        // cut the pizza
         pizza.cut();
-        // 打包比萨
+        // box the pizza
         pizza.box();
         
         return pizza;
@@ -1405,11 +1548,13 @@ public class PizzaStore {
 }
 ```
 
-显然关于哪个具体类被实例化的代码才是真正搞乱 orderPizze() 方法的罪魁祸首  
-如果你添加/减少了具体实现类在所有初始化的地方都需要修改  
-所以需要把对象创建移到 orderPizze() 方法外
+Clearly the code that decides which concrete class gets instantiated is what's really messing up the
+orderPizze() method  
+If you add/remove concrete implementation classes, every place that instantiates them has to
+change  
+So the object creation needs to move out of the orderPizze() method
 
-##### 比萨简单工厂类图
+##### Simple pizza factory class diagram
 
 ```plantuml
 @startuml
@@ -1418,8 +1563,8 @@ class PizzaStore {
     + Pizze orderPizze()
 }
 note top of PizzaStore
-比萨店,这是工厂的客户.
-PizzaStore 现在通过 SimplePizzaFactory 取得比萨的实例
+The pizza store, the client of the factory.
+PizzaStore now gets pizza instances through SimplePizzaFactory
 end note
 
 class SimplePizzaFactory {
@@ -1427,9 +1572,9 @@ class SimplePizzaFactory {
 }
 
 note top of SimplePizzaFactory 
-这是我们创建的比萨的工厂,
-它应该时我们的应用中唯一引用/创建具体Pizza类的部分
-创建方法经常静态声明
+This is the factory where we create pizzas;
+it should be the only part of our application that references/creates concrete Pizza classes
+The create method is often declared static
 end note
 
 
@@ -1441,8 +1586,8 @@ abstract class Pizza {
 }
 
 note top of Pizza
-这是工厂的产品比萨!
-我们定义Pizza为抽象类, 带有一些有用的实现, 可以被覆盖
+This is the product of the factory: pizza!
+We define Pizza as an abstract class with some helpful implementations that can be overridden
 end note
 
 class CheesePizza extends Pizza {
@@ -1468,7 +1613,7 @@ SimplePizzaFactory -right-> Pizza
 @enduml
 ```
 
-##### 比萨简单工厂代码
+##### Simple pizza factory code
 ```java
 public class PizzaStore {      
     SimplePizzaFactory factory;
@@ -1513,33 +1658,33 @@ public class SimplePizzaFactory {
 abstract public class Pizza {
     String name;
     
-    // 面饼
+    // dough
     String dough;
-    // 调味
+    // sauce
     String sauce;
-    // 陷料
+    // toppings
     List<String> toppings = new ArrayList<String>();
   
     public String getName() {  
         return name;
     } 
 
-    // 准备比萨 
+    // prepare the pizza 
     public void prepare() {    
         System.out.println("Preparing " + name);
     }
 
-    // 烘焙比萨
+    // bake the pizza
     public void bake() {       
         System.out.println("Baking " + name);
     }
 
-    // 切割比萨
+    // cut the pizza
     public void cut() {        
         System.out.println("Cutting " + name);
     }
 
-    // 打包比萨
+    // box the pizza
     public void box() {
         System.out.println("Boxing " + name);
     }
@@ -1606,11 +1751,12 @@ public class VeggiePizza extends Pizza {
 ```
 
 
-### 工厂方法
+### Factory Method
 
-定义了一个创建对象的接口, 但由子类决定要实例化那个类. 工厂方法让类把实例化推迟到子类
+Defines an interface for creating an object, but lets subclasses decide which class to instantiate.
+Factory Method lets a class defer instantiation to subclasses
 
-#### 工厂方法模式类图
+#### Factory Method pattern class diagram
 
 ```plantuml
 @startuml
@@ -1620,13 +1766,13 @@ abstract class Creator {
     + anOperation()
 }
 note left of Creator 
-创建者(Creator) 类声明返回产品对象的工厂方法。 
-该方法的返回对象类型必须与产品接口相匹配。
-包含操纵产品的所有方法的实现, 
-除了工厂方法 factoryMethod
+The Creator class declares the factory method that returns product objects.
+The return type of this method must match the product interface.
+It contains the implementations of all the methods that manipulate products,
+except for the factory method factoryMethod
 
-抽象 factoryMethod() 方法是
-所有 Creator 子类必须继承的
+The abstract factoryMethod() method
+must be implemented by all Creator subclasses
 end note
 
 class ConcreteCreator extends Creator {
@@ -1647,19 +1793,22 @@ class ConcreteProduct implements Product {
 }
 
 note right of Product 
-产品(Product) 所有产品必须实现相同的接口,
-这样,使用产品的类可以引用该接口
-而不是具体类
+Product: all products must implement the same interface,
+so that classes that use the products can refer to the interface
+rather than the concrete class
 end note
 note right of ConcreteProduct
-具体产品(Concrete Products)是产品接口的不同实现。
+Concrete Products are different implementations of the product interface.
 end note
 
 ConcreteCreator -right--> ConcreteProduct
 Creator -right--> Product
 
 
-note "具体创建者(Concrete Creators)负责创建一个或多个具体产品\n它是唯一直达如何创建这些产品的类" as concrete_creator_note
+note as concrete_creator_note
+Concrete Creators are responsible for creating one or more concrete products
+They are the only classes that know how to create these products
+end note
 concrete_creator_note .up. ConcreteCreator
 
 class Client {}
@@ -1669,7 +1818,7 @@ Creator creator = new ConcreteCreator1();
 creator.factoryMethod("A");
 creator.factoryMethod("B");
 
-// 切换工厂
+// switch factories
 Creator creator = new ConcreteCreator2();
 creator.factoryMethod("A");
 creator.factoryMethod("B");
@@ -1680,12 +1829,13 @@ Client --> Product
 @enduml
 ```
 
-#### 工厂方法模式例子比萨工厂
+#### Factory Method pattern example: pizza factory
 
-如果比萨店生意很好, 需要开加盟店, 但是每个地区的人的口味不一样,  
-所以需要根据加盟地区提供不同风味的比萨(比如纽约, 芝加哥, 加州)
+The pizza store is doing well and wants to open franchises, but people in each region have different
+tastes,  
+so each franchise needs to offer pizzas in its regional style (e.g. New York, Chicago, California)
 
-##### 工厂方法模式例子比萨工厂类图
+##### Factory Method pattern example: pizza factory class diagram
 
 ```plantuml
 @startuml
@@ -1697,20 +1847,27 @@ abstract class PizzaStore {
 }
 
 note top of PizzaStore
-这是我们的抽象创建者类
-它定义了一个抽象的工厂方法
-子类实现该方法生产产品
+This is our abstract creator class
+It defines an abstract factory method
+that subclasses implement to produce products
 end note
 note top of PizzaStore
-创建这通常会包含依赖于抽象产品的代码
-而产品有子类生产
-创建者不用真的值的哪种具体产品被生产
+The creator often contains code that depends on an abstract product,
+which is produced by a subclass
+The creator never really knows which concrete product was produced
 end note
 
-note "因为每个加盟店都有自己的PizzaSore子类,\n所以可以通过实现createPizza)创建自己风味的比萨" as pizza_store_note
+note as pizza_store_note
+Since each franchise gets its own subclass of PizzaStore,
+it's free to create its own style of pizza by implementing createPizza()
+end note
 pizza_store_note .. Chicago
 
-note "注意,这些类层次是平行的:\n即两者都有抽象类,具体类扩展抽象类,\n知道特定实现纽约和芝加哥比萨" as product_create_note
+note as product_create_note
+Note how these class hierarchies are parallel:
+both have abstract classes that are extended by concrete classes,
+which know about specific implementations for NY and Chicago
+end note
 product_create_note .up. PizzaStore
 product_create_note .down. Pizza
 
@@ -1721,10 +1878,10 @@ abstract class Pizza {
     + void box()
 }
 
-package "纽约比萨店" as NY {
+package "New York pizza store" as NY {
     
 
-    package "纽约比萨" as NYPizza #DDDDDD {
+    package "New York pizza" as NYPizza #DDDDDD {
         class NYStyleCheesePizza extends Pizza {
     
         }
@@ -1743,7 +1900,7 @@ package "纽约比萨店" as NY {
     }
 
 
-    ' 控制布局, 无意义
+    ' layout control, no meaning
     NYStyleCheesePizza -down[hidden]-> NYStyleVeggiePizza
     NYStyleVeggiePizza -down[hidden]-> NYStyleClamPizza
     NYStyleClamPizza -down[hidden]-> NYStylePepperoniPizza
@@ -1755,9 +1912,9 @@ package "纽约比萨店" as NY {
     NYPizzaStore --> NYPizza
 }
 
-package "芝加哥比萨店" as Chicago {
+package "Chicago pizza store" as Chicago {
 
-    package "芝加哥比萨" as ChicagoPizza #DDDDDD {
+    package "Chicago pizza" as ChicagoPizza #DDDDDD {
         class ChicagoStyleCheesePizza extends Pizza {
     
         }
@@ -1775,7 +1932,7 @@ package "芝加哥比萨店" as Chicago {
         }
     }
 
-    ' 控制布局, 无意义
+    ' layout control, no meaning
     ChicagoStyleCheesePizza -down[hidden]-> ChicagoStyleVeggiePizza
     ChicagoStyleVeggiePizza -down[hidden]-> ChicagoStyleClamPizza
     ChicagoStyleClamPizza -down[hidden]-> ChicagoStylePepperoniPizza
@@ -1790,7 +1947,7 @@ package "芝加哥比萨店" as Chicago {
 @enduml
 ```
 
-##### 工厂方法模式例子比萨工厂代码
+##### Factory Method pattern example: pizza factory code
 
 ```java
 public abstract class PizzaStore {
@@ -1811,33 +1968,33 @@ public abstract class PizzaStore {
 public abstract class Pizza {
     String name;
     
-    // 面饼
+    // dough
     String dough;
-    // 调味
+    // sauce
     String sauce;
-    // 陷料
+    // toppings
     List<String> toppings = new ArrayList<String>();
   
     public String getName() {  
         return name;
     } 
 
-    // 准备比萨 
+    // prepare the pizza 
     public void prepare() {    
         System.out.println("Preparing " + name);
     }
 
-    // 烘焙比萨
+    // bake the pizza
     public void bake() {       
         System.out.println("Baking " + name);
     }
 
-    // 切割比萨
+    // cut the pizza
     public void cut() {        
         System.out.println("Cutting " + name);
     }
 
-    // 打包比萨
+    // box the pizza
     public void box() {
         System.out.println("Boxing " + name);
     }
@@ -1908,7 +2065,7 @@ public class ChicagoStyleCheesePizza extends Pizza {
         toppings.add("Shredded Mozzarella Cheese");
     }
 
-    // 芝加哥比萨重新切割比萨
+    // Chicago pizza overrides how the pizza is cut
     void cut() {
         System.out.println("Cutting the pizza into square slices");
     }
@@ -1929,9 +2086,9 @@ public class PizzaTestDrive {
 }
 ```
 
-### 工厂方法的依赖倒置
+### Dependency inversion in Factory Method
 
-对于使用简单工厂方法的类如下
+For a class that uses the simple factory approach:
 
 ```java
 public class DependentPizzaStore {
@@ -1971,11 +2128,11 @@ public class DependentPizzaStore {
 }
 
 ```
-对象依赖依赖如下
+the object dependencies look like this
 
 ```plantuml
 @startuml
-' 因为布局删除掉NYStyleClamPizza,ChicagoStyleClamPizza
+' NYStyleClamPizza and ChicagoStyleClamPizza removed for layout
 () PizzaStore
 () NYStyleCheesePizza
 () NYStyleVeggiePizza
@@ -1999,11 +2156,11 @@ PizzaStore --> ChicagoStyleCheesePizza
 @enduml
 ```
 
-使用工厂方法模式后依赖图如下
+After applying the Factory Method pattern, the dependency graph looks like this
 ```plantuml
 @startuml
 
-' 因为布局删除掉NYStyleClamPizza,ChicagoStyleClamPizza
+' NYStyleClamPizza and ChicagoStyleClamPizza removed for layout
 () PizzaStore
 () Pizza
 () NYStyleCheesePizza
@@ -2015,17 +2172,20 @@ PizzaStore --> ChicagoStyleCheesePizza
 () ChicagoStyleVeggiePizza
 () ChicagoStyleCheesePizza
 
-note top of PizzaStore : PizzaStore现在只依赖于抽象类Pizza
+note top of PizzaStore : PizzaStore now depends only on the abstract class Pizza
 
 note top of Pizza
-依赖倒置原则中的 "倒置" 体现在它倒转了通常考虑OO设计方式
-注意低层组件现在依赖于更高层的抽象, 同样高层组件也绑定到同一抽象
-因此自上而下的依赖图自己倒转过来了, 高层和低层模块现在都依赖于抽象
+The "inversion" in the Dependency Inversion Principle is that it inverts the way you'd typically
+think about OO design
+Note that the low-level components now depend on a higher-level abstraction, and the high-level
+component is also tied to the same abstraction
+So the top-to-bottom dependency graph has inverted itself: both high-level and low-level modules now
+depend on the abstraction
 end note
 note top of Pizza
-具体比萨类也依赖于Pizza抽象
-因为它们实现了Pizza抽象类中的Pizza接口
-我们使用广义上的"接口"概念
+The concrete pizza classes depend on the Pizza abstraction too,
+because they implement the Pizza interface in the abstract class Pizza
+We're using "interface" in the general sense
 end note
 
 PizzaStore --> Pizza
@@ -2043,11 +2203,12 @@ ChicagoStyleCheesePizza -up-> Pizza
 @enduml
 ```
 
-### 抽象工厂模式
+### Abstract Factory Pattern
 
-`抽象工厂模式`: 提供一个接口来创建相关或依赖对象的家族, 而不需要指定具体类
+`Abstract Factory pattern`: provides an interface for creating families of related or dependent
+objects without specifying their concrete classes
 
-#### 抽象工厂模式类图
+#### Abstract Factory pattern class diagram
 
 ```plantuml
 @startuml
@@ -2057,7 +2218,10 @@ interface AbstractFactory {
     + createProductA()
     + createProductB()
 }
-note top of AbstractFactory : 抽象工厂(AbstractFactory)定义了所有具体工厂都必须实现的接口, 这个接口包含一组生产产品的方法
+note top of AbstractFactory
+The AbstractFactory defines the interface that all concrete factories must implement, which consists
+of a set of methods for producing products
+end note
 
 class ConcreteFactory1 implements AbstractFactory {
     + createProductA()
@@ -2077,7 +2241,11 @@ createProductA() {
 }
 end note
 
-note "具体工厂(ConcreteFactory)实现不同的产品家族.\n 客户使用其中一个工厂创建产品,\n 绝对不用实例化产品对象" as ConcreteFactory_note
+note as ConcreteFactory_note
+The ConcreteFactory implements the different product families.
+To create a product, the client uses one of these factories,
+so it never has to instantiate a product object
+end note
 ConcreteFactory_note .up. ConcreteFactory1
 ConcreteFactory_note .up. ConcreteFactory2
 
@@ -2105,14 +2273,14 @@ class Client {
 
 }
 note top of Client
-客户(Client)针对抽象工厂编码, 运行时和实际工厂组合
+The Client is written against the abstract factory and composed at runtime with an actual factory
 
 AbstractFactory factory = new ConcreteFactory1();
 AbstractProductA productA = factory.createProductA("A1");
 AbstractProductB productB = factory.createProductA("B1");
 // ...
 
-// 切换工厂
+// switch factories
 AbstractFactory factory = new ConcreteFactory2();
 AbstractProductA productA = factory.createProductA("A2");
 AbstractProductB productB = factory.createProductA("B2");
@@ -2125,107 +2293,108 @@ Client --> AbstractProductB
 @enduml
 ```
 
-#### 抽象工厂模式例子比萨店的原料工厂
+#### Abstract Factory pattern example: an ingredient factory for the pizza store
 
-比萨店的成功在于新鲜,高质量的原料, 为了加盟店遵循你的流程, 规范原料, 你打算建立一个原料工厂(抽象工厂)
+The key to the pizza store's success is fresh, quality ingredients. To make franchises follow your
+process and standardize ingredients, you plan to build an ingredient factory (abstract factory)
 
-为了搞定原料工厂你不得不弄清楚如何处理原料家族
+To build the ingredient factory you have to figure out how to handle families of ingredients
 
 ```plantuml
 @startuml
 
-package 纽约 {
+package "New York" {
     class FreshClams {
-        (新鲜蛤蜊)
+        (Fresh Clams)
     }
     class MarinaraSauce {
-        (意式番茄酱)
+        (Marinara Sauce)
     }
     class ThinCrustDough {
-        (薄饼面团)
+        (Thin Crust Dough)
     }
     class ReggianoCheese {
-        (Reggiano芝士)
+        (Reggiano Cheese)
     }
 }
 
-package 芝加哥 {
+package "Chicago" {
     class FrozenClams {
-        (冷冻蛤蜊)
+        (Frozen Clams)
     }
     class PlumTomatoSauce {
-        (李子番茄酱)
+        (Plum Tomato Sauce)
     }
     class ThickCrustDough {
-        (厚饼面团)
+        (Thick Crust Dough)
     }
     class MozzarellaCheese {
-        (Mozzarella芝士)
+        (Mozzarella Cheese)
     }
 }
 
-package 加州 {
+package "California" {
     class FreshClams {
-        (新鲜蛤蜊)
+        (Fresh Clams)
     }
     class BruschettaSauce {
-        (Bruschetta酱)
+        (Bruschetta Sauce)
     }
     class VeryThinCrustDough {
-        (极薄饼面团)
+        (Very Thin Crust Dough)
     }
     class GoatCheese {
-        (山羊干酪)
+        (Goat Cheese)
     }
 }
 @enduml
 ```
 
-所以对于原料工厂来说, 可以创建所有的原料代码如下
+So for the ingredient factory, the code to create all the ingredients is as follows
 
 ```java
-// 比萨原料工厂
+// Pizza ingredient factory
 public interface PizzaIngredientFactory {
 
-    // 面团
+    // dough
     public Dough createDough();
-    // 酱
+    // sauce
     public Sauce createSauce();
-    // 奶酪
+    // cheese
     public Cheese createCheese();
-    // 蔬菜
+    // veggies
     public Veggies[] createVeggies();
-    // 意大利辣香肠
+    // pepperoni
     public Pepperoni createPepperoni();
-    // 蛤蜊
+    // clams
     public Clams createClam();
 
 }
 ```
 
-全部代码如下
+The full code is as follows
 
 ```java
 
-// 比萨原料工厂
+// Pizza ingredient factory
 public interface PizzaIngredientFactory {
 
-    // 面团
+    // dough
     public Dough createDough();
-    // 酱
+    // sauce
     public Sauce createSauce();
-    // 奶酪
+    // cheese
     public Cheese createCheese();
-    // 蔬菜
+    // veggies
     public Veggies[] createVeggies();
-    // 意大利辣香肠
+    // pepperoni
     public Pepperoni createPepperoni();
-    // 蛤蜊
+    // clams
     public Clams createClam();
 
 }
 
-// 纽约原料工厂
+// New York ingredient factory
 public class NYPizzaIngredientFactory implements PizzaIngredientFactory {
  
     public Dough createDough() {
@@ -2254,7 +2423,7 @@ public class NYPizzaIngredientFactory implements PizzaIngredientFactory {
     }
 }
 
-// 芝加哥原料工厂
+// Chicago ingredient factory
 public class ChicagoPizzaIngredientFactory implements PizzaIngredientFactory {
 
     public Dough createDough() {
@@ -2284,41 +2453,42 @@ public class ChicagoPizzaIngredientFactory implements PizzaIngredientFactory {
     }
 }
 
-// 面团
+// Dough
 public interface Dough {
     public String toString();
 }
 
-// 酱
+// Sauce
 public interface Sauce {
     public String toString();
 }
 
-// 奶酪
+// Cheese
 public interface Cheese {
     public String toString();
 }
 
-// 蔬菜
+// Veggies
 public interface Veggies {
     public String toString();
 }
 
-// 意大利辣香肠
+// Pepperoni
 public interface Pepperoni {
     public String toString();
 }
 
-// 蛤蜊
+// Clams
 public interface Clams {
     public String toString();
 }
 
-// 重做比萨, 主要是将 prepare() 声明未抽象的, 这个方法收集比萨所需的原料, 当然这些原料来自原料工厂
+// Rework the pizza: mainly make prepare() abstract; this method gathers the ingredients the pizza
+// needs, which of course come from the ingredient factory
 public abstract class Pizza {
     String name;
 
-    // 比萨所需的原料如下
+    // The ingredients the pizza needs are as follows
     Dough dough;
     Sauce sauce;
     Veggies veggies[];
@@ -2382,11 +2552,11 @@ public abstract class Pizza {
     }
 }
 
-// 奶酪比萨如下
+// The cheese pizza is as follows
 public class CheesePizza extends Pizza {
     PizzaIngredientFactory ingredientFactory;
 
-    // 现在要制作比萨, 我们需要一个工厂提供原料
+    // To make a pizza now, we need a factory to provide the ingredients
     public CheesePizza(PizzaIngredientFactory ingredientFactory) {
         this.ingredientFactory = ingredientFactory;
     }
@@ -2411,12 +2581,12 @@ public class ClamPizza extends Pizza {
         dough = ingredientFactory.createDough();
         sauce = ingredientFactory.createSauce();
         cheese = ingredientFactory.createCheese();
-        // 蛤蜊比萨多了蛤蜊
+        // A clam pizza also has clams
         clam = ingredientFactory.createClam();
     }
 }
 
-// 纽约比萨店
+// New York pizza store
 public class NYPizzaStore extends PizzaStore {
 
     protected Pizza createPizza(String item) {
@@ -2452,11 +2622,11 @@ public class NYPizzaStore extends PizzaStore {
 
 ```
 
-类图如下
+The class diagram is as follows
 ```plantuml
 @startuml
 skinparam linetype ortho
-package  "比萨原料工厂" as  PizzaIngredientFactory_together #DDDDDD {
+package  "Pizza ingredient factory" as  PizzaIngredientFactory_together #DDDDDD {
     interface PizzaIngredientFactory {
         createDough()
         createSauce()
@@ -2477,7 +2647,7 @@ class NYPizzaStore {
     createPizza()
 }
 
-package 比萨原料 as PizzaIngredient_package #DDDDDD {
+package "Pizza ingredients" as PizzaIngredient_package #DDDDDD {
     together {
         interface Dough {}
         class ThickCrustDough implements Dough {}
@@ -2517,7 +2687,7 @@ ChicagoPizzaIngredientFactory -left-> PlumTomatoSauce
 ChicagoPizzaIngredientFactory -left-> MozzarellaCheese
 ChicagoPizzaIngredientFactory -left-> FrozenClams
 
-' 控制布局无意义
+' layout control, no meaning
 
 
 ' NYPizzaStore -down[hidden]--> Dough_together
@@ -2533,60 +2703,68 @@ ChicagoPizzaIngredientFactory -left-> FrozenClams
 @enduml
 ```
 
-## 单例模式/单件模式
+## Singleton Pattern
 
-`单例模式`: 确保一个类只有一个实例, 并提供一个全局访问点
+`Singleton pattern`: ensures a class has only one instance, and provides a global point of access to
+it
 
-### 单例模式讨论
+### Singleton pattern discussion
 
-1. 如果有多个类加载器会导致, 多次家在同一个类, 就会产生多个单例
-2. 反射和序列化/反序列化可有可能导致多个单例
-3. 单例模式违反松耦合原则/单一责任原则
-4. 单例模式对比全局变量来说可以做到延迟加载
-5. 全局变量怂恿开发人员用大量对小对象的全局引用来污染命名空间
+1. With multiple class loaders, the same class may be loaded more than once, producing multiple
+   singletons
+2. Reflection and serialization/deserialization can also produce multiple singletons
+3. The Singleton pattern violates the loose coupling principle / Single Responsibility Principle
+4. Compared with a global variable, a singleton can be lazily loaded
+5. Global variables encourage developers to pollute the namespace with lots of global references to
+   small objects
 
-### 单列模式要点
+### Singleton pattern key points
 
-1. 单列模式确保应用中一个类最多只有一个实例
-2. 单例模式也是提供访问次实例的全局点
-3. Java的单例实现用了一个私有构造器, 一个静态方法以及一个静态变量
-4. 检查你的性能和资源, 为多线程应用小心选择一个适当的单例实现(我们英国把所有应用都考虑为时多线程的)
-5. 提供双重检查加锁实现, Java5 之前的版本, 不是线程安全的
-6. 如果你使用多个类加载器, 要小心, 可能倒置单例实现失效, 导致出现多个实例
-7. 你可以使用Java的枚举来简化单列的实现
+1. The Singleton pattern ensures you have at most one instance of a class in your application
+2. The Singleton pattern also provides a global access point to that instance
+3. Java's implementation of the Singleton pattern uses a private constructor, a static method and a
+   static variable
+4. Examine your performance and resource constraints and carefully choose an appropriate Singleton
+   implementation for multithreaded applications (and we should consider all applications
+   multithreaded!)
+5. Beware the double-checked locking implementation; it isn't thread safe in versions before Java 5
+6. Be careful if you are using multiple class loaders; this could defeat the Singleton
+   implementation and result in multiple instances
+7. You can use Java's enums to simplify your Singleton implementation
 
-### 单例模式类图
+### Singleton pattern class diagram
 
 ```plantuml
 @startuml
 
 class Singleton {
     static uniqueInstance
-    // 其他有用的单例属性
+    // other useful singleton fields
     ..
     + static Singleton getInstance()
-    // 其他有用的单例方法
+    // other useful singleton methods
 }
 
 note left of Singleton::getInstance
-getInstance() 方法是静态的,这意味着它是一个类方法,
-因此你可以在代码的任何地方,方便地用 Singleton.getInstance()访问它
-就和访问全局变量一样容易,而且单例还有延迟实例化等优点
+The getInstance() method is static, which means it's a class method,
+so you can conveniently access it anywhere in your code using Singleton.getInstance()
+That's just as easy as accessing a global variable, but singletons also give you benefits like lazy
+instantiation
 
 if (uniqueInstance == null) {
-    // 注意: 如果程序需要支持多线程,你必须在这放置线程锁
+    // Note: if the program must support multithreading, you have to put a lock here
     uniqueInstance = new Singleton();
 }
 return uniqueInstance;
 end note
 
 note right of Singleton::uniqueInstance
-uniqueInstance类变量持有唯一的单例实例
+The uniqueInstance class variable holds the one and only singleton instance
 end note
 
 note bottom of Singleton
-单例(Singleton)模式的类不只是一个单例, 它也是一般的类,
-有自己的一套数据和方法
+A class implementing the Singleton pattern is more than a singleton; it's a general-purpose class
+with its own set of data and methods
 end note
 
 class Client {}
@@ -2596,19 +2774,20 @@ Client --> Singleton
 @enduml
 ```
 
-### 单例模式实现
+### Singleton pattern implementations
 
 ```java
 public class Singleton {
     private static Singleton uniqueInstance;
-    // 其他有用的单例属性
+    // other useful singleton fields
 
     private Singleton() {}
 
     /**
      * <pre>
-     * 该方式存在多线程问题, 可能会创建多个 Singleton
-     * 但是如果调用 getInstance() 方法没有给你的应用增加很重的负担并且允许有多个实例, 可以使用该方法
+     * This approach has a multithreading problem and may create multiple Singletons
+     * But if calling getInstance() doesn't add much overhead to your application and multiple
+     * instances are acceptable, you can use it
      * </pre>
      */
     public static Singleton getInstance() {
@@ -2618,46 +2797,48 @@ public class Singleton {
         return uniqueInstance;
     }
 
-    // 其他有用的单例方法
+    // other useful singleton methods
 }
 
 public class Singleton {
     private static Singleton uniqueInstance = new Singleton();
-    // 其他有用的单例属性
+    // other useful singleton fields
 
     private Singleton() {}
     
     /**
-     * 急切的创建实例, 而不用延迟创建
+     * Create the instance eagerly instead of lazily
      */
     public static Singleton getInstance() {
         return uniqueInstance;
     }
 
-    // 其他有用的单例方法
+    // other useful singleton methods
 }
 
 
 public class Singleton {
-    // volatile 关键字确保: 当 uniqueInstance 变量被初始化未单例实例时, 多个线程正确处理 uniqueInstance 变量
+    // The volatile keyword ensures that multiple threads handle the uniqueInstance variable
+    // correctly when it is being initialized to the singleton instance
     private volatile static Singleton uniqueInstance;
-    // 其他有用的单例属性
+    // other useful singleton fields
 
     private Singleton() {}
 
     /**
      * <pre>
-     * 双重检查加锁, 初始化实例, 在特定场景下有问题
-     * 当 uniqueInstance 被分配地址但未执行 init 方法时可能会有问题
+     * Double-checked locking to initialize the instance; problematic in certain scenarios
+     * There may be a problem when uniqueInstance has been assigned an address but init has not run
+     * yet
      * </pre>
      */
     public static Singleton getInstance() {
-        // 检查实例, 如果没有, 进入同步区块
+        // Check for an instance; if there isn't one, enter a synchronized block
         if (uniqueInstance == null) {
-            // 注意, 只有第一次才同步
+            // Note: we only synchronize the first time through
             synchronized (Singleton.class) {
                 if (uniqueInstance == null) {
-                    // 进入区块后, 再检查一次. 如果依然是空的, 创建一个实例
+                    // Once in the block, check again; if it's still null, create an instance
                     uniqueInstance == new Singleton();
                 }
             }
@@ -2665,26 +2846,33 @@ public class Singleton {
         return uniqueInstance;
     }
 
-    // 其他有用的单例方法
+    // other useful singleton methods
 }
 ```
 
-## 命令模式
+## Command Pattern
 
-`命令模式`: 把请求封装为对象, 以便用不同的请求/队列或者日志请求来参数化其它对象, 并支持可以撤销的操作
+`Command pattern`: encapsulates a request as an object, letting you parameterize other objects with
+different requests, queues or log requests, and supports undoable operations
 
-### 命令模式要点
+### Command pattern key points
 
-1. 命令模式把做出请求的对象从知道如何执行请求的对象解耦
-2. 命令对象处在解耦的中心, 封装接收者以及一个(或一组)动作(命令)
-3. 调用者通过调用命令对象的execute()做出请求, 这会使得接收者的动作被调用
-4. 调用者可以用命令参数化, 甚至可以在运行时动态地进行
-5. 通过实现一个undo()方法来把对象重建到最后一次执行execute()前状态, 命令可以支持撤销
-6. 宏命令是命令模式的一种简单延伸. 它允许调用多个命令. 同样, 宏命令很容易支持 undo()
-7. 在实践中, "聪明" 命令对象并不少见. 这些对象自己实现请求, 而不是委托给接收者
-8. 命令也可以用来实现日志和事务系统
+1. The Command pattern decouples an object making a request from the one that knows how to perform
+   it
+2. A command object is at the center of this decoupling and encapsulates a receiver with an action
+   (or set of actions)
+3. An invoker makes a request of a command object by calling its execute() method, which invokes the
+   actions on the receiver
+4. Invokers can be parameterized with commands, even dynamically at runtime
+5. Commands may support undo by implementing an undo() method that restores the object to its
+   previous state before execute() was last called
+6. MacroCommands are a simple extension of Command that allow multiple commands to be invoked.
+   Likewise, MacroCommands can easily support undo()
+7. In practice, it's not uncommon for "smart" command objects to implement the request themselves
+   rather than delegating to a receiver
+8. Commands may also be used to implement logging and transactional systems
 
-### 命令模式类图
+### Command pattern class diagram
 
 ```plantuml
 @startuml
@@ -2693,8 +2881,8 @@ public class Singleton {
 class Client {
 }
 note left of Client
-Client 负责创建一个 ConcreteCommand (具体命令)
-并且设置 Receiver (接收者)
+The Client is responsible for creating a ConcreteCommand
+and setting its Receiver
 
 Invoker invoker = new Invoker()
 Receiver receiver = new Receiver();
@@ -2707,20 +2895,21 @@ class Invoker {
     - Command command
 
     + setCommand()
-    + execute() // 或其它方法
+    + execute() // or other methods
 }
 note top of Invoker
-Invoker(调用者)持有一个命令, 并在某个时间点
-通过调用其execute()方法要求命令履行请求
+The Invoker holds a command and at some point
+asks the command to carry out a request by calling its execute() method
 end note
 
 class Receiver {
     + action(params)
 }
 note bottom of Receiver
-Receiver(接收者) 知道如何执行履行请求所需的工作
-任何类都可以作为 Receiver
-在实践中, "聪明" 命令对象并不少见. 这些对象自己实现请求, 而不是委托给接收者
+The Receiver knows how to perform the work needed to carry out the request
+Any class can act as a Receiver
+In practice, it's not uncommon for "smart" command objects to implement the request themselves
+rather than delegating to a receiver
 end note
 
 interface Command {
@@ -2728,9 +2917,9 @@ interface Command {
     + undo()
 }
 note top of Command
-Command(命令)为所有命令声明了一个接口.
-命令通过其 execute() 方法调用, 该方法请求接收者执行动作
-命令通过 undo() 来把对象重建到最后一次执行execute()前状态 
+Command declares an interface for all commands.
+A command is invoked through its execute() method, which asks a receiver to perform an action
+A command restores the object to its state before execute() was last called via undo() 
 end note
 
 class ConcreteCommand implements Command {
@@ -2742,12 +2931,12 @@ class ConcreteCommand implements Command {
     + undo()
 }
 note bottom of ConcreteCommand
-具体命令(Concrete Commands) 会实现各种类型的请求。 
-具体命令自身并不完成工作， 
-而是会将调用委派给一个业务逻辑对象。 
-但为了简化代码， 这些类可以进行合并。
+Concrete Commands implement various kinds of requests.
+A concrete command isn't supposed to perform the work on its own,
+but rather to pass the call to a business logic object.
+However, for the sake of simplifying the code, these classes can be merged.
 
-// execute() 方法调用履行请求所需接收者的动作
+// The execute() method invokes the actions on the receiver needed to fulfill the request
 public void execute() {
     receiver.action(params)
 }
@@ -2756,8 +2945,8 @@ end note
 class MacroCommand implements Command {
 }
 note bottom of MacroCommand
-// 宏命令是命令模式的一种简单延伸. 
-// 它允许调用多个命令. 同样, 宏命令很容易支持 undo()
+// MacroCommands are a simple extension of Command.
+// They allow multiple commands to be invoked. Likewise, MacroCommands can easily support undo()
 public class MacroCommand implements Command {
     Command[] commands;
     public MacroCommand(Command[] commands) {
@@ -2786,42 +2975,45 @@ ConcreteCommand -left-> Receiver
 
 @enduml
 ```
-### 命令模式流程图
+### Command pattern sequence diagram
 
 ```plantuml
 @startuml
 autonumber
 
-participant Client客户 as client
-participant Invoker调用者 as invoker
-participant Command命令 as command
-participant Receiver接收者 as receiver
+participant Client as client
+participant Invoker as invoker
+participant Command as command
+participant Receiver as receiver
 
-client -> command : 客户创建命令对象
-client -> invoker : 客户做一个 setCommand() 来把命令对象存储到调用者中
-client -> invoker : 客户请求调用者执行命令
-invoker -> command : 调用者调用命令对象的execute()方法
-command -> receiver : execute() 方法调用履行请求所需接收者的动作
+client -> command : The client creates a command object
+client -> invoker : The client calls setCommand() to store the command object in the invoker
+client -> invoker : The client asks the invoker to execute the command
+invoker -> command : The invoker calls the command object's execute() method
+command -> receiver : execute() invokes the actions on the receiver needed to fulfill the request
 
 @enduml
 ```
 
-### 命令模式例子遥控器
+### Command pattern example: remote control
 
-我们要设计一个遥控器代码, 让每个槽可以被分配控制一个或一组设备  
-请注意, 要能沟控制目前所有的设备以及厂商未来可以能提供的任何设备  
+We need to design the code for a remote control where each slot can be assigned to control a device
+or a set of devices  
+Note that it must be able to control all current devices as well as any devices vendors may supply
+in the future  
 
-以下是我们需要从控制器控制对象的接口, 这些设备中有些接口差别很大
+Below are the interfaces of the objects we need to control from the remote; some of these devices
+have very different interfaces
 
 ```plantuml
 @startuml
-' 电灯
+' light
 class Light {
     on()
     off()
 }
-note top of Light : 电灯
-' 吊扇
+note top of Light : Light
+' ceiling fan
 class CeilingFan {
     high()
     medium()
@@ -2829,14 +3021,14 @@ class CeilingFan {
     off()
     getSpeed()
 }
-note top of CeilingFan : 吊扇
-' 电视
+note top of CeilingFan : Ceiling fan
+' TV
 class TV {
     on()
     off()
     setInputChannel()
 }
-note top of TV : 电视
+note top of TV : TV
 
 @enduml
 ```
@@ -2844,46 +3036,49 @@ note top of TV : 电视
 ```plantuml
 @startuml
 
-package 遥控器 as remote_control {
+package "Remote control" as remote_control {
     
     together {
         () ON1
         () OFF1
 
-        note right of ON1 : 电灯开
-        note left of OFF1 : 电灯关
+        note right of ON1 : Light on
+        note left of OFF1 : Light off
     }
     
     together {
         () ON2
         () OFF2
 
-        note right of ON2 : 吊扇开到高速\n(由于篇幅问题吊扇低速和中速不展示)
-        note left of OFF2 : 吊扇关
+        note right of ON2 : Ceiling fan on high\n(low and medium speeds not shown for brevity)
+        note left of OFF2 : Ceiling fan off
     }
     
     together {
         () ON3
         () OFF3
 
-        note right of ON3 : 电视开
-        note left of OFF3 : 电视关
+        note right of ON3 : TV on
+        note left of OFF3 : TV off
     }
   
     together {
         () ON4
         () OFF4
 
-        note right of ON4 : 电灯,电视开,吊扇开到高速
-        note left of OFF4 : 电灯,吊扇,电视关
+        note right of ON4 : Light, TV on, ceiling fan on high
+        note left of OFF4 : Light, ceiling fan, TV off
     }
     
     together {
         () undo
-        note right of undo : 对象重建到最后一次执行execute()前状态,\n但电视使用 lambda 无法撤销
+        note right of undo
+        Restores the object to its state before execute() was last called,
+        but the TV uses a lambda and can't be undone
+        end note
     }
 
-' 控制布局无意义
+' layout control, no meaning
 
 ' together1 -down[hidden]-> together2
 ' together2 -down[hidden]-> together3
@@ -2892,16 +3087,16 @@ package 遥控器 as remote_control {
 }
 
 note top of remote_control
-4个槽都有各自的开和关按钮
-每组槽都需要编程. 我们可以在每个槽上放不同设备
-然后通过按钮控制它
-还有一个 undo 槽用来回到把对象重建到最后一次执行execute()前状态
+The 4 slots each have their own on and off buttons
+Each slot pair needs to be programmed. We can put a different device in each slot
+and then control it with the buttons
+There's also an undo slot that restores the object to its state before execute() was last called
 end note
 
 @enduml
 ```
 
-遥控器类图如下
+The remote control class diagram is as follows
 
 ```plantuml
 @startuml
@@ -2924,12 +3119,12 @@ class RemoteControl {
 interface Command {
     execute()
 }
-' 电灯
+' light
 class Light {
     on()
     off()
 }
-note top of Light : 电灯
+note top of Light : Light
 class LightOnCommand implements Command {
     execute()
 }
@@ -2937,7 +3132,7 @@ class LightOffCommand implements Command {
     execute()
 }
 
-' 吊扇
+' ceiling fan
 class CeilingFan {
     high()
     medium()
@@ -2945,7 +3140,7 @@ class CeilingFan {
     off()
     getSpeed()
 }
-note top of CeilingFan : 吊扇
+note top of CeilingFan : Ceiling fan
 class CeilingFanHighCommand implements Command {
     execute()
 }
@@ -2953,13 +3148,13 @@ class CeilingFanOffCommand implements Command {
     execute()
 }
 
-' 电视
+' TV
 class TV {
     on()
     off()
     setInputChannel()
 }
-note top of TV : 电视, 使用两个 lambda 表达式生成命令
+note top of TV : TV, uses two lambda expressions to create commands
 
 class MacroCommand implements Command {
     execute()
@@ -2980,9 +3175,9 @@ RemoteControl -> Command
 @enduml
 ```
 
-代码如下
+The code is as follows
 ```java
-// This is the invoker(调用者)
+// This is the invoker
 public class RemoteControl {
     Command[] onCommands;
     Command[] offCommands;     
@@ -3030,25 +3225,25 @@ public class RemoteControl {
     }
 }
 
-// 命令接口
+// Command interface
 public interface Command {
     public void execute();
     public default void undo() {}
 
-    // 每个命令被执行时, 会存储到磁盘中
+    // Each command is stored to disk when it's executed
     public default void store() {}
-    // 系统失败后, 这些对象会被重新加载
+    // After a system failure, these objects are reloaded
     public default Command load() {return null;}
 }
 
-// 默认空实现, 防止空指针异常
+// Default no-op implementation, avoids null pointer exceptions
 public class NoCommand implements Command {
     public void execute() { }
     public void undo() { }
 }
 
-// 宏命令是命令模式的一种简单延伸
-// 它允许调用多个命令. 同样, 宏命令很容易支持 undo()
+// MacroCommands are a simple extension of Command
+// They allow multiple commands to be invoked. Likewise, MacroCommands can easily support undo()
 public class MacroCommand implements Command {
     Command[] commands;
 
@@ -3063,7 +3258,7 @@ public class MacroCommand implements Command {
     }
 
     /**
-     * NOTE:  这些命令必须向后完成，以确保正确的撤消功能
+     * NOTE:  these commands have to be done backwards to ensure proper undo functionality
      */
     public void undo() {
         for (int i = commands.length -1; i >= 0; i--) {
@@ -3072,7 +3267,7 @@ public class MacroCommand implements Command {
     }
 }
 
-// 电灯
+// Light
 public class Light {
     String location = "";
 
@@ -3090,7 +3285,7 @@ public class Light {
 }
 
 
-// 普通的电灯开关(最普通的命令模式)
+// Plain light switch (the most basic Command pattern)
 public class LightOffCommand implements Command {
     Light light;
 
@@ -3107,7 +3302,7 @@ public class LightOffCommand implements Command {
     }
 }
 
-// 普通的电灯开关(最普通的命令模式)
+// Plain light switch (the most basic Command pattern)
 public class LightOnCommand implements Command {
     Light light;
 
@@ -3124,7 +3319,7 @@ public class LightOnCommand implements Command {
     }
 }
 
-// 吊扇
+// Ceiling fan
 public class CeilingFan {
     public static final int HIGH = 3;
     public static final int MEDIUM = 2;
@@ -3166,22 +3361,22 @@ public class CeilingFan {
     }
 }
 
-// 用状态实现撤销, 吊扇允许有多种转速度, 按钮控制速度为高速
+// Undo using state: the ceiling fan supports several speeds; this button sets it to high
 public class CeilingFanHighCommand implements Command {
     CeilingFan ceilingFan;
-    // 添加局部变量来跟踪吊扇之前的转速
+    // Add a local variable to track the fan's previous speed
     int prevSpeed;
 
     public CeilingFanHighCommand(CeilingFan ceilingFan) {
         this.ceilingFan = ceilingFan;
     }
     public void execute() {
-        // 在 execute() 中, 改变吊扇的转速之前, 需要先记录它之前的状态, 以便撤销功能时使用
+        // In execute(), before changing the fan speed, record its previous state so undo can use it
         prevSpeed = ceilingFan.getSpeed();
         ceilingFan.high();
     }
 
-    // 我们把吊扇的转速设置会之前的转速, 达到撤销的目的
+    // Set the fan back to its previous speed to undo
     public void undo() {
         switch (prevSpeed) {
             case CeilingFan.HIGH:   ceilingFan.high(); break;
@@ -3192,7 +3387,7 @@ public class CeilingFanHighCommand implements Command {
     }
 }
 
-// 关闭吊扇
+// Turn off the ceiling fan
 public class CeilingFanOffCommand implements Command {
     CeilingFan ceilingFan;     
     int prevSpeed;
@@ -3242,23 +3437,24 @@ public class RemoteLoader {
 
         RemoteControl remoteControl = new RemoteControl();
 
-        // 普通的电灯开关(最普通的命令模式)
+        // Plain light switch (the most basic Command pattern)
         Light light = new Light("Living Room");
         LightOnCommand lightOn = new LightOnCommand(light);
         LightOffCommand lightOff = new LightOffCommand(light);
         remoteControl.setCommand(0, lightOn, lightOff);
         
-        // 吊扇开关(用状态实现撤销)
+        // Ceiling fan switch (undo using state)
         CeilingFan ceilingFan = new CeilingFan("Living Room");
         CeilingFanHighCommand ceilingFanHigh = new CeilingFanHighCommand(ceilingFan);
         CeilingFanOffCommand ceilingFanOff = new CeilingFanOffCommand(ceilingFan);
         remoteControl.setCommand(1, ceilingFanHigh, ceilingFanOff);
  
-        // 电视开关, 使用 lambda 表达式, 不支持 undo()
+        // TV switch, using lambda expressions, doesn't support undo()
         TV tv = new TV("Living Room");
         remoteControl.setCommand(2, () -> tv.on(), tv.off());
         
-        // 宏命令模式, 同时开启电灯和吊扇高速和电视, 和同时关闭电灯和吊扇和电视
+        // Macro command: turn on the light, the fan on high and the TV together, and turn off the
+        // light, fan and TV together
         Command[] partyOn = { lightOn, ceilingFanHigh};
         Command[] partyOff = { lightOff, ceilingFanOff};
         MacroCommand partyOnMacro = new MacroCommand(partyOn);
@@ -3275,91 +3471,106 @@ public class RemoteLoader {
 
 ```
 
-### 命令模式使用场景
+### Command pattern use cases
 
-#### 请求队列(如线程池)
+#### Queuing requests (e.g. thread pools)
 
-命令把一小块计算打包(一个接收者和一组动作), 然后把它作为头筹对象传来传去.   
-即使在一些客户应用创建命令对象很久之后, 计算自身依然可能被调用.  
-事实上, 甚至可以被不用线程调用. 我们可以把这个场景应用到许多应用上  
-比如: 日程安排, 线程池, 以及作业队列
-
-
-想象一个作业队列: 你添加命令到队列的一端, 另一端有一组线程.  
-线程运行以下脚本: 从队列移除命令, 调用其 execute() 方法,  
-等待这个调用完成, 然后丢弃该命令对象, 检索新的命令对象......  
-作业对象类完全从做计算的对象解耦. 这一分钟, 线程可能做财务计算,  
-下一分钟可能从网络检索信息.  
-作业队列对象不关心, 它们只检索命令并调用 exectue() 
-同样, 只要你把对象放进去实现命令模式的队列, 当线程可用时, execute() 方法就会被调用
+Commands package up a piece of computation (a receiver and a set of actions) and pass it around as a
+first-class object.  
+The computation itself may be invoked long after some client application created the command
+object.  
+In fact, it may even be invoked by a different thread. We can apply this to many applications,  
+such as schedulers, thread pools and job queues
 
 
-#### 日志请求
+Imagine a job queue: you add commands to the queue on one end, and on the other end sits a group of
+threads.  
+The threads run the following script: remove a command from the queue, call its execute() method,  
+wait for the call to finish, then discard the command object and retrieve a new one......  
+The job queue classes are totally decoupled from the objects doing the computation. One minute a
+thread may be computing a financial computation,  
+the next it may be retrieving something from the network.  
+The job queue objects don't care; they just retrieve commands and call exectue() 
+Likewise, as long as you put objects that implement the Command pattern into the queue, execute()
+will be called when a thread is available
 
-如果某些应用需要我们把所有动作都记录在日志中, 并能在系统崩溃后, 通过重新调用这些动作来恢复, 我们可以通过添加两个方法 store(), load(), 命令模式能够支持这一点. 在 JAVA 中我们可以使用对象序列化来实现这些方法
 
-那么这样做呢? 单我们执行命令时, 把历史存储在磁盘中, 一旦出现崩溃, 就重新加载命令对象, 并成批地依次调用它们的 execute() 方法
+#### Logging requests
+
+Some applications require that we log all actions and be able to recover after a crash by reinvoking
+those actions. By adding two methods, store() and load(), the Command pattern can support this. In
+JAVA we can implement these methods with object serialization
+
+How does it work? As we execute commands, we store a history of them on disk; when a crash occurs,
+we reload the command objects and invoke their execute() methods in batch and in order
 
 ```plantuml
 @startuml
 
-() 调用者 as invoker
+() Invoker as invoker
 () Command1 as command1
 () Command2 as command2
 () Command3 as command3
 
-[持久化机器] as store
+[Persistent storage] as store
 
 invoker ..> command1 : 1. execute()
 invoker ..> command2 : 2. execute()
 invoker ..> command3 : 3. execute()
 
-command1 --> store : 存储
-command2 --> store : 存储
-command3 --> store : 存储
+command1 --> store : store
+command2 --> store : store
+command3 --> store : store
 
 @enduml
 ```
 
-崩溃后从持久化机器上重建
+Restore from persistent storage after a crash
 
 ```plantuml
 @startuml
 
-() 调用者 as invoker
+() Invoker as invoker
 () Command1 as command1
 () Command2 as command2
 () Command3 as command3
 
-[持久化机器] as store
+[Persistent storage] as store
 
 invoker ..> command1 : 1. execute()
 invoker ..> command2 : 2. execute()
 invoker ..> command3 : 3. execute()
 
-command1 <-- store : 加载
-command2 <-- store : 加载
-command3 <-- store : 加载
+command1 <-- store : load
+command2 <-- store : load
+command3 <-- store : load
 
 @enduml
 ```
 
-## 适配器模式
+## Adapter Pattern
 
-`适配器模式`: 将一个类的接口(对象)转换成客户期望的另一个接口(对象). 适配器让原本不兼容的类可合作. 这使得客户从所实现的接口解耦
+`Adapter pattern`: converts the interface (object) of a class into another interface (object) the
+client expects. Adapter lets classes work together that couldn't otherwise because of incompatible
+interfaces. This decouples the client from the implemented interface
 
-### 适配器模式要点
+### Adapter pattern key points
 
-1. 适配器不一定只能包装一个类, 存在适配器持有两个或以上要实现不标接口的被适配者的情况
-2. 当你需要使用一个已有的类, 而其接口不符合你的需要, 就用适配器
-3. 适配器改变接口以符合客户的期望
-4. 实现一个适配器可能不需要花什么功夫, 也可能花很多功夫, 视目标接口的大小与复杂度而定
-5. 适配器模式有两种形式: 对象适配器和类适配器. 类适配器需要用到多重继承
-6. 适配器包装一个对象以改变其接口, 装饰者包装一个对象以添加新的行为和责任, 而外观 "包装" 一群对象以简化其接口, 三者代码大体一致单意图不一样
+1. An adapter doesn't have to wrap just one class; an adapter may hold two or more adaptees needed
+   to implement the target interface
+2. When you need to use an existing class and its interface is not the one you need, use an adapter
+3. An adapter changes an interface into one the client expects
+4. Implementing an adapter may require little work or a great deal of work, depending on the size
+   and complexity of the target interface
+5. There are two forms of the Adapter pattern: object adapters and class adapters. Class adapters
+   require multiple inheritance
+6. An adapter wraps an object to change its interface, a decorator wraps an object to add new
+   behaviors and responsibilities, and a facade "wraps" a set of objects to simplify; the code of
+   the three is largely the same but the intent differs
 
-### 适配器模式类图
+### Adapter pattern class diagram
 
-#### 对象适配器类图
+#### Object adapter class diagram
 
 ```plantuml
 @startuml
@@ -3367,7 +3578,7 @@ command3 <-- store : 加载
 class Client {
 }
 
-note top of Client : 客户只看到目标接口
+note top of Client : The client sees only the Target interface
 
 interface Target {
     + request(params)
@@ -3385,7 +3596,7 @@ data = convertToData(params);
 return adaptee.speciffcRequest(data);
 end note
 
-note "适配器实现目标接口" as Target_Adapter_note
+note "The Adapter implements the Target interface" as Target_Adapter_note
 Target_Adapter_note .up. Target
 Target_Adapter_note .down. Adapter
 
@@ -3395,12 +3606,13 @@ Class Adaptee {
 }
 
 Client -> Target
-Adapter -> Adaptee : 适配器和被适配者组合\n所有请求都被委托给被适配者
+Adapter -> Adaptee : The Adapter is composed with the Adaptee\nAll requests are delegated to the \
+Adaptee
 
 @enduml
 ```
 
-#### 类适配器
+#### Class adapter
 
 ```plantuml
 @startuml
@@ -3428,8 +3640,8 @@ end note
 
 
 note bottom of Adapter
-适配器现在继承被适配者和目标类(多重继承)
-而不是用组合来适配被适配者(java无多重继承)
+The adapter now subclasses both the Adaptee and the Target class (multiple inheritance)
+instead of using composition to adapt the Adaptee (Java has no multiple inheritance)
 end note
 
 Client -> Target
@@ -3437,22 +3649,24 @@ Client -> Target
 @enduml
 ```
 
-### 适配器模式大体流程
+### Adapter pattern overall flow
 
 ```plantuml
 @startuml
 
-() 客户 as client
-() 适配器 as adapter
-() 被适配者 as adaptee
+() Client as client
+() Adapter as adapter
+() Adaptee as adaptee
 
 client -> adapter : request()
 adapter -> adaptee : translatedRequest()
 
-note top of client : 客户针对目标接口实现
-note bottom of adapter : 适配器实现目标接口, 并持有被适配者的实例
-note top of adapter : 目标接口
-note top of adaptee : 被适配者接口
+note top of client : The client is implemented against the target interface
+note bottom of adapter
+The adapter implements the target interface and holds an instance of the adaptee
+end note
+note top of adapter : Target interface
+note top of adaptee : Adaptee interface
 
 @enduml
 ```
@@ -3461,35 +3675,41 @@ note top of adaptee : 被适配者接口
 @startuml
 autonumber
 
-participant 客户 as client
-participant 适配器 as adapter
-participant 被适配者 as adaptee
+participant Client as client
+participant Adapter as adapter
+participant Adaptee as adaptee
 
-client -> adapter : 客户通过使用不标接口, 调用适配器的方法, 对适配器做出请求
-adapter -> adaptee : 适配器使用被适配者接口, 把请求翻译成被适配者上的一个或多个调用
-adapter --> client : 客户收到调用接口, 但根本不知道时适配器做翻译
+client -> adapter : The client makes a request to the adapter by calling a method on it using the \
+target interface
+adapter -> adaptee : The adapter translates the request into one or more calls on the adaptee \
+using the adaptee interface
+adapter --> client : The client receives the results of the call and never knows there is an \
+adapter doing the translation
 
-note over of client : 注意, 客户和被适配者解耦了,\n 彼此不知道对方
+note over of client
+Note that the client and adaptee are decoupled:
+neither knows about the other
+end note
 
 @enduml
 ```
 
 
-### 适配器模式例子
+### Adapter pattern example
 
-我们需要将火鸡伪装成一个鸭子
+We need to disguise a turkey as a duck
 
 ```java
 
-// 鸭子接口
+// Duck interface
 public interface Duck {        
-    // 叫声
+    // quack
     public void quack();
-    // 飞行
+    // fly
     public void fly();
 }
 
-// 绿头鸭
+// Mallard duck
 public class MallardDuck implements Duck {
     public void quack() {
         System.out.println("Quack");
@@ -3500,41 +3720,46 @@ public class MallardDuck implements Duck {
     }
 }
 
-// 火鸡
+// Turkey
 public interface Turkey {      
     public void gobble();
     public void fly();
 } 
 
-// 野生的火鸡
+// Wild turkey
 public class WildTurkey implements Turkey {
     public void gobble() {
         System.out.println("Gobble gobble");
     }
 
-    // 火鸡只会短途飞行
+    // Turkeys can only fly short distances
     public void fly() {
         System.out.println("I'm flying a short distance");
     }
 }
 
-// 火鸡适配器, 把火鸡伪装成鸭子
-// 首先需要实现适配类型的接口, 这是你的客户期望看到的接口
+// Turkey adapter: disguises a turkey as a duck
+// First, implement the interface of the type you're adapting to; this is the interface your client
+// expects to see
 public class TurkeyAdapter implements Duck {
-    // 接下来, 需要取得要适配的对象引用, 者可我们通过构造器得到
+    // Next, we need a reference to the object we're adapting; here we get it through the
+    // constructor
     Turkey turkey;
 
     public TurkeyAdapter(Turkey turkey) {
         this.turkey = turkey;
     }
 
-    // 现在我们需要实现接口中的所有方法, quack() 在类之间的翻译很容易, 只要调用 gobble() 方法
+    // Now we implement all the methods in the interface; quack() translates easily between the
+    // classes, just call gobble()
     public void quack() {
         turkey.gobble();
     }
 
-    // 即使两个接口都有 fly() 方法, 火鸡的分析只是短距离冲刺, 不能像鸭子那样长途飞行
-    // 要在 Duck 的 fly() 方法和 Turkey 的 fly() 方法之间形成映射, 我们需要调用 Turkey 的 fly() 方法五次来补足
+    // Even though both interfaces have a fly() method, turkeys fly in short spurts and can't fly
+    // long distances like ducks
+    // To map between Duck's fly() and Turkey's fly(), we call Turkey's fly() five times to make up
+    // for it
     public void fly() {
         for(int i=0; i < 5; i++) {
             turkey.fly();
@@ -3542,7 +3767,7 @@ public class TurkeyAdapter implements Duck {
     }
 }
 
-// 测试
+// Test
 public class DuckTestDrive {
     public static void main(String[] args) {
         Duck duck = new MallardDuck();
@@ -3570,18 +3795,19 @@ public class DuckTestDrive {
 
 ```
 
-## 外观模式
+## Facade Pattern
 
-`外观模式`: 为子系统中的一组接口提供了一个统一的接口. 外观定义了一个更高级的接口, 使得子系统更容易使用.
+`Facade pattern`: provides a unified interface to a set of interfaces in a subsystem. Facade defines
+a higher-level interface that makes the subsystem easier to use.
 
-### 外观模式类图
+### Facade pattern class diagram
 
 ```plantuml
 @startuml
 
 class Client {}
 note top of Client
-客户端(Client) 使用外观代替对子系统对象的直接调用。
+The Client uses the facade instead of calling the subsystem objects directly.
 end note
 
 class Facade {
@@ -3591,21 +3817,21 @@ class Facade {
     + subsystemOptional()
 }
 note top of Facade
-外观(Facade)提供了一种访问特定子系统功能的便捷方式， 
-其了解如何重定向客户端请求， 知晓如何操作一切活动部件。
+The Facade provides convenient access to a particular part of the subsystem's functionality.
+It knows where to direct the client's request and how to operate all the moving parts.
 end note
 
 class AdditionalFacade {
     + anotherOptional()
 }
 note top of AdditionalFacade
-创建附加外观(Additional Facade)类
-可以避免多种不相关的功能污染单一外观， 
-使其变成又一个复杂结构。 
-客户端和其他外观都可使用附加外观。
+An Additional Facade class can be created
+to prevent polluting a single facade with unrelated features
+that might make it yet another complex structure.
+Additional facades can be used by both clients and other facades.
 end note
 
-package "子系统的类" as subsystem {
+package "Subsystem classes" as subsystem {
     class Service1 {}
     class Service2 {}
     class Service3 {}
@@ -3613,11 +3839,13 @@ package "子系统的类" as subsystem {
     Service1 -> Service3
 }
 note bottom of subsystem
-复杂子系统(Complex Subsystem)由数十个不同对象构成。 
-如果要用这些对象完成有意义的工作， 你必须深入了解子系统的实现细节， 
-比如按照正确顺序初始化对象和为其提供正确格式的数据。
+The Complex Subsystem consists of dozens of various objects.
+To make them all do something meaningful, you have to dive deep into the subsystem's implementation
+details,
+such as initializing objects in the correct order and supplying them with data in the proper format.
 
-子系统类不会意识到外观的存在， 它们在系统内运作并且相互之间可直接进行交互
+Subsystem classes aren't aware of the facade's existence; they operate within the system and work
+with each other directly
 end note
 
 Client -right-> Facade
@@ -3626,51 +3854,56 @@ Facade -down-> Service1
 Facade -down-> Service2
 @enduml
 ```
-### 外观模式例子
+### Facade pattern key points
 
-1. 当你需要简化并统一一个大接口, 或者一个复杂的接口集, 就用外观
-2. 外观将客户从一个复杂子系统解耦
-3. 实现外观需要把外观和子系统组合, 使用委托来执行外观的工作
-4. 你可以为一个子系统实现多个外观
-5. 适配器包装一个对象以改变其接口, 装饰者包装一个对象以添加新的行为和责任, 而外观 "包装" 一群对象以简化其接口, 三者代码大体一致单意图不一样
+1. When you need to simplify and unify a large interface or a complex set of interfaces, use a
+   facade
+2. A facade decouples a client from a complex subsystem
+3. Implementing a facade requires that we compose the facade with its subsystem and use delegation
+   to perform the work of the facade
+4. You can implement more than one facade for a subsystem
+5. An adapter wraps an object to change its interface, a decorator wraps an object to add new
+   behaviors and responsibilities, and a facade "wraps" a set of objects to simplify; the code of
+   the three is largely the same but the intent differs
 
-### 外观模式例子: 家庭影院
+### Facade pattern example: home theater
 
-你在家里观赏一部电影, 你需要以下几个步骤
+To watch a movie at home, you need the following steps
 
-1. 打开爆米花机
-2. 开始爆米花
-3. 调暗灯光
-4. 放下屏幕
-5. 打开投影机
-6. 设置投影机输入为流媒体播放器
-7. 把投影机设置在宽屏模式
-8. 打开功放
-9. 设置功放为流媒体输入
-10. 设置功放为环绕音响
-11. 设置功放音量为中(5)
-12. 打开流媒体播放器
-13. 开始放电影
+1. Turn on the popcorn popper
+2. Start the popper popping
+3. Dim the lights
+4. Put the screen down
+5. Turn the projector on
+6. Set the projector input to the streaming player
+7. Put the projector in widescreen mode
+8. Turn the sound amplifier on
+9. Set the amplifier to the streaming player input
+10. Set the amplifier to surround sound
+11. Set the amplifier volume to medium (5)
+12. Turn the streaming player on
+13. Start playing the movie
 
-这些涉及到 6个类, 13个动作, 但还有更多,   
-电影结束后, 把这些东西关掉, 你不得不反向地把这一切再过一遍  
-听广播是不是也时这样复杂
+That's 6 classes and 13 actions, and there's more:  
+when the movie is over, how do you turn everything off? You have to do all of this over again, in
+reverse  
+Wouldn't listening to the radio be just as complex?
 
 ```plantuml
 @startuml
 skinparam linetype ortho
 
-class 遥控器  {
+class RemoteControl  {
     watchMovie()
     endMovie()
 }
 
-遥控器 -down-> HomeTheaterFacade : 遥控器是子系统外观的客户
+RemoteControl -down-> HomeTheaterFacade : The remote is a client of the subsystem facade
 
-note right of 遥控器
-你的客户代码现在调用家庭影院的外观方法, 而不是子系统的方法
-因此现在我们只要调用一个方法 watchMovie() 
-它会和灯,流媒体播放器,投影机,功放,屏幕,爆米花机等沟通
+note right of RemoteControl
+Your client code now calls methods on the home theater facade, not on the subsystem
+So now we just call one method, watchMovie()
+and it talks to the lights, streaming player, projector, amplifier, screen, popcorn popper, etc.
 end note
 
 class HomeTheaterFacade {
@@ -3680,7 +3913,7 @@ class HomeTheaterFacade {
     endRadio()
 }
 
-package 设备子系统 as system {
+package "Device subsystem" as system {
     class Tuner {
         amplifier
         
@@ -3697,11 +3930,11 @@ package 设备子系统 as system {
 
         on()
         off()
-        ' 设置流媒体播放器
+        ' set the streaming player
         setStreamingPlayer()
-        ' 设置立体声
+        ' set stereo sound
         setStereoSound()
-        ' 设置环绕声
+        ' set surround sound
         setSurroundSoud()
         setTuner()
         setVolume()
@@ -3759,8 +3992,8 @@ package 设备子系统 as system {
 }
 
 note bottom of system
-外观依然保持子系统可以访问,所以你可以直接使用
-如果你需要子系统类的高阶功能, 它们还是可以使用
+The facade still leaves the subsystem accessible, so you can use it directly
+If you need the advanced functionality of the subsystem classes, they're still available
 end note
 
 HomeTheaterFacade -down-> Tuner
@@ -3843,7 +4076,7 @@ public class HomeTheaterFacade {
     }
 }
 
-// 是时候观赏电影了(容易方式)
+// Time to watch a movie (the easy way)
 public class HomeTheaterTestDrive {
     public static void main(String[] args) {
         Amplifier amp = new Amplifier("Amplifier");
@@ -3866,26 +4099,35 @@ public class HomeTheaterTestDrive {
 
 ```
 
-## 模板方法模式
+## Template Method Pattern
 
-`模板方法模式`: 在一个方法中定义一个算法的骨架, 而把一些步骤延迟到子类. 莫把方法使得子类可以在不改变算法结构的情况下, 重新定义算法的某些步骤.
+`Template Method pattern`: defines the skeleton of an algorithm in a method, deferring some steps to
+subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing
+the algorithm's structure.
 
-它是一个把算法算法定义为一组步骤的方法. 这些步骤中的一个或多个被定义为抽象的, 由子类实现
+It is a method that defines an algorithm as a set of steps. One or more of these steps is defined to
+be abstract and implemented by a subclass
 
-### 模板方法模式要点
+### Template Method pattern key points
 
-1. 模板方法定义了算法的步骤把这些步骤的实现延迟到子类
-2. 模板方法模式为我们提供了一种代码复用的重要技巧
-3. 模板方法的抽象类可以定义具体方法,抽象方法和钩子
-4. 抽象方法由子类实现
-5. 钩子是一种方法, 它在抽象类中不做事或者只做缺省的事情, 但子类可以覆盖它
-6. 为防止子类改变模板方法中的算法, 可以把模板方法声明为 `final`
-7. [好莱坞原则](#好莱坞原则于模板方法)告诉我们, 把决策权放在高层模块中(调用者), 以便决定如何以及和是调用低层模块
-8. 你会在现实世界代码中看到模板方法模式大量使用, 但(任何模式都是)不奥期待它们全都是 "按书本" 设计的
-9. 策略模式和模板方法模式都封装算法, 前者通过组合, 后者通过继承
-10. 工厂方法是模板方法的一个特例
+1. A template method defines the steps of an algorithm, deferring to subclasses for the
+   implementation of those steps
+2. The Template Method pattern gives us an important technique for code reuse
+3. The template method's abstract class may define concrete methods, abstract methods and hooks
+4. Abstract methods are implemented by subclasses
+5. A hook is a method that does nothing or default behavior in the abstract class, but may be
+   overridden in the subclass
+6. To prevent subclasses from changing the algorithm in the template method, declare the template
+   method as `final`
+7. The [Hollywood Principle](#the-hollywood-principle-and-template-method) tells us to put decision
+   making in high-level modules (callers) that can decide how and when to call low-level modules
+8. You'll see lots of uses of the Template Method pattern in real-world code, but (as with any
+   pattern) don't expect it all to be designed "by the book"
+9. The Strategy and Template Method patterns both encapsulate algorithms, the first by composition
+   and the other by inheritance
+10. Factory Method is a specialization of Template Method
 
-### 模板方法模式类图
+### Template Method pattern class diagram
 
 ```plantuml
 @startuml
@@ -3897,33 +4139,38 @@ abstract AbstractClass {
     # hook()
 }
 note top of AbstractClass
-抽象类(Abstract­Class)会声明作为算法步骤的方法， 
-以及依次调用它们的实际模板方法。 
-算法步骤可以被声明为 抽象类型， 也可以提供一些默认实现。
+The Abstract Class declares methods that act as steps of an algorithm,
+as well as the actual template method which calls these methods in a specific order.
+The steps may either be declared abstract or have some default implementation.
 end note
 
 note left of AbstractClass::templateMethod
-AbstractClass (抽象类) 包含模板方法
-模板方法用原语操作来实现算法
-它从这些操作的实际实现解耦
+The AbstractClass contains the template method
+The template method uses the primitive operations to implement an algorithm
+It is decoupled from the actual implementation of these operations
 
 public void primitiveOperation1() {
-    // 原语操作1, 子类必须实现
+    // primitive operation 1, subclasses must implement
     primitiveOperation1();
-    // 原语操作2, 子类必须实现
+    // primitive operation 2, subclasses must implement
     primitiveOperation2();
-    // 钩子函数: 有默认实现, 子类可以选择是否忽略
+    // hook: has a default implementation, subclasses may choose to ignore it
     hook();
 }
 end note
-note "以及模板方法所用到的操作的抽象方法\nprimitiveOperation1\nprimitiveOperation2" as primitiveOperation_note
+note as primitiveOperation_note
+and abstract versions of the operations used in the template method
+primitiveOperation1
+primitiveOperation2
+end note
 primitiveOperation_note .left. AbstractClass::primitiveOperation1
 primitiveOperation_note .left. AbstractClass::primitiveOperation2
 
 note left of AbstractClass::hook
-钩子时一个声明在抽象类中的方法, 但它只给出空的或缺省的实现.
-这个给了子类在变化店 "挂钩进" 算法的能力, 
-如果需要子类也有权忽略钩子
+A hook is a method declared in the abstract class, but only given an empty or default
+implementation.
+This gives subclasses the ability to "hook into" the algorithm at various points,
+and subclasses are also free to ignore the hook
 end note
 
 class ConcreteClass extends AbstractClass {
@@ -3931,18 +4178,18 @@ class ConcreteClass extends AbstractClass {
     # primitiveOperation2()
 }
 note bottom of ConcreteClass
-具体类(Concrete­Class)可以重写所有步骤，
-但不能重写模板方法自身。
+Concrete Classes can override all of the steps,
+but not the template method itself.
 end note
 
 note left of ConcreteClass
-可能由很多 ConcreteClass (忽略钩子的具体类)
-每一个都实现模板方法所需的全部操作
+There may be many ConcreteClasses (concrete classes that ignore the hook)
+each implementing the full set of operations required by the template method
 end note
 
 note right of ConcreteClass
-ConcreteClass实现抽象操作
-当 templateMethod() 需要它们时, 就被调用
+The ConcreteClass implements the abstract operations,
+which are called when templateMethod() needs them
 end note
 
 
@@ -3953,42 +4200,42 @@ class ConcreteWithHookClass extends AbstractClass {
 }
 
 note bottom of ConcreteWithHookClass
-实现钩子的具体类(ConcreteWithHookClass)
+Concrete class implementing the hook (ConcreteWithHookClass)
 end note
 
 @enduml
 ```
 
-### 模板方法模式例子: 星巴克煮茶和煮咖啡
+### Template Method pattern example: Starbucks tea and coffee
 
-在星巴克中煮茶和煮咖啡遵循一以下冲泡法
+At Starbucks, making tea and coffee follow these recipes
 
-星巴克咖啡冲泡法
-1. 把水煮沸腾
-2. 用沸水冲泡咖啡
-3. 把咖啡倒进杯子
-4. 加糖和奶
+Starbuzz coffee recipe
+1. Boil some water
+2. Brew coffee in boiling water
+3. Pour coffee in cup
+4. Add sugar and milk
 
-星巴克茶冲泡法
-1. 把水煮沸腾
-2. 用沸水冲浸泡茶叶
-3. 把茶倒进杯子
-4. 加柠檬
+Starbuzz tea recipe
+1. Boil some water
+2. Steep tea in boiling water
+3. Pour tea in cup
+4. Add lemon
 
-我们来扮演 "代码师傅", 编写一些创建咖啡和茶的代码
+Let's play "coding barista" and write some code for creating coffee and tea
 
 ```java
-// 咖啡
+// Coffee
 public class Coffee {
  
     void prepareRecipe() {
-        // 1. 把水煮沸腾
+        // 1. Boil some water
         boilWater();
-        // 2. 用沸水冲泡咖啡
+        // 2. Brew coffee in boiling water
         brewCoffeeGrinds();
-        // 3. 把咖啡倒进杯子
+        // 3. Pour coffee in cup
         pourInCup();
-        // 4. 加糖和奶
+        // 4. Add sugar and milk
         addSugarAndMilk();
     }   
  
@@ -4009,17 +4256,17 @@ public class Coffee {
     }   
 }
 
-// 茶叶
+// Tea
 public class Tea {
 
     void prepareRecipe() {
-        // 1. 把水煮沸腾
+        // 1. Boil some water
         boilWater();
-        // 2. 用沸水冲浸泡茶叶
+        // 2. Steep tea in boiling water
         steepTeaBag();
-        // 3. 把茶倒进杯子
+        // 3. Pour tea in cup
         pourInCup();
-        // 4. 加柠檬
+        // 4. Add lemon
         addLemon();
     }
 
@@ -4041,12 +4288,14 @@ public class Tea {
 }
 ```
 
-比较代码发现步骤1,3 一致, 2, 4 不一样所以抽象为模板方法类图如下
+Comparing the code, steps 1 and 3 are the same while 2 and 4 differ, so we abstract them into a
+template method; the class diagram is as follows
 
-请注意我们
-1. 步骤2 用沸水冲泡咖啡 和 把咖啡倒进杯子 我们统称为酿造(brew)
-2. 步骤4 加柠檬 和 加糖和奶 我们统一称为添加调味(addCondiments)
-3. 添加调味我们添加钩子函数 customerWantsCondiments (消费者想要调料) 来判断是否需要调料
+Note that
+1. For step 2, brewing coffee in boiling water and steeping tea, we call both "brew"
+2. For step 4, adding lemon and adding sugar and milk, we call both "add condiments" (addCondiments)
+3. For adding condiments we add a hook, customerWantsCondiments, to decide whether condiments are
+   needed
 
 
 
@@ -4062,13 +4311,14 @@ abstract CaffeineBeverage {
     # customerWantsCondiments()
 }
 
-note top of CaffeineBeverage : 咖啡因饮料抽象类
+note top of CaffeineBeverage : Abstract caffeine beverage class
 note left of CaffeineBeverage::prepareRecipe
-咖啡因饮料冲泡模板方法固定流程为
-1. 把水煮沸腾 boilWater()
-2. 酿造饮料 brew()
-3. 把饮料倒进杯子 pourInCup()
-4. 如果消费者想要调料 customerWantsCondiments(为钩子函数默认为需要) 则 添加调味 addCondiments()
+The fixed flow of the caffeine beverage brewing template method is
+1. Boil some water boilWater()
+2. Brew the beverage brew()
+3. Pour the beverage in the cup pourInCup()
+4. If the customer wants condiments customerWantsCondiments (a hook, true by default), add
+condiments addCondiments()
 end note
 
 class Coffee extends CaffeineBeverage {
@@ -4083,34 +4333,39 @@ class TeaWithHook extends CaffeineBeverage {
 }
 
 note left of TeaWithHook::customerWantsCondiments
-茶叶重载钩子函数customerWantsCondiments(消费者想要调料)
-去询问消费者是否需要
-如果不重载比如咖啡则默认需要
+Tea overrides the hook customerWantsCondiments
+to ask the customer whether they want condiments
+If it isn't overridden, as with coffee, condiments are added by default
 end note
 
-note "咖啡和茶叶特定方法留在子类中\n酿造饮料 brew()\n添加调味 addCondiments()" as CaffeineBeverage_note
+note as CaffeineBeverage_note
+Coffee- and tea-specific methods are left in the subclasses
+brew the beverage brew()
+add condiments addCondiments()
+end note
 CaffeineBeverage_note .up. TeaWithHook
 CaffeineBeverage_note .up. Coffee
 
-' 控制布局无意义
+' layout control, no meaning
 TeaWithHook .right[hidden]. Coffee
 
 @enduml
 ```
 
-代码如下
+The code is as follows
 
 ```java
 public abstract class CaffeineBeverage {
  
     final void prepareRecipe() {
-        // 1. 把水煮沸腾
+        // 1. Boil some water
         boilWater();
-        // 2. 酿造饮料
+        // 2. Brew the beverage
         brew();
-        // 3. 把饮料倒进杯子
+        // 3. Pour the beverage in the cup
         pourInCup();
-        // 4.  如果消费者想要调料 customerWantsCondiments(为钩子函数默认为需要) 则 添加调味 addCondiments()
+        // 4.  If the customer wants condiments customerWantsCondiments (a hook, true by default),
+        // add condiments addCondiments()
         if (customerWantsCondiments()) {
             addCondiments();
         }   
@@ -4186,9 +4441,10 @@ public class TeaWithHook extends CaffeineBeverage {
 
 ```
 
-### 好莱坞原则于模板方法
+### The Hollywood Principle and Template Method
 
-模板方法模式符合好莱坞原则, 以 茶叶,咖啡冲泡法为例
+The Template Method pattern follows the Hollywood Principle; take the tea and coffee recipes as an
+example
 
 ```plantuml
 @startuml
@@ -4203,14 +4459,14 @@ abstract CaffeineBeverage {
     # customerWantsCondiments()
 }
 note left of CaffeineBeverage
-CaffeineBeverage 是我们的高层组件. 它控制冲泡的算法
-只有在需要子类实现某个方法时, 才调用子类
+CaffeineBeverage is our high-level component. It has control over the algorithm for the recipe
+and calls on the subclasses only when they're needed for the implementation of a method
 end note
 
 note right of CaffeineBeverage
-饮料的客户依赖 CaffeineBeverage 抽象
-而不依赖具体的 Tea 或 Coffee
-这减少了整个系统中的依赖
+Clients of beverages depend on the CaffeineBeverage abstraction
+rather than on a concrete Tea or Coffee
+This reduces dependencies in the overall system
 end note
 
 class Coffee extends CaffeineBeverage {
@@ -4224,7 +4480,10 @@ class TeaWithHook extends CaffeineBeverage {
     # customerWantsCondiments()
 }
 
-note "子类只简单用来提供实现细节\n如果没先被'调用'Tea和Coffee绝不会直接调用抽象类" as CaffeineBeverage_note
+note as CaffeineBeverage_note
+The subclasses are used simply to provide implementation details
+Tea and Coffee never call the abstract class directly without being 'called' first
+end note
 CaffeineBeverage_note .up. Coffee
 CaffeineBeverage_note .up. TeaWithHook
 
@@ -4232,11 +4491,13 @@ CaffeineBeverage_note .up. TeaWithHook
 @enduml
 ```
 
-### 模板方法模式例子: JAVA排序
+### Template Method pattern example: Java sorting
 
-java  Arrays排序数组,虽然没按照要求实现一个算法并让子类通过步骤的实现,但正如我们知道的, 真实情况中的模式不可能和教科书中的一致
+Java's Arrays sorting doesn't implement an algorithm with steps that subclasses fill in as the
+textbook says, but as we know, patterns in the real world are never exactly like the textbook
 
-这个排序实现看起来更像策略模式, 但 Arrays 为 sort 实现的算法并不完整, 所以它更像模板方法
+This sort implementation looks more like the Strategy pattern, but the algorithm Arrays implements
+for sort is incomplete, so it's more like Template Method
 
 ```java
 class Arrays {
@@ -4247,9 +4508,10 @@ class Arrays {
 
     public void static mergeSort(Object[] src, Object[] dest[] int low, int high, int off) {
         for (int i = low; i < high; i++) {
-            // 我们需要实现compareTo()方法, 以 "填充" 模板方法
-            for (int j = i; j < low && ((Comparable)desc[j-1]).compareTo(((Comparable)desc[j])) > 0; j--) {
-                // 具体方法, 已经在数组类中定义
+            // We need to implement compareTo() to "fill in" the template method
+            for (int j = i; j < low
+                    && ((Comparable)desc[j-1]).compareTo(((Comparable)desc[j])) > 0; j--) {
+                // A concrete method, already defined in the Arrays class
                 swap(dest, j, j-1);
             }
         }
@@ -4313,19 +4575,24 @@ public class DuckSortTestDrive {
 ```
 
 
-## 迭代器模式
+## Iterator Pattern
 
-`迭代器模式`: 提供一种方式, 可以访问一个聚合对象中的元素而又不暴露其潜在的表示  
-`外部迭代器`: 客户通过调用next()取得下一个元素, 以此控制遍历  
-`内部迭代器`: 内部迭代器由迭代器自己控制, 在这种情况下, 因为迭代器在元素之间游走, 你不得不告诉迭代器在游走时对这些元素做什么时期, 也就是说,你要有办法把操作传递给迭代器
-
-
-这个模式给你了一种遍历聚合元素而又不必知道事物在底层如何表达的方式.
-
-迭代器模式拿走了遍历元素的责任, 把它交给迭代器对象, 而不是聚合对象
+`Iterator pattern`: provides a way to access the elements of an aggregate object without exposing
+its underlying representation  
+`External iterator`: the client controls the iteration by calling next() to get the next element  
+`Internal iterator`: the iterator itself controls the iteration; in this case, because the iterator
+walks through the elements, you have to tell it what to do with the elements as it goes, i.e. you
+need a way to pass an operation to the iterator
 
 
-### 迭代器模式类图
+This pattern gives you a way to step through the elements of an aggregate without having to know how
+things are represented under the covers.
+
+The Iterator pattern takes the responsibility of traversing elements and gives it to the iterator
+object, not the aggregate object
+
+
+### Iterator pattern class diagram
 
 ```plantuml
 @startuml
@@ -4335,8 +4602,8 @@ interface Aggregate<T> {
 }
 
 note top of Aggregate
-聚合(Aggregate)有一个共同的接口, 这对客户来说是很方便
-它把客户从集合对象的实现解耦
+Having a common interface for your aggregates is handy for your client;
+it decouples your client from the implementation of your collection of objects
 end note
 
 class ConcreteAggregate<T> implements Aggregate {
@@ -4344,9 +4611,10 @@ class ConcreteAggregate<T> implements Aggregate {
 }
 
 note bottom of ConcreteAggregate
-具体聚合(ConcreteAggregate) 有一个对象的集合,
-并实现一个方法, 该方法返回集合的迭代器
-每一个 ConcreteAggregate 负责实例化一个能够遍历其对象集合的 ConcreteIterator
+The ConcreteAggregate has a collection of objects
+and implements the method that returns an Iterator for its collection
+Each ConcreteAggregate is responsible for instantiating a ConcreteIterator that can iterate over its
+collection of objects
 end note
 
 ConcreteAggregate -right--> ConcreteIterator
@@ -4366,10 +4634,10 @@ interface Iterator<T> {
 }
 
 note top of Iterator
-迭代器(Iterator)接口提供了所有迭代器都必须实现的接口
-它提供了一个遍历集合元素的方法集
-在这里, 我们用的是java.util.Iterator
-如果你不想用Java的迭代器接口可以创建自己的接口
+The Iterator interface provides the interface that all iterators must implement
+and a set of methods for traversing the elements of a collection
+Here we're using java.util.Iterator
+If you don't want to use Java's Iterator interface, you can create your own
 end note
 
 class ConcreteIterator<T> implements Iterator {
@@ -4379,57 +4647,63 @@ class ConcreteIterator<T> implements Iterator {
 }
 
 note bottom of ConcreteIterator
-具体迭代器(ConcreteIterator) 负责管理当前遍历的位置
+The ConcreteIterator is responsible for managing the current position of the iteration
 end note
 
-note "迭代器模式的类图于工厂模式的类图相似" as all_note
+note "The Iterator pattern's class diagram is similar to the Factory pattern's" as all_note
 
 @enduml
 ```
 
-### 迭代器模式要点
+### Iterator pattern key points
 
-1. 迭代器允许访问聚合的元素, 而不暴露其内部结构
-2. 迭代器将遍历聚合的工作取出并封装进一个对象
-3. 当使用迭代器时, 在支持遍历数据的操作方面,我们减轻了聚合的责任
-4. 迭代器提供了一个遍历聚合项的共同接口, 当我们编码使用聚项时,就可以使用多态
-5. Iterable接口让我们能够获取迭代器和时哦嗯Java的 enchaced for loop
-6. 我们应该致力于只为一个类分配一个责任
+1. An iterator allows access to an aggregate's elements without exposing its internal structure
+2. An iterator takes the job of iterating over an aggregate and encapsulates it in another object
+3. When using an iterator, we relieve the aggregate of the responsibility of supporting operations
+   for traversing its data
+4. An iterator provides a common interface for traversing the items of an aggregate, allowing you to
+   use polymorphism when writing code that makes use of the items
+5. The Iterable interface lets us get an iterator and use Java's enhanced for loop
+6. We should strive to assign only one responsibility to each class
 
-### 迭代器模式例子:餐厅菜单
+### Iterator pattern example: restaurant menus
 
-对象村餐厅和对象村煎饼屋合并, 现在我们可以在同一个地方, 享用煎饼屋美味的煎饼早餐, 以及好吃的餐厅午餐.  
-虽然煎饼屋和餐厅都同意使用MenuItem(菜单项),但是煎饼屋使用 ArrayList<MenuItem> 实现菜单, 餐厅使用 MenuItem[] 实现菜单  
-在遍历打印煎饼屋和餐厅的菜单时候就需要实现两个不同的循环
+Objectville Diner and Objectville Pancake House have merged, so now we can enjoy great pancake
+breakfasts from the Pancake House and good lunches from the Diner in one place.  
+Although both agreed on using MenuItem, the Pancake House implements its menu with
+ArrayList<MenuItem> while the Diner uses MenuItem[]  
+So printing the Pancake House and Diner menus requires two different loops
 
-我们可以封装遍历吗?
-1. 要遍历早餐项, 我们用ArrayList的size()和get()方法
+Can we encapsulate the iteration?
+1. To iterate through the breakfast items, we use the size() and get() methods of ArrayList
     > for (intt i = 0; i < breakfastItems.size(); i++) {  
     >     MenuItem menuItem = breakfastItems.get(i);  
     > }  
 
-2. 要遍历无餐项, 我们用数组的length字段以及数组下标标记
+2. To iterate through the lunch items, we use the array's length field and the array subscript
+   notation
     > for (intt i = 0; i < lunchItems.size(); i++) {  
     >     MenuItem menuItem = lunchItems[]i];  
     > }  
 
-3. 现在我们创建一个对象, 我们称为迭代器(Iterator), 它封装遍历对象集合的方式, 我们在 ArrayList 上试试
+3. Now we create an object, which we'll call an Iterator, that encapsulates the way we iterate
+   through a collection of objects; let's try it on the ArrayList
     > Iterator iterator = breakfastMenu.createIterator();  
     > while(iterator.hasNext()) {  
     >    MenuItem menuItem = iterator.next();  
     > }  
 
-4. 在数组上也试试
+4. Let's try it on the array too
     > Iterator iterator = lunchMenu.createIterator();  
     > while(iterator.hasNext()) {  
     >    MenuItem menuItem = iterator.next();  
     > }  
 
-代码如下:
+The code is as follows:
 
 ```java
 
-// 菜单项
+// Menu item
 public class MenuItem {
     String name;
     String description;
@@ -4463,7 +4737,7 @@ public class MenuItem {
     }
 }
 
-// 菜单
+// Menu
 public interface Menu {
     public Iterator<MenuItem> createIterator();
 }
@@ -4472,7 +4746,7 @@ public interface Menu {
 import java.util.ArrayList;    
 import java.util.Iterator;     
     
-// 煎饼屋菜单实现
+// Pancake House menu implementation
 public class PancakeHouseMenu implements Menu {
     ArrayList<MenuItem> menuItems;  
  
@@ -4480,7 +4754,8 @@ public class PancakeHouseMenu implements Menu {
         menuItems = new ArrayList<MenuItem>();
         addItem("K&B's Pancake Breakfast", "Pancakes with scrambled eggs, and toast", true, 2.99);
         addItem("Regular Pancake Breakfast", "Pancakes with fried eggs, sausage", false,2.99);
-        addItem("Blueberry Pancakes", "Pancakes made with fresh blueberries, and blueberry syrup", true, 3.49);\
+        addItem("Blueberry Pancakes",
+                "Pancakes made with fresh blueberries, and blueberry syrup", true, 3.49);\
         addItem("Waffles", "Waffles, with your choice of blueberries or strawberries", true, 3.59);
     }
 
@@ -4501,7 +4776,7 @@ public class PancakeHouseMenu implements Menu {
 
 import java.util.Iterator;
 
-// 餐厅菜单
+// Diner menu
 public class DinerMenu implements Menu {
     static final int MAX_ITEMS = 6;
     int numberOfItems = 0;
@@ -4510,12 +4785,15 @@ public class DinerMenu implements Menu {
     public DinerMenu() {
         menuItems = new MenuItem[MAX_ITEMS];
 
-        addItem("Vegetarian BLT", "(Fakin') Bacon with lettuce & tomato on whole wheat", true, 2.99);
+        addItem("Vegetarian BLT",
+                "(Fakin') Bacon with lettuce & tomato on whole wheat", true, 2.99);
         addItem("BLT", "Bacon with lettuce & tomato on whole wheat", false, 2.99);
         addItem("Soup of the day", "Soup of the day, with a side of potato salad", false, 3.29);
-        addItem("Hotdog", "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
+        addItem("Hotdog",
+                "A hot dog, with saurkraut, relish, onions, topped with cheese", false, 3.05);
         addItem("Steamed Veggies and Brown Rice", "Steamed vegetables over brown rice", true, 3.99);
-        addItem("Pasta", "Spaghetti with Marinara Sauce, and a slice of sourdough bread", true, 3.89);
+        addItem("Pasta",
+                "Spaghetti with Marinara Sauce, and a slice of sourdough bread", true, 3.89);
     }
 
     public void addItem(String name, String description, boolean vegetarian, double price) {
@@ -4533,7 +4811,7 @@ public class DinerMenu implements Menu {
     }
 
     public Iterator<MenuItem> createIterator() {
-        // 返回餐厅菜单迭代器
+        // Return the Diner menu iterator
         return new DinerMenuIterator(menuItems);
         //return new AlternatingDinerMenuIterator(menuItems);
     }
@@ -4543,7 +4821,7 @@ public class DinerMenu implements Menu {
 
 import java.util.Iterator;
 
-// 餐厅菜单迭代器
+// Diner menu iterator
 public class DinerMenuIterator implements Iterator<MenuItem> {
     MenuItem[] list;
     int position = 0;
@@ -4593,9 +4871,9 @@ public class Waitress {
     } 
       
     // implicit iteration
-    // 打印合并后的餐厅菜单项目
+    // Print the menu items of the merged restaurant
     public void printMenu() { 
-        // 未使用迭代器时候需要分别打印
+        // Without an iterator they have to be printed separately
         List<MenuItem> breakfastItems = ((PancakeHouseMenu) pancakeHouseMenu).getMenuItems();
         for (int i = 0; i < breakfastItems.size(); i++) { 
             printMenuItem(breakfastItems.get(i));
@@ -4606,7 +4884,7 @@ public class Waitress {
             printMenuItem(lunchItems[i]);
         } 
 
-        // 使用迭代器后统一打印
+        // With an iterator they can be printed uniformly
         Iterator<MenuItem> pancakeIterator = pancakeHouseMenu.createIterator();
         Iterator<MenuItem> dinerIterator = dinerMenu.createIterator();
 
@@ -4650,7 +4928,7 @@ class PancakeHouseMenu implements Menu {
 }
 
 note bottom of PancakeHouseMenu
-煎饼屋菜单
+Pancake House menu
 end note
 
 class DinerMenu implements Menu {
@@ -4660,14 +4938,14 @@ class DinerMenu implements Menu {
 }
 
 note bottom of DinerMenu
-餐厅菜单
+Diner menu
 end note
 
 class Waitress {
     printMenu()
 }
 
-note top of Waitress : 招待员只关心 Menu和Iterator
+note top of Waitress : The Waitress only cares about Menu and Iterator
 
 
 interface Iterator {
@@ -4683,8 +4961,8 @@ class PancakeHouseMenuIterator implements Iterator {
 }
 
 note bottom of PancakeHouseMenuIterator
-煎饼屋菜单的迭代器使用java.util提供的 ArrayList 迭代器
-不再使用这个类
+The Pancake House menu iterator uses the ArrayList iterator provided by java.util
+This class is no longer used
 end note
 
 class DinerMenuIterator implements Iterator {
@@ -4694,7 +4972,7 @@ class DinerMenuIterator implements Iterator {
 }
 
 note bottom of DinerMenuIterator
-餐厅菜单迭代器
+Diner menu iterator
 end note
 
 Waitress -left--> Menu
@@ -4703,16 +4981,21 @@ Waitress -right--> Iterator
 @enduml
 ```
 
-## 组合模式
+## Composite Pattern
 
-`组合模式`: 允许你将对象组合成树形结构来表现 部分-整体 层次结构. 组合让客户可以统一处理 个别对象(叶子节点) 和 对象组合 (非叶子节点)
+`Composite pattern`: lets you compose objects into tree structures to represent part-whole
+hierarchies. Composite lets clients treat individual objects (leaf nodes) and compositions of
+objects (non-leaf nodes) uniformly
 
-组合模式允许我们以树的形式创建对象结构, 树的节点包含对象组合和个别对象
+The Composite pattern lets us build structures of objects in the form of trees that contain both
+compositions of objects and individual objects as nodes
 
-使用组合结构, 我们可以对组合和个个别对象应用同样的操作. 换句话说, 在大多数情况下我们可以忽略对象组合和个别对象之间的差别
+Using a composite structure, we can apply the same operations over both composites and individual
+objects. In other words, in most cases we can ignore the differences between compositions of objects
+and individual objects
 
 
-### 组合模式类图
+### Composite pattern class diagram
 
 ```plantuml
 @startuml
@@ -4723,7 +5006,7 @@ class Client {
 }
 
 note top of Client
-Client 使用 Component 接口来使用组合中的对象
+The Client uses the Component interface to manipulate the objects in the composition
 end note
 
 abstract class Component {
@@ -4734,8 +5017,10 @@ abstract class Component {
 }
 
 note top of Component
-组件(Component) 为组合中的所有对象定义一个接口, 包括 组合 和 叶子
-Component 可能为 add(), remove(), getChild() 以及它的操作实现缺省行为(比如抛出异常)
+The Component defines an interface for all objects in the composition: both the composite and the
+leaf nodes
+The Component may implement default behavior (e.g. throwing an exception) for add(), remove(),
+getChild() and its operations
 end note
 
 class Left extends Component {
@@ -4743,10 +5028,12 @@ class Left extends Component {
 }
 
 note bottom of Left
-叶子节点(Left)
-1. 叶子节点也继承像add(),remove(),getChild()这样的方法,这些方法对叶子节点不一定有意义
-2. 叶子节点没有孩子节点
-3. 通过实现 Composite 支持的操作, 叶子为 Composite 内的元素定义行为
+Leaf
+1. A leaf also inherits methods like add(), remove() and getChild(), which don't necessarily make a
+lot of sense for a leaf node
+2. A leaf has no children
+3. A leaf defines the behavior for the elements in the composition by implementing the operations
+the Composite supports
 end note
 
 class Composite extends Component {
@@ -4759,8 +5046,9 @@ class Composite extends Component {
 }
 
 note bottom of Composite
-组合/容器(Composite)是定义有孩子的组件的行为
-Composite也实现叶子相关的操作. 主要其中一些操作可能对 Composite没有意义,因此这个情况下可能会产生异常
+The Composite (container) defines the behavior of the components having children
+The Composite also implements the leaf-related operations. Note that some of these may not make
+sense on a Composite, so in that case an exception might be generated
 end note
 
 Client -right--> Component
@@ -4770,58 +5058,65 @@ Composite --> Component
 @enduml
 ```
 
-### 组合模式要点
+### Composite pattern key points
 
-1. 组合模式违反了单一责任原则, 它是用单一责任原则来换取透明性,即通过允许组件接口包含孩子的管理操作和叶子操作,使得客户可以统一地对待组合和叶子,因此客户来说一个元素是组合还是叶子节点,对于客户来说是透明的
-2. 组合模式允许客户统一地处理组合和个别对象
-3. 组合结构内的任意对象称为组件. 组件可以是其他组合或者叶子
-4. 实现组合模式有许多设计上的折衷. 你要根据需要平衡透明和安全
+1. The Composite pattern violates the Single Responsibility Principle; it trades single
+   responsibility for transparency: by allowing the Component interface to contain both child
+   management operations and leaf operations, a client can treat composites and leaves uniformly, so
+   whether an element is a composite or a leaf is transparent to the client
+2. The Composite pattern allows clients to treat composites and individual objects uniformly
+3. Any object in a composite structure is called a component. Components may be other composites or
+   leaves
+4. There are many design tradeoffs in implementing Composite. You need to balance transparency and
+   safety with your needs
 
-### 组合模式例子: 餐厅菜单
+### Composite pattern example: restaurant menus
 
-一家餐厅的菜单中存在子菜单(为一颗树), 大概结构如下
+A restaurant's menu contains submenus (a tree), roughly structured like this
 
-意思时如果我们有了树形结构的菜单,子菜单可能还有子子菜单以及菜单项, 那么任何菜单都是一个 '组合' , 因为它可以包含其他菜单和菜单项. 个别对象就是菜单项, 它们不持有其他对象
+This means that once we have a tree-shaped menu, where submenus may contain further submenus and
+menu items, any menu is a 'composite' because it can contain other menus and menu items. The
+individual objects are just the menu items; they don't hold other objects
 
 
 ```plantuml
 @startuml
 
-() 所有菜单
-() 煎饼屋菜单
-() 餐厅菜单
+() AllMenus
+() PancakeHouseMenu
+() DinerMenu
 
-() 煎饼屋菜单1
-() 煎饼屋菜单2
-() 煎饼屋菜单3
+() PancakeHouseMenu1
+() PancakeHouseMenu2
+() PancakeHouseMenu3
 
-() 餐厅菜单1
-() 餐厅菜单2
-() 餐厅菜单3
+() DinerMenu1
+() DinerMenu2
+() DinerMenu3
 
-() 甜点菜单
-() 甜点菜单1
-() 甜点菜单2
-() 甜点菜单3
+() DessertMenu
+() DessertMenu1
+() DessertMenu2
+() DessertMenu3
 
-所有菜单 --> 煎饼屋菜单
-所有菜单 --> 餐厅菜单
+AllMenus --> PancakeHouseMenu
+AllMenus --> DinerMenu
 
-煎饼屋菜单 --> 煎饼屋菜单1
-煎饼屋菜单 --> 煎饼屋菜单2
-煎饼屋菜单 --> 煎饼屋菜单3
+PancakeHouseMenu --> PancakeHouseMenu1
+PancakeHouseMenu --> PancakeHouseMenu2
+PancakeHouseMenu --> PancakeHouseMenu3
 
-餐厅菜单 --> 餐厅菜单1
-餐厅菜单 --> 餐厅菜单2
-餐厅菜单 --> 餐厅菜单3
-餐厅菜单 --> 甜点菜单
+DinerMenu --> DinerMenu1
+DinerMenu --> DinerMenu2
+DinerMenu --> DinerMenu3
+DinerMenu --> DessertMenu
 
-甜点菜单 --> 甜点菜单1
-甜点菜单 --> 甜点菜单2
-甜点菜单 --> 甜点菜单3
+DessertMenu --> DessertMenu1
+DessertMenu --> DessertMenu2
+DessertMenu --> DessertMenu3
 @enduml
 ```
-类图如下
+The class diagram is as follows
 
 ```plantuml
 @startuml
@@ -4830,7 +5125,7 @@ class Waitress {
 
 }
 
-note top of Waitress : 服务员
+note top of Waitress : Waitress
 
 abstract class MenuComponent {
     getName()
@@ -4843,7 +5138,7 @@ abstract class MenuComponent {
     getChild(int i)
 }
 
-note top of MenuComponent : 菜单组件
+note top of MenuComponent : Menu component
 
 class MenuItem extends MenuComponent {
     getName()
@@ -4853,7 +5148,7 @@ class MenuItem extends MenuComponent {
     print()
 }
 
-note bottom of MenuItem : 菜单项(具体的菜名)
+note bottom of MenuItem : Menu item (a specific dish)
 
 class Menu extends MenuComponent {
     getName()
@@ -4864,7 +5159,7 @@ class Menu extends MenuComponent {
     getChild(int i)
 }
 
-note bottom of Menu : 菜单包含一系列菜
+note bottom of Menu : A menu contains a list of dishes
 
 
 Waitress -right--> MenuComponent
@@ -4872,7 +5167,7 @@ Waitress -right--> MenuComponent
 @enduml
 ```
 
-代码如下
+The code is as follows
 
 ```java
 import java.util.*;
@@ -5232,11 +5527,12 @@ public class MenuTestDrive {
 
 ```
 
-## 状态模式
+## State Pattern
 
-`状态模式`: 允许对象(Context)在内部状态改变时改变其行为. 对象(Context)看起来好像改变了它的类
+`State pattern`: allows an object (Context) to alter its behavior when its internal state changes.
+The object (Context) will appear to change its class
 
-### 状态模式类图
+### State pattern class diagram
 
 ```plantuml
 @startuml
@@ -5253,19 +5549,19 @@ class Context {
     + State getStateB()
 }
 note left of Context::currentState
-当前状态,无论和时Context上的request()被调用,
-就会被委托给状态(当前状态)来处理
+Whenever request() is called on the Context,
+it is delegated to the state (the current state) to handle
 end note
 
 note left of Context::stateA
-上下文(Context)这个类有很多内部状态.
+The Context is the class that can have a number of internal states.
 end note
 
 note left of Context::Context
-// 初始化所有状态
+// Initialize all states
 this.stateA = new ConcreteStateA(this);
 this.stateB = new ConcreteStateB(this);
-// 初始化当前状态
+// Initialize the current state
 this.currentState = stateA;
 // ...
 end note
@@ -5280,8 +5576,8 @@ abstract class State {
 }
 
 note top of State
-状态(State)接口定义了一个所有具体状态的共同接口
-所有状态都实现了这个相同的接口, 这一就可以互换
+The State interface defines a common interface for all concrete states
+All the states implement the same interface, so they are interchangeable
 end note
 
 
@@ -5300,19 +5596,23 @@ class ConcreteStateB extends State {
 }
 note left of ConcreteStateA::handle
 // ...
-// 可能切换上下文中的状态(动态时由State控制)
-// 一般状态迁移固定时适合由Context控制
+// May switch the state in the context (when dynamic, controlled by State)
+// When state transitions are fixed, it's usually better for Context to control them
 this.context.changeState(this.context.getStateB());
 end note
 
-note "ConcreteState(具体状态)处理来自Context的请求.\n每一个ConcreteState都提供它自己对于请求的实现.\n这样,当Context改变状态时,行为也跟着改变" as ConcreteState_note
+note as ConcreteState_note
+ConcreteStates handle requests from the Context.
+Each ConcreteState provides its own implementation for a request.
+In this way, when the Context changes state, its behavior will change as well
+end note
 ConcreteState_note .up. ConcreteStateA
 
 class Client {}
 note top of Client
 Context context = new Context();
-context.request(); // 相当于执行    : stateA.handle()
-context.request(); // 状态迁移相当于: stateB.handle()
+context.request(); // equivalent to executing   : stateA.handle()
+context.request(); // after a transition, equivalent to: stateB.handle()
 end note
 
 
@@ -5322,100 +5622,115 @@ Context -right-> State
 @enduml
 ```
 
-### 状态模式讨论
+### State pattern discussion
 
-1. 状态和策略模式有相同的类图, 但它们的意图不同
-    > 对于状态模式, 我们把一组行为封装进状态对象, context 随时(把责任)委托给这些状态之一. 随着时间的推移, 当前状态不断在各个状态对象之间改变, 以反映context的内部状态, 因此, context 的行为也随着时间的推移而改变. 客户通常对状态对象知道得很少, 甚至不知道  
-    > 对于策略模式, 客户通常指定context要组合的策略对象. 现在, 虽然模式提供了弹性, 可以在运行时改变策略对象, 但对于一个context对象来说, 经常有一个最合适的策略对象  
-    > 一般来说, 把策略模式想成子类化的一个弹性替代方案; 如何你使用继承定义了一个类的行为, 那么你就和这个行为粘在一起了, 很难改变  
-    > 把状态模式想成在context中放进于多条件的一个替代方案, 通过把行为封装进状态对象, 你可以简单地在context中改变状态对象来改变其行为  
+1. The State and Strategy patterns have the same class diagram, but they differ in intent
+    > With the State pattern, we have a set of behaviors encapsulated in state objects; at any time
+    > the context is delegating to one of those states. Over time, the current state changes across
+    > the set of state objects to reflect the internal state of the context, so the context's
+    > behavior changes over time as well. The client usually knows very little, if anything, about
+    > the state objects  
+    > With Strategy, the client usually specifies the strategy object that the context is composed
+    > with. Now, while the pattern provides the flexibility to change the strategy object at
+    > runtime, often there is a strategy object that's most appropriate for a context object  
+    > In general, think of the Strategy pattern as a flexible alternative to subclassing; if you use
+    > inheritance to define the behavior of a class, you're stuck with that behavior and it's hard
+    > to change  
+    > Think of the State pattern as an alternative to putting lots of conditionals in your context;
+    > by encapsulating the behaviors within state objects, you can simply change the state object in
+    > context to change its behavior  
 
-2. 状态迁移可以由State类或Context类控制: 一般状态迁移固定时适合由Context控制, 动态时由State控制, 但由State控制会造成状态类之间的依赖
-3. 状态由Context使用,代表其内部状态和行为, 客户不直接跟状态交互
+2. State transitions can be controlled by the State classes or by the Context class: when
+   transitions are fixed, it's usually better for the Context to control them; when dynamic, the
+   State controls them, but controlling them from State creates dependencies between the state
+   classes
+3. States are used by the Context to represent its internal state and behavior; clients don't
+   interact with the states directly
 
-### 状态模式要点
+### State pattern key points
 
-1. 状态模式允许一个对象基于内部状态拥有许多不同的行为
-2. 和过程式状态机不同, 状态模式用真正的类代表每个状态
-3. Context把行为委托给所组合的当前状态对象
-4. 通过把每个状态封装进一个类, 我们把以后需要做的任何变化局部化了.
-5. 状态和策略模式有相同的类图, 但它们的意图不同
-6. 策略模式通常会用行为或算法来配置Context类
-7. 状态模式允许Context随这状态改变而改变行为
-8. 状态迁移可以由State类或Context类控制.
-9. 状态类可以在多个Context实例之间共享
+1. The State pattern allows an object to have many different behaviors that are based on its
+   internal state
+2. Unlike a procedural state machine, the State pattern represents each state as a full-blown class
+3. The Context gets its behavior by delegating to the current state object it is composed with
+4. By encapsulating each state into a class, we localize any changes that will need to be made.
+5. The State and Strategy patterns have the same class diagram, but they differ in intent
+6. The Strategy pattern typically configures Context classes with a behavior or algorithm
+7. The State pattern allows a Context to change its behavior as the state of the Context changes
+8. State transitions can be controlled by the State classes or by the Context classes.
+9. State classes may be shared among Context instances
 
-### 状态模式例子: 糖果机
+### State pattern example: gumball machine
 
-糖果机有以下几个状态
+The gumball machine has the following states
 
-1. 没有25分钱
-2. 有25分钱
-3. 赢家
-4. 糖果已售出
-5. 糖果已售馨
+1. No quarter
+2. Has quarter
+3. Winner
+4. Gumball sold
+5. Out of gumballs
 
-操作如下
+The operations are as follows
 
-1. 投入25分钱: insertQuarter()
-2. 吐25分钱: ejectQuarter()
-3. 转动曲柄: turnCrank()
-4. 发放糖果(发放更多时候时糖果机自己调用自己的内部方法) : dispense()
-5. 补充糖果 : refill()
+1. Insert a quarter: insertQuarter()
+2. Eject the quarter: ejectQuarter()
+3. Turn the crank: turnCrank()
+4. Dispense a gumball (an internal method the machine calls on itself) : dispense()
+5. Refill the gumballs : refill()
 
-其中状态机如下
+The state machine is as follows
 
 ```plantuml
 @startuml
 
 
-[*] -> 没有25分钱
-没有25分钱 --> 有25分钱 : 投入25分钱 \n insertQuarter()
-有25分钱 --> 没有25分钱 : 吐25分钱 \n ejectQuarter()
+[*] -> NoQuarter
+NoQuarter --> HasQuarter : insert quarter \n insertQuarter()
+HasQuarter --> NoQuarter : eject quarter \n ejectQuarter()
 
-state 是否有赢家 <<choice>>
-有25分钱 --> 是否有赢家 : 转动曲柄 \n turnCrank()
-是否有赢家 --> 赢家 : [我们有一个赢家]
-是否有赢家 --> 糖果已售出 : [我们没有一个赢家]
+state IsWinner <<choice>>
+HasQuarter --> IsWinner : turn crank \n turnCrank()
+IsWinner --> Winner : [we have a winner]
+IsWinner --> Sold : [we don't have a winner]
 
-state 是否糖果已售馨 <<choice>>
-糖果已售出 --> 是否糖果已售馨 : 发放糖果 \n dispense()
-是否糖果已售馨 --> 没有25分钱 : [糖果数目>0]
-是否糖果已售馨 --> 糖果已售馨 : [糖果数目=0]
+state IsSoldOut <<choice>>
+Sold --> IsSoldOut : dispense gumball \n dispense()
+IsSoldOut --> NoQuarter : [gumballs > 0]
+IsSoldOut --> SoldOut : [gumballs = 0]
 
-state 赢家是否糖果已售馨 <<choice>>
-赢家 --> 赢家是否糖果已售馨 : 赢家发放2颗糖果 \n dispense()
-赢家是否糖果已售馨 --> 没有25分钱 : [糖果数目>0]
-赢家是否糖果已售馨 --> 糖果已售馨 : [糖果数目=0]
-糖果已售馨 --> 没有25分钱 : 补充糖果 \n refill()
+state WinnerIsSoldOut <<choice>>
+Winner --> WinnerIsSoldOut : winner gets 2 gumballs \n dispense()
+WinnerIsSoldOut --> NoQuarter : [gumballs > 0]
+WinnerIsSoldOut --> SoldOut : [gumballs = 0]
+SoldOut --> NoQuarter : refill gumballs \n refill()
 
 @enduml
 ```
 
-代码如下
+The code is as follows
 
 ```java
 
-// 糖果机
+// Gumball machine
 public class GumballMachine {
  
-    // 转态: 售罄
+    // state: sold out
     State soldOutState;
-    // 转态: 没有25分钱
+    // state: no quarter
     State noQuarterState;
-    // 转态: 有25分钱
+    // state: has quarter
     State hasQuarterState;
-    // 转态: 售出
+    // state: sold
     State soldState;
-    // 转态: 赢家
+    // state: winner
     State winnerState;
  
-    // 当前状态
+    // current state
     State state = soldOutState;
     int count = 0;
  
     public GumballMachine(int numberGumballs) {
-        // 将上下文(GumballMachine/糖果机)存储到, 状态机上以便后续处理
+        // Store the context (GumballMachine) in the state so it can be used later
         soldOutState = new SoldOutState(this);
         noQuarterState = new NoQuarterState(this);
         hasQuarterState = new HasQuarterState(this);
@@ -5428,20 +5743,20 @@ public class GumballMachine {
         }   
     }   
  
-    // 投入25分钱
+    // insert a quarter
    public void insertQuarter() {
         state.insertQuarter();
     }
 
-    // 吐25分钱
+    // eject the quarter
     public void ejectQuarter() {
         state.ejectQuarter();
     }
 
-    // 转动曲柄
+    // turn the crank
     public void turnCrank() {
         state.turnCrank();
-        // 发放糖果(发放更多时候时糖果机自己调用自己的内部方法)
+        // dispense a gumball (an internal method the machine calls on itself)
         state.dispense();
     }
 
@@ -5449,7 +5764,8 @@ public class GumballMachine {
         this.state = state;
     }
 
-    // 这个机器支持一个releaseBall()的helper方法, 该方法放出糖果, 并将 count 实例变量的值减1
+    // The machine supports a releaseBall() helper method that releases the ball and decrements the
+    // count instance variable
     void releaseBall() {
         System.out.println("A gumball comes rolling out the slot...");
         if (count > 0) {
@@ -5461,10 +5777,11 @@ public class GumballMachine {
         return count;
     }
 
-    // 补充糖果
+    // refill the gumballs
     void refill(int count) {
         this.count += count;
-        System.out.println("The gumball machine was just refilled; its new count is: " + this.count);
+        System.out.println("The gumball machine was just refilled; its new count is: "
+                + this.count);
         state.refill();
     }
 
@@ -5506,22 +5823,22 @@ public class GumballMachine {
     }
 }
 
-// 状态
+// State
 public interface State {
 
-    // 投入25分钱
+    // insert a quarter
     public void insertQuarter();
-    // 吐25分钱
+    // eject the quarter
     public void ejectQuarter();
-    // 转动曲柄
+    // turn the crank
     public void turnCrank();
-    // 发放糖果
+    // dispense a gumball
     public void dispense();
-    // 补充糖果
+    // refill the gumballs
     public void refill();
 }
 
-// 没有25分钱状态
+// No quarter state
 public class NoQuarterState implements State {
     GumballMachine gumballMachine;
 
@@ -5553,7 +5870,7 @@ public class NoQuarterState implements State {
     }
 }
 
-// 有25分钱状态
+// Has quarter state
 public class HasQuarterState implements State {
     Random randomWinner = new Random(System.currentTimeMillis());
     GumballMachine gumballMachine;
@@ -5591,7 +5908,7 @@ public class HasQuarterState implements State {
     }
 }
 
-// 赢家状态
+// Winner state
 public class WinnerState implements State {
     GumballMachine gumballMachine;
 
@@ -5635,7 +5952,7 @@ public class WinnerState implements State {
 }
 
 
-// 售出状态
+// Sold state
 public class SoldState implements State {
     GumballMachine gumballMachine;
 
@@ -5672,7 +5989,7 @@ public class SoldState implements State {
     }
 }
 
-// 售罄状态
+// Sold out state
 public class SoldOutState implements State {
     GumballMachine gumballMachine;
 
@@ -5705,7 +6022,7 @@ public class SoldOutState implements State {
     }
 }
 
-// 测试
+// Test
 public class GumballMachineTestDrive {
 
     public static void main(String[] args) {
@@ -5753,25 +6070,39 @@ public class GumballMachineTestDrive {
 
 ```
 
-## 代理模式
+## Proxy Pattern
 
-`代理模式`: 为另一个对象提供一个替身或占位符来控制对这个对象的访问
+`Proxy pattern`: provides a surrogate or placeholder for another object to control access to it
 
-使用代理模式创建代表对象. 代表对象控制对另一个对象的访问, 被代表对象的对象可以是远程对象,创建开销大的对象和需要安全控制的对象
+Use the Proxy pattern to create a representative object that controls access to another object,
+which may be remote, expensive to create, or in need of securing
 
-### 代理模式类型
+### Proxy pattern types
 
-1. `远程代理`: 作为另一个JVM上对象的本地代理. 调用代理的方法, 会通过网络转发到远程来调用, 结果返回i给代理, 再欧代理将结果转给客户
-2. `虚拟代理`: 控制对创建开销大的资源的访问, 作为创建开销大的对象的代表. 虚拟代理经常延迟对象的创建知道真正需要. 在对象创建前和创建是, 虚拟带来也会扮演对象的替身. 对象创建后, 带来就会将请求委托给RealSubject
-3. `保护代理`: 基于权限控制对象资源的访问
-4. `防火墙代理(Firewall Proxy)`: 控制网络资源的访问, 保护主题免于 "坏" 客户的侵害
-5. `智能引用代理(Smart Reference Proxy)`: 当主题被引用是, 提供额外的动作, 例如计算一个对象被引用的次数
-6. `缓存代理(caching Proxy)`: 为开销大的操作结果提供暂时存储: 它也允许多个客户共享结果, 以减少计算或网络延迟
-7. `同步代理(Synchronization Proxy)`: 在多线程的情况下为主题提供安全访问
-8. `复杂隐藏代理(Complexity Hiding Proxy)`: 用来隐藏一个类的复杂集合的复杂度, 并控制访问. 有时候也称为外观代理(Facade Proxy), 这不难理解. 复杂代理和外观模式的区别是: 代理控制访问, 而外观模式只是提供了另外的一组接口
-9. `写入时复制代理(Complexityopy-On-Write Proxy)`: 控制对象的复制, 做法是延迟对象的复制, 直到客户需要为止. 这是 虚拟代理 的变体
+1. `Remote proxy`: acts as a local representative for an object living in a different JVM. Calling a
+   method on the proxy forwards the call over the network to the remote object; the result is
+   returned to the proxy, which then passes it to the client
+2. `Virtual proxy`: controls access to a resource that is expensive to create, acting as a
+   representative for an object that may be expensive to create. The virtual proxy often defers the
+   creation of the object until it is needed; before and while the object is being created, the
+   virtual proxy acts as a surrogate for it. After creation, the proxy delegates requests directly
+   to the RealSubject
+3. `Protection proxy`: controls access to an object's resources based on access rights
+4. `Firewall Proxy`: controls access to a set of network resources, protecting the subject from
+   "bad" clients
+5. `Smart Reference Proxy`: provides additional actions whenever a subject is referenced, such as
+   counting the number of references to an object
+6. `Caching Proxy`: provides temporary storage for results of operations that are expensive; it can
+   also allow multiple clients to share the results to reduce computation or network latency
+7. `Synchronization Proxy`: provides safe access to a subject from multiple threads
+8. `Complexity Hiding Proxy`: hides the complexity of and controls access to a complex set of
+   classes. This is sometimes called the Facade Proxy for obvious reasons. The difference from the
+   Facade pattern is that the proxy controls access, while the Facade just provides an alternative
+   interface
+9. `Copy-On-Write Proxy`: controls the copying of an object by deferring the copying until a client
+   requires it. This is a variant of the virtual proxy
 
-### 代理模式类图
+### Proxy pattern class diagram
 
 ```plantuml
 @startuml
@@ -5781,8 +6112,8 @@ interface Subject {
 }
 
 note top of Subject
-Proxy和RealSubject都实现了Subject接口
-这允许任何客户都可以像RealSubject对象一样对待代理
+Both the Proxy and the RealSubject implement the Subject interface
+This allows any client to treat the proxy just like the RealSubject
 end note
 
 class RealSubject implements Subject {
@@ -5790,8 +6121,8 @@ class RealSubject implements Subject {
 }
 
 note bottom of RealSubject
-RealSubject通常是真正做事的对象
-Proxy 控制对它的访问
+The RealSubject is usually the object that does most of the real work
+The Proxy controls access to it
 end note
 
 class Proxy implements Subject {
@@ -5800,12 +6131,12 @@ class Proxy implements Subject {
 }
 
 note bottom of Proxy
-Proxy持有Subject的引用, 应此必要是它可以将请求转发给Subjects
-Proxy通常实例化或处理RealSubject对象的创建和销毁
+The Proxy keeps a reference to the Subject, so it can forward requests to the Subject when necessary
+The Proxy often instantiates or handles the creation and destruction of the RealSubject
 end note
 
 note left of Proxy::request
-if (如果可以访问)
+if (access is allowed)
     subject.request();
 end note
 
@@ -5815,50 +6146,57 @@ Proxy *-right-- RealSubject : subject
 ```
 
 
-### 代理模式讨论
+### Proxy pattern discussion
 
-1. 代理模式和装饰者模式, 区别为目的不一样
-    > 装饰者模式: 为对象添加行为  
-    > 代理模式: 控制对象的访问
+1. The Proxy and Decorator patterns differ in purpose
+    > Decorator: adds behavior to an object  
+    > Proxy: controls access to an object
 
-### 代理模式要点
+### Proxy pattern key points
 
-1. 代理模式为另一个对象提供代表, 以便控制客户对对象的的访问, 管理访问的方式有许多种
-2. 远程代理管理客户和远程对象之间的交互
-3. 虚拟带来控制访问实例化开销大的对象
-4. 包含代理基于调用者控制对对象方法的访问
-5. 代理模式有许多其他变体, 例如 缓存带来, 同步代理, 防火墙带来, 写入时复制代理等
-6. 代理在结构上类似于装饰者, 但是目的不同
-7. 装饰者模式为对象加上行为, 而代理则是控制访问
-8. JAVA内建的代理支持, 可以根据需要建立动态代理类, 并将所有调用分配到所选的处理器
-9. 和其他的包装者一样, 代理会造成你的设计中类和对象的数目增加
+1. The Proxy pattern provides a representative for another object in order to control the client's
+   access to it. There are many ways it can manage that access
+2. A remote proxy manages interaction between a client and a remote object
+3. A virtual proxy controls access to an object that is expensive to instantiate
+4. A protection proxy controls access to the methods of an object based on the caller
+5. Many other variants of the Proxy pattern exist, including caching proxies, synchronization
+   proxies, firewall proxies, copy-on-write proxies, and so on
+6. Proxy is structurally similar to Decorator, but the two patterns differ in their purpose
+7. The Decorator pattern adds behavior to an object, while Proxy controls access
+8. Java's built-in support for Proxy can build a dynamic proxy class on demand and dispatch all
+   calls on it to a handler of your choosing
+9. Like any wrapper, proxies will increase the number of classes and objects in your designs
 
 
-### 远程代理
+### Remote proxy
 
-`远程代理`: 作为另一个JVM上对象的本地代理. 调用代理的方法, 会通过网络转发到远程来调用, 结果返回i给代理, 再欧代理将结果转给客户
+`Remote proxy`: acts as a local representative for an object living in a different JVM. Calling a
+method on the proxy forwards the call over the network to the remote object; the result is returned
+to the proxy, which then passes it to the client
 
-#### 远程代理概念图
+#### Remote proxy concept diagram
 
 ```plantuml
 @startuml
 
 
-cloud 本地JVM堆 {
-    () 客户对象
-    () 客户辅助对象
-    note bottom of 客户辅助对象 : RMI桩
+cloud "Local JVM heap" {
+    () ClientObject
+    () ClientHelper
+    note bottom of ClientHelper : RMI stub
 }
 
-cloud 远程JVM堆 {
-    () 服务辅助对象
-    () 服务对象
-    note bottom of 服务辅助对象 : RMI骨架
+cloud "Remote JVM heap" {
+    () ServiceHelper
+    () ServiceObject
+    note bottom of ServiceHelper : RMI skeleton
 }
 
-客户对象 -right--> 客户辅助对象 : 1.request()
-客户辅助对象 -right--> 服务辅助对象 : 2. 打包调用信息并通过网络运送给服务辅助对象
-服务辅助对象 -right--> 服务对象 : 3. 解包来自客户辅助对象信息调用真正的服务对象上的真正方法
+ClientObject -right--> ClientHelper : 1.request()
+ClientHelper -right--> ServiceHelper : 2. Packages up the call information and ships it over the \
+network to the service helper
+ServiceHelper -right--> ServiceObject : 3. Unpacks the information from the client helper and \
+calls the real method on the real service object
 
 
 @enduml
@@ -5869,17 +6207,19 @@ cloud 远程JVM堆 {
 
 autonumber
 
-客户对象 -> 客户辅助对象 : request()
-客户辅助对象 -> 服务辅助对象 : 打包调用信息(参量,方法签名等)并通过网络运送给服务辅助对象
-服务辅助对象 -> 服务对象 : 服务辅助对象解包来自客户辅助对象信息 \n 并找出被调用的方法,并调用真正的服务对象上的真正方法
-服务对象 --> 服务辅助对象 : 结果
-服务辅助对象 --> 客户辅助对象 : 打包后的结果
-客户辅助对象 --> 客户对象 : 拆包结果
+ClientObject -> ClientHelper : request()
+ClientHelper -> ServiceHelper : Packages up the call information (arguments, method signature, \
+etc.) and ships it over the network to the service helper
+ServiceHelper -> ServiceObject : The service helper unpacks the information from the client helper \
+\n finds out which method is being called, and calls the real method on the real service object
+ServiceObject --> ServiceHelper : result
+ServiceHelper --> ClientHelper : packaged result
+ClientHelper --> ClientObject : unpacked result
 
 @enduml
 ```
 
-#### 远程代理例子: JAVA RMI
+#### Remote proxy example: Java RMI
 
 ```java
 import java.rmi.Remote;
@@ -5887,7 +6227,7 @@ import java.rmi.RemoteException;
 
 /**
  * <pre>
- * Remote 时一个 '记号' 接口, 意思是它没有方法
+ * Remote is a 'marker' interface, which means it has no methods
  * </pre>
  */
 public interface MyRemote extends Remote {
@@ -5895,13 +6235,15 @@ public interface MyRemote extends Remote {
 
     /** 
      * <pre>
-     * 远程方法的参量和返回值都必须时原语(primitive)类型或Serializable类型
-     * 因为远程方法的任何参量和返回值都必须打包并通过网络传输
+     * Arguments and return values of a remote method must be primitive or Serializable
+     * because any argument or return value of a remote method has to be packaged up and shipped
+     * across the network
      * <pre>
-     * @throws RemoteException : 每次远程方法调用都必须考虑成有风险的, 
-     *                           在每个方法中声明 RemoteException 强制客户注意并承认可能会出错
+     * @throws RemoteException : every remote method call has to be considered risky;
+     *                           declaring RemoteException on every method forces the client to pay
+     *                           attention and acknowledge that things might go wrong
      *
-     * @return 远程方法的参量和返回值都必须时原语(primitive)类型或Serializable类型
+     * @return arguments and return values of a remote method must be primitive or Serializable
      */
     public String sayHello(String hello) throws RemoteException;
 }
@@ -5916,30 +6258,35 @@ import java.rmi.server.UnicastRemoteObject;
 import com.ldz.demo.service.MyRemote;
 
 /**
- * 为了成为远程服务对象, 你的对象需要某些和 "远程" 有关的功能, 最简单的法方式是扩展 {@link UnicastRemoteObject}
+ * To become a remote service object, your object needs some functionality related to being
+ * "remote"; the simplest way is to extend {@link UnicastRemoteObject}
  */
 public class MyRemoteServiceImpl extends UnicastRemoteObject implements MyRemote {
 
-    // UnicastRemoteObject实现 Serializable, 所以我们需要 serialVersionUID 字段
+    // UnicastRemoteObject implements Serializable, so we need the serialVersionUID field
     private static final long serialVersionUID = 1L;
 
     /**
      * <pre>
-     * 你的新超类, {@link UnicastRemoteObject} , 有个小问题, 它的构造器会抛出 {@link RemoteException}
-     * 解决这个问题的为一方法是为你的远程实现声明一个构造器, 这一就有了一个地方来声明 {@link RemoteException}
+     * Your new superclass, {@link UnicastRemoteObject}, has one little problem: its constructor
+     * throws {@link RemoteException}
+     * The only way to deal with this is to declare a constructor for your remote implementation, so
+     * that you have a place to declare {@link RemoteException}
      * </pre>
      */
     protected MyRemoteServiceImpl() throws RemoteException {
-        // 初始化的是把自己注册到RMI Registry
+        // On initialization, register itself with the RMI Registry
         // registry();
     }
 
     /**
      * <pre>
-     * 将自己注册到 RMI Registry 上(RMI Registry 必须正在运行, 在命令行执行 `rmiregistry -J-Djava.class.path=./target/rmi-demo-1.0-SNAPSHOT.jar` 即
-可)
-     * 当注册这个实现对象时, RMI 系统器是注册的是RMI桩(客户辅助对象),因为这是客户真正需要的.
-     * 注册服务是用 {@link java.rmi.Naming}类的静态rebing()方法
+     * Register itself with the RMI Registry (the RMI Registry must be running; just run
+     * `rmiregistry -J-Djava.class.path=./target/rmi-demo-1.0-SNAPSHOT.jar` on the command line
+)
+     * When you register the implementation object, the RMI system actually registers the RMI stub
+     * (client helper), because that's what the client really needs.
+     * Register the service using the static rebind() method of the {@link java.rmi.Naming} class
      * </pre>
      * @throws RemoteException
      */
@@ -5958,10 +6305,11 @@ public class MyRemoteServiceImpl extends UnicastRemoteObject implements MyRemote
         return "Server says : " + hello;
     }
 
-    public static void main(String[] args) throws MalformedURLException, AlreadyBoundException, RemoteException {
+    public static void main(String[] args)
+            throws MalformedURLException, AlreadyBoundException, RemoteException {
         MyRemote service = new MyRemoteServiceImpl();
         Naming.rebind("RemoteHello", service);
-        // 客户端调用代码
+        // Client calling code
         // MyRemote service = (MyRemote)Naming.lookup("rmi://localhost/RemoteHello");
         // System.out.println(service.sayHello("rmi"));
 
@@ -5977,7 +6325,8 @@ import java.rmi.RemoteException;
 import com.ldz.demo.service.MyRemote;
 
 public class MyRemoteClientMain {
-    public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
+    public static void main(String[] args)
+            throws MalformedURLException, RemoteException, NotBoundException {
         MyRemote service = (MyRemote)Naming.lookup("rmi://localhost/RemoteHello");
 
         System.out.println(service.sayHello("rmi"));
@@ -5987,13 +6336,22 @@ public class MyRemoteClientMain {
 ```
 
 
-### 虚拟代理例子: 显示音乐专辑封面
+### Virtual proxy example: displaying album covers
 
-`虚拟代理`: 作为创建开销大的对象的代表. 虚拟代理经常延迟对象的创建知道真正需要. 在对象创建前和创建是, 虚拟带来也会扮演对象的替身. 对象创建后, 带来就会将请求委托给RealSubject
+`Virtual proxy`: acts as a representative for an object that may be expensive to create. The virtual
+proxy often defers the creation of the object until it is needed; before and while the object is
+being created, the virtual proxy acts as a surrogate for it. After creation, the proxy delegates
+requests directly to the RealSubject
 
-我们要编写一个应用, 来展示你喜爱的音乐专辑封面, 你可以建立一个专辑标题菜单, 然后从 Amazon.com 等网站的在先服务中取得音乐专辑封面的图. 如果你使用Swing, 可以创建一个 Icon , 让它从网络取得图像. 唯一的问题是, 限于万历副在和连续带宽, 取得一张专辑封面可能需要一些时间, 因此在等待图像加载时, 你的应用应该显示一些冬歇. 我们也不希望在等待图像时整个应用被挂在一起. 一旦图像被加载, 刚才显示的东西应该消失, 图像显示出来
+We want to write an application that displays your favorite album covers. You might create a menu of
+album titles and then retrieve the images from an online service like Amazon.com. If you're using
+Swing, you might create an Icon and ask it to load the image from the network. The only problem is
+that, depending on network load and the bandwidth of your connection, retrieving an album cover
+might take a little time, so your application should display something while you are waiting for the
+image to load. We also don't want to hang up the entire application while it's waiting on the image.
+Once the image is loaded, the message should go away and you should see the image
 
-类图如下
+The class diagram is as follows
 
 ```plantuml
 @startuml
@@ -6004,7 +6362,7 @@ interface Icon {
     paintIcon()
 }
 
-note top of Icon : 这是Swing的Icon接口, 在用户界面上显示图像
+note top of Icon : This is the Swing Icon interface, used to display images in a user interface
 
 class ImageIcon implements Icon {
     getIconWidth()
@@ -6012,7 +6370,7 @@ class ImageIcon implements Icon {
     paintIcon()
 }
 
-note bottom of Icon : 这是 javax.swing.ImageIcon 一个显示图像的类
+note bottom of Icon : This is javax.swing.ImageIcon, a class that displays an image
 
 class ImageProxy implements Icon {
     getIconWidth()
@@ -6020,14 +6378,17 @@ class ImageProxy implements Icon {
     paintIcon()
 }
 
-note bottom of ImageProxy : 这时我们的带来, 首先显示小学, 图像加载后, 委托 ImageIcon 显示图像
+note bottom of ImageProxy
+This is our proxy: it first displays a message, and once the image is loaded it delegates to
+ImageIcon to display the image
+end note
 
 ImageProxy -right-> ImageIcon : subject
 
 @enduml
 ```
 
-代码如下
+The code is as follows
 
 ```java
 import java.awt.*;             
@@ -6088,11 +6449,11 @@ class ImageProxy implements Icon {
     }
     public void paintIcon(final Component c, Graphics  g, int x,  int y) {
         if (imageIcon != null) {
-            // 当图像加载完毕, 把所有方法委托给 ImageIcon
+            // When the image is loaded, delegate all methods to ImageIcon
             imageIcon.paintIcon(c, g, x, y);
         } else {
 
-            // 在加载过程中, 显示 "专辑封面加载中, 请稍后" 
+            // While loading, display "Loading album cover, please wait" 
             g.drawString("Loading album cover, please wait...", x+300, y+190);
             if (!retrieving) {
                 retrieving = true;
@@ -6100,7 +6461,7 @@ class ImageProxy implements Icon {
                 retrievalThread = new Thread(new Runnable() {
                     public void run() {
                         try {
-                            // 异步加载图片, 防止应用卡顿
+                            // Load the image asynchronously to keep the application responsive
                             setImageIcon(new ImageIcon(imageURL, "Album Cover"));
                             c.repaint();
                         } catch (Exception e) {
@@ -6147,8 +6508,10 @@ public class ImageProxyTestDrive {
         albums.put("Ima","http://images.amazon.com/images/P/B000005IRM.01.LZZZZZZZ.jpg");
         albums.put("Karma","http://images.amazon.com/images/P/B000005DCB.01.LZZZZZZZ.gif");
         albums.put("MCMXC a.D.","http://images.amazon.com/images/P/B000002URV.01.LZZZZZZZ.jpg");
-        albums.put("Northern Exposure","http://images.amazon.com/images/P/B000003SFN.01.LZZZZZZZ.jpg");
-        albums.put("Selected Ambient Works, Vol. 2","http://images.amazon.com/images/P/B000002MNZ.01.LZZZZZZZ.jpg");
+        albums.put("Northern Exposure",
+                "http://images.amazon.com/images/P/B000003SFN.01.LZZZZZZZ.jpg");
+        albums.put("Selected Ambient Works, Vol. 2",
+                "http://images.amazon.com/images/P/B000002MNZ.01.LZZZZZZZ.jpg");
 
         URL initialURL = new URL((String)albums.get("Selected Ambient Works, Vol. 2"));
         menuBar = new JMenuBar();
@@ -6189,9 +6552,9 @@ public class ImageProxyTestDrive {
 }
 ```
 
-### 用动态代理来创建一个保护代理
+### Creating a protection proxy with a dynamic proxy
 
-#### 动态代理类图
+#### Dynamic proxy class diagram
 
 ```plantuml
 @startuml
@@ -6210,7 +6573,7 @@ interface InvocationHandler {
     invoke()
 }
 
-package JAVA动态代理 #DDDDDD {
+package "Java dynamic proxy" as JavaDynamicProxy #DDDDDD {
     class Proxy implements Subject {
         Subject subject
         request()
@@ -6221,9 +6584,9 @@ package JAVA动态代理 #DDDDDD {
     }
 }
 
-note bottom of JAVA动态代理
-你提供的ConcreteInvocationHandler, Proxy上的任何方法调用都会被传到这个类
-Proxy由java生成的, 实现完整的 Subject接口
+note bottom of JavaDynamicProxy
+You provide the ConcreteInvocationHandler; any method call on the Proxy is passed to this class
+The Proxy is generated by Java and implements the entire Subject interface
 end note
 
 ConcreteInvocationHandler -right--> RealSubject
@@ -6233,9 +6596,13 @@ Proxy -right-> ConcreteInvocationHandler
 @enduml
 ```
 
-#### 用动态代理来创建一个保护代理代码
+#### Creating a protection proxy with a dynamic proxy: code
 
-每个城镇都需要配对服务, 不是吗? 你负责帮对象村实现月会服务系统, 你尝试高个创新, 在服务中加入 "极客评分" 特性. 参加这可以给对方的极客程度打分.你希望这可以让顾客积极参与并找到可能的对象, 你的服务涉及到一个Person接口, 该接口允许设置并取得一个人的信息
+Every town needs a matchmaking service, right? You've been tasked with implementing a dating service
+for Objectville. You're also trying to be innovative by adding a "Geek rating" feature where
+participants can rate each other's geekiness. You figure this keeps your customers engaged and helps
+them find good matches. Your service revolves around a Person interface that allows you to set and
+get information about a person
 
 ```java
 public interface Person {      
@@ -6425,44 +6792,46 @@ public class MatchMakingTestDrive {
 
 ```
 
-## 复合模式
+## Compound Pattern
 
-`复合模式`: 模式通常被在一起使用, 并结合在通一个设计解决方案中. `复合模式`在一个解决方案中结合两个或多个模式, 以解决一般或重复发生的问题
+`Compound pattern`: patterns are often used together and combined within the same design solution. A
+`compound pattern` combines two or more patterns into a solution that solves a recurring or general
+problem
 
-### 模式合作(非符合模式)例子: 鸭子模拟器
+### Patterns working together (not a compound pattern) example: duck simulator
 
 ```java
 
-// 1. 首先我们创建一个Quackable(嘎嘎叫接口)
+// 1. First, we create a Quackable interface
 public interface Quackable extends QuackObservable {
-    // Quackable只需要做好一件事嘎嘎叫
+    // A Quackable only needs to do one thing well: quack
     public void quack();
 }
 
-// 2. 绿头鸭实现Quackable(嘎嘎叫接口)
+// 2. MallardDuck implements Quackable
 public class MallardDuck implements Quackable {
-    // 16. 整合Observable辅助类和Quackable类
+    // 16. Integrate the Observable helper class with the Quackable classes
     Observable observable;
 
     public MallardDuck() {
-        // 16. 整合Observable辅助类和Quackable类
+        // 16. Integrate the Observable helper class with the Quackable classes
         observable = new Observable(this);
     }
 
-    // 2. 绿头鸭实现Quackable(嘎嘎叫接口)
+    // 2. MallardDuck implements Quackable
     public void quack() {
         System.out.println("Quack");
-        // 16. 整合Observable辅助类和Quackable类
+        // 16. Integrate the Observable helper class with the Quackable classes
         notifyObservers();
     }
 
 
-    // 16. 整合Observable辅助类和Quackable类
+    // 16. Integrate the Observable helper class with the Quackable classes
     public void registerObserver(Observer observer) {
         observable.registerObserver(observer);
     }
 
-    // 16. 整合Observable辅助类和Quackable类
+    // 16. Integrate the Observable helper class with the Quackable classes
     public void notifyObservers() {
         observable.notifyObservers();
     }
@@ -6472,7 +6841,7 @@ public class MallardDuck implements Quackable {
     }
 }
 
-// 2. 鸭鸣器(猎人用来吸引猎物的工具)实现Quackable(嘎嘎叫接口)
+// 2. A DuckCall (a tool hunters use to attract game) implements Quackable
 public class DuckCall implements Quackable {
     Observable observable;
 
@@ -6499,7 +6868,7 @@ public class DuckCall implements Quackable {
 }
 
 
-// 2. 橡皮鸭实现实现Quackable(嘎嘎叫接口)
+// 2. RubberDuck implements Quackable
 public class RubberDuck implements Quackable {
     Observable observable;
 
@@ -6525,10 +6894,10 @@ public class RubberDuck implements Quackable {
     }
 }
 
-// 4. 当鸭子出现这里时, 鹅也离得不远
+// 4. Where there are ducks, geese aren't far away
 public class Goose {
 
-    // 鹅的叫声是咯咯, 而不是嘎嘎
+    // A goose honks, it doesn't quack
     public void honk() {
         System.out.println("Honk");
     }
@@ -6538,7 +6907,7 @@ public class Goose {
     }
 }
 
-// 5. 我们需要一个鹅适配器
+// 5. We need a goose adapter
 public class GooseAdapter implements Quackable {
     Goose goose;
     Observable observable;
@@ -6567,11 +6936,12 @@ public class GooseAdapter implements Quackable {
 }
 
 
-// 8. 然后, 嘎嘎叫学家要计算嘎嘎叫次数, 让我们创建一个装饰者, 通过把鸭子包装进装饰者对象, 给鸭子一些新行为(计算次数的行为)
+// 8. Next, the Quackologists want to count quacks; let's create a decorator that gives ducks some
+// new behavior (counting) by wrapping them in a decorator object
 public class QuackCounter implements Quackable {
-    // 我们用一个实例变量来记录被装饰的嘎嘎叫者
+    // We use an instance variable to hold the quacker we're decorating
     Quackable duck;
-    // 要统计所有嘎嘎叫, 我们用静态变量追踪
+    // To count ALL quacks, we use a static variable
     static int numberOfQuacks;
 
     public QuackCounter(Quackable duck) {
@@ -6579,13 +6949,14 @@ public class QuackCounter implements Quackable {
     }
 
     public void quack() {
-        // 当quack()被调用时, 我们把调用委托给正在装饰的Quackable对象
+        // When quack() is called, we delegate the call to the Quackable we're decorating
         duck.quack();
-        // 然后把叫声的数量加1
+        // and then increase the number of quacks
         numberOfQuacks++;
     }
 
-    // 给装饰者添加一个静态方法, 这个方法返回在所有Quackable中发生的叫声次数
+    // Add a static method to the decorator that returns the number of quacks that have occurred in
+    // all Quackables
     public static int getQuacks() {
         return numberOfQuacks;
     }
@@ -6604,8 +6975,9 @@ public class QuackCounter implements Quackable {
     }
 }
 
-// 10. 但嘎嘎叫学家担心忘了加上 QuackCounter 装饰者,所以我们用抽象工厂模式创建鸭子
-// 我们定义一个抽象工厂, 它的子类会实现不同的家族
+// 10. But the Quackologists worry about forgetting to add the QuackCounter decorator, so we use the
+// Abstract Factory pattern to create ducks
+// We define an abstract factory; its subclasses implement different families
 public abstract class AbstractDuckFactory {
     
     public abstract Quackable createMallardDuck();
@@ -6614,7 +6986,7 @@ public abstract class AbstractDuckFactory {
     public abstract Quackable createRubberDuck();
 }
 
-// 普通鸭子工厂
+// Plain duck factory
 public class DuckFactory extends AbstractDuckFactory {
 
     public Quackable createMallardDuck() {
@@ -6634,7 +7006,7 @@ public class DuckFactory extends AbstractDuckFactory {
     }
 }
 
-// 带计数的鸭子工厂, 所有的鸭子嘎嘎叫后都会统计叫的次数
+// Counting duck factory: all ducks have their quacks counted
 public class CountingDuckFactory extends AbstractDuckFactory {
 
     public Quackable createMallardDuck() {
@@ -6654,7 +7026,7 @@ public class CountingDuckFactory extends AbstractDuckFactory {
     }
 }
 
-// 12. 我们来创建一群鸭子
+// 12. Let's create a flock of ducks
 import java.util.Iterator;
 import java.util.ArrayList;
 
@@ -6678,23 +7050,27 @@ public class Flock implements Quackable {
     }
 }
 
-// 14. 每次Quackable嘎嘎叫时, 嘎嘎叫学家希望能被通知, 首先我们的主题(Subject)需要一个接口
+// 14. The Quackologists want to be notified every time a Quackable quacks; first our Subject needs
+// an interface
 public interface QuackObservable {
     public void registerObserver(Observer observer);
     public void notifyObservers();
 }  
 
-// 需要将所有的Quackable都实现此接口
+// All Quackables need to implement this interface
 // public interface Quackable extends QuackObservable {
-//     // Quackable只需要做好一件事嘎嘎叫
+//     // A Quackable only needs to do one thing well: quack
 //     public void quack();
 // }
 
 
-// 15. 现在, 我们需要确定所有实现 Quackable 的具体类, 都能够扮演 QuackObservable
-// 为了达到这个目的, 可以通过在每一个类中实现组合和通知(像观察者模式中做的一样)
-// 但是这次我们的做法稍微不同: 我们要在另一个类封装组合和通知代码, 这个类称为 Observable,
-// 然后把它和 QuackObservable 组合. 这一, 我们只写一次真实代码, QuackObservable 只需要调用委托给辅助类 Observable
+// 15. Now we need to make sure all concrete classes that implement Quackable can act as a
+// QuackObservable
+// We could implement registration and notification in each class (as in the Observer pattern)
+// But this time we do it slightly differently: we encapsulate the registration and notification
+// code in another class, called Observable,
+// and compose it with QuackObservable. That way we write the real code only once, and
+// QuackObservable just delegates to the helper class Observable
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -6724,7 +7100,7 @@ public class Observable implements QuackObservable {
     }
 }
 
-// 17. 几乎大功告成! 我们只需要把莫斯的Observer端实现
+// 17. Almost done! We just need to work on the Observer side of the pattern
 public interface Observer {
     public void update(QuackObservable duck);
 }
@@ -6744,41 +7120,47 @@ public class Quackologist implements Observer {
 
 public class DuckSimulator {
     public static void main(String[] args) {
-        // 3. 好了, 我们有了鸭子, 还需要一个模拟器
-        // 最简单的鸭子模拟器, 不涉及任何设计模式
+        // 3. OK, we've got our ducks; now we need a simulator
+        // The simplest duck simulator, no design patterns involved
         simulator_01();
         
-        // 6. 现在模拟器也应该可以使用鹅了
-        // 7. 现在我们来快速运行一下
-        // 有一只鹅出现, 希望自己也像一个Quackable(嘎嘎叫接口)
-        // 因此我们用适配器模式把鹅适配成Quackable, 就可以调用适配器的quack()方法, 让鹅嘎嘎叫
+        // 6. Now the simulator should be able to use geese too
+        // 7. Now let's give it a quick run
+        // A goose came along and wanted to act like a Quackable
+        // So we used the Adapter pattern to adapt the goose to a Quackable; now we can call quack()
+        // on the adapter and the goose honks
         simulator_02();
 
-        // 9. 我们需要更新模拟器, 以创建被装饰的鸭子
-        // 然后, 嘎嘎叫学家要计算嘎嘎叫次数
-        // 因此我们用装饰者模式, 添加了一个 QuackCounter 装饰者, 用来追踪quack()被调用的次数
-        // 并将调用委托给它所包装的 Quackable
+        // 9. We need to update the simulator to create decorated ducks
+        // Then the Quackologists wanted to count quacks
+        // So we used the Decorator pattern to add a QuackCounter decorator that keeps track of how
+        // many times quack() is called
+        // and delegates the call to the Quackable it wraps
         simulator_03();
 
-        // 11. 设置模拟器来时使用工厂
-        // 但嘎嘎叫学家担心忘了加上 QuackCounter 装饰者
-        // 所以我们用抽象工厂模式创建鸭子. 从此, 无论和是需要鸭子, 就找工厂要, 工厂会交回装饰过的鸭子
-        // 别忘了要没被装饰的鸭子, 也可以用另一个鸭子工厂
+        // 11. Set up the simulator to use the factory
+        // But the Quackologists worried about forgetting to add the QuackCounter decorator
+        // So we used the Abstract Factory pattern to create ducks. From now on, whenever we need a
+        // duck we ask the factory, and it hands back a decorated duck
+        // Don't forget: if you want an undecorated duck, you can use another duck factory
         simulator_04();
 
-        // 13. 跟踪所有这些鸭子,鹅和Quackable(嘎嘎叫接口), 我们面临麻烦的管理问题
-        // 因此我们用组合模式来把 Quackable 分组成群, 这个模式也允许嘎嘎叫学家创建子群, 以便管理鸭子家族
-        // 通过使用java的迭代器, 我们在实现中使用了迭代器
+        // 13. Keeping track of all these ducks, geese and Quackables became a management problem
+        // So we used the Composite pattern to group Quackables into flocks; the pattern also lets
+        // the Quackologists create sub-flocks to manage duck families
+        // By using Java's iterator, we used the Iterator pattern in our implementation
         simulator_05();
 
-        // 18. 每次Quackable嘎嘎叫时, 嘎嘎叫学家希望能被通知
-        // 因此我们使用观察者模式, 让嘎嘎叫学家注册成为 Quackable 观察者. 现在每次 Quackable 嘎嘎叫时, 嘎嘎叫学家就会被通知
-        // 在这个实现中, 我们再次用到迭代器. 嘎嘎叫学家甚至可以在组合中使用观察者模式
+        // 18. The Quackologists wanted to be notified whenever any Quackable quacked
+        // So we used the Observer pattern to let the Quackologists register as Quackable observers.
+        // Now they are notified every time a Quackable quacks
+        // In this implementation we used the iterator again. The Quackologists can even use the
+        // Observer pattern with composites
         simulator_06();
     }
 
-    // 3. 好了, 我们有了鸭子, 还需要一个模拟器
-    // 最简单的鸭子模拟器, 不涉及任何设计模式
+    // 3. OK, we've got our ducks; now we need a simulator
+    // The simplest duck simulator, no design patterns involved
     public static void simulator_01() {
 
         Quackable mallardDuck = new MallardDuck();
@@ -6794,10 +7176,11 @@ public class DuckSimulator {
         simulate(rubberDuck);
     }
     
-    // 6. 现在模拟器也应该可以使用鹅了
-    // 7. 现在我们来快速运行一下
-    // 有一只鹅出现, 希望自己也像一个Quackable(嘎嘎叫接口)
-    // 因此我们用适配器模式把鹅适配成Quackable, 就可以调用适配器的quack()方法, 让鹅嘎嘎叫
+    // 6. Now the simulator should be able to use geese too
+    // 7. Now let's give it a quick run
+    // A goose came along and wanted to act like a Quackable
+    // So we used the Adapter pattern to adapt the goose to a Quackable; now we can call quack() on
+    // the adapter and the goose honks
     public static void simulator_02() {
         Quackable mallardDuck = new MallardDuck();
         Quackable redheadDuck = new RedheadDuck();
@@ -6814,10 +7197,11 @@ public class DuckSimulator {
         simulate(gooseDuck); 
     }
     
-    // 9. 我们需要更新模拟器, 以创建被装饰的鸭子
-    // 然后, 嘎嘎叫学家要计算嘎嘎叫次数
-    // 因此我们用装饰者模式, 添加了一个 QuackCounter 装饰者, 用来追踪quack()被调用的次数
-    // 并将调用委托给它所包装的 Quackable
+    // 9. We need to update the simulator to create decorated ducks
+    // Then the Quackologists wanted to count quacks
+    // So we used the Decorator pattern to add a QuackCounter decorator that keeps track of how many
+    // times quack() is called
+    // and delegates the call to the Quackable it wraps
     public static void simulator_03() {
         Quackable mallardDuck = new QuackCounter(new MallardDuck());
         Quackable redheadDuck = new QuackCounter(new RedheadDuck());
@@ -6838,10 +7222,11 @@ public class DuckSimulator {
     }
 
 
-    // 11. 设置模拟器来时使用工厂
-    // 但嘎嘎叫学家担心忘了加上 QuackCounter 装饰者
-    // 所以我们用抽象工厂模式创建鸭子. 从此, 无论和是需要鸭子, 就找工厂要, 工厂会交回装饰过的鸭子
-    // 别忘了要没被装饰的鸭子, 也可以用另一个鸭子工厂
+    // 11. Set up the simulator to use the factory
+    // But the Quackologists worried about forgetting to add the QuackCounter decorator
+    // So we used the Abstract Factory pattern to create ducks. From now on, whenever we need a duck
+    // we ask the factory, and it hands back a decorated duck
+    // Don't forget: if you want an undecorated duck, you can use another duck factory
     public static void simulator_04() {
         AbstractDuckFactory duckFactory = new CountingDuckFactory();
 
@@ -6849,9 +7234,10 @@ public class DuckSimulator {
 
     }
 
-    // 13. 跟踪所有这些鸭子,鹅和Quackable(嘎嘎叫接口), 我们面临麻烦的管理问题
-    // 因此我们用组合模式来把 Quackable 分组成群, 这个模式也允许嘎嘎叫学家创建子群, 以便管理鸭子家族
-    // 通过使用java的迭代器, 我们在实现中使用了迭代器
+    // 13. Keeping track of all these ducks, geese and Quackables became a management problem
+    // So we used the Composite pattern to group Quackables into flocks; the pattern also lets the
+    // Quackologists create sub-flocks to manage duck families
+    // By using Java's iterator, we used the Iterator pattern in our implementation
     public static void simulator_05() {
         AbstractDuckFactory duckFactory = new CountingDuckFactory();
 
@@ -6896,9 +7282,11 @@ public class DuckSimulator {
 
     }
 
-    // 18. 每次Quackable嘎嘎叫时, 嘎嘎叫学家希望能被通知
-    // 因此我们使用观察者模式, 让嘎嘎叫学家注册成为 Quackable 观察者. 现在每次 Quackable 嘎嘎叫时, 嘎嘎叫学家就会被通知
-    // 在这个实现中, 我们再次用到迭代器. 嘎嘎叫学家甚至可以在组合中使用观察者模式
+    // 18. The Quackologists wanted to be notified whenever any Quackable quacked
+    // So we used the Observer pattern to let the Quackologists register as Quackable observers. Now
+    // they are notified every time a Quackable quacks
+    // In this implementation we used the iterator again. The Quackologists can even use the
+    // Observer pattern with composites
     public static void simulator_06() {
         DuckSimulator simulator = new DuckSimulator();
         AbstractDuckFactory duckFactory = new CountingDuckFactory();
@@ -6976,135 +7364,156 @@ public class DuckSimulator {
 
 ```
 
-### MVC模式
+### The MVC pattern
 
-#### MVC模式概念
+#### MVC concepts
 
-1. 模型(Model): 模型持有所有数据,状态和应用逻辑. 模型对视图和控制器是无视的, 虽然它提供了操纵和检索其状态的接口, 并发送状态改变通知给观察者
-2. 视图(View): 呈现模型, 视图通常直接从模型中取得显示所需的状态和数据
-3. 控制器(Controller): 取得用户输入并解读其对模型的含义
+1. Model: the model holds all the data, state and application logic. The model is oblivious to the
+   view and controller, although it provides an interface to manipulate and retrieve its state and
+   it can send notifications of state changes to observers
+2. View: gives you a presentation of the model. The view usually gets the state and data it needs to
+   display directly from the model
+3. Controller: takes user input and figures out what it means to the model
 
-#### MVC模式流程图
+#### MVC flow diagram
 
 ```plantuml
 @startuml
 
 !include <cloudinsight/desktop>
 
-rectangle "控制器" as controller
-rectangle "<$desktop>\n视图" as view
-rectangle "class Player\n  play(){}\n  rip(){}\n  burn(){}\n}\n模型" as model
+rectangle "Controller" as controller
+rectangle "<$desktop>\nView" as view
+rectangle "class Player\n  play(){}\n  rip(){}\n  burn(){}\n}\nModel" as model
 
-view -left--> controller : 1.用户做了某件事
-controller --> model : 2.改变状态
-controller --> view : 3.改变显示
-model -left-> view : 4.我变了
-view -right-> model : 5.我需要你的状态信息
+view -left--> controller : 1. The user did something
+controller --> model : 2. Change your state
+controller --> view : 3. Change your display
+model -left-> view : 4. I've changed
+view -right-> model : 5. I need your state information
 
 @enduml
 ```
 
-1. 你是用户, 你和视图交互
-    > 视图是你看模型的窗口, 当你对视图做一些事(例如点击播放按钮), 视图就告诉控制器你做了声明, 控制器的工作是负责处理
+1. You're the user: you interact with the view
+    > The view is your window to the model. When you do something to the view (like click the Play
+    > button), the view tells the controller what you did. It's the controller's job to handle that
 
-2. 控制器要求模型改变状态
-    > 控制器接受并解读你的动作, 如果你点击某个按钮, 控制器的任务就是理解这个动作的含义, 以及如何基于此动作操纵模型
+2. The controller asks the model to change its state
+    > The controller takes your actions and interprets them. If you click a button, it's the
+    > controller's job to figure out what that means and how the model should be manipulated based
+    > on that action
 
-3. 控制器也可能要求视图做改变
-    > 作为控制器从视图接收到动作的结果, 控制器可能需要告诉三视图改变. 例如, 控制器可以使得界面上的某些按钮或菜单有效或无效
+3. The controller may also ask the view to change
+    > When the controller receives an action from the view, it may need to tell the view to change
+    > as a result. For example, the controller could enable or disable certain buttons or menu items
+    > in the interface
 
-4. 当模型状态改变时, 模型通知视图
-    > 不管是基于一些你所做的动作(例如点击按钮),还是其他内部改变(例如播放列表的下一首歌开始),当模型中某些东西改变时, 模型通知视图它的状态已改变
+4. The model notifies the view when its state has changed
+    > When something changes in the model, based either on some action you took (like clicking a
+    > button) or some other internal change (like the next song in the playlist starting), the model
+    > notifies the view that its state has changed
 
-5. 视图向模型询问状态
-    > 视图直接从模型取得要显示的状态. 例如, 但模型通知视图新个开始播放, 视图向模型询问歌名并显示. 当控制器请求视图做某些改变时,视图也可能向模型询问状态
+5. The view asks the model for state
+    > The view gets the state it displays directly from the model. For instance, when the model
+    > notifies the view that a new song has started playing, the view requests the song name from
+    > the model and displays it. The view might also ask the model for state as the result of the
+    > controller requesting some change in the view
 
-#### MVC模式中的设计模式
+#### Design patterns in MVC
 
-##### 观察者模式
+##### Observer pattern
 
 ```plantuml
 @startuml
 !include <cloudinsight/desktop>
 
-rectangle "class Foo\n  bar(){\n    doBar();\n  }\n}\n模型" as model
-note top of model : 可观察者/主题
+rectangle "class Foo\n  bar(){\n    doBar();\n  }\n}\nModel" as model
+note top of model : Observable/Subject
 
-cloud "观察者" as observer  {
-    rectangle "控制器" as controller
-    rectangle "<$desktop>\n视图" as view1
-    rectangle "<$desktop>\n视图" as view2
+cloud "Observers" as observer  {
+    rectangle "Controller" as controller
+    rectangle "<$desktop>\nView" as view1
+    rectangle "<$desktop>\nView" as view2
 
     controller <-down- view1
     controller <-down- view2
 }
 
-note top of observer : 无论何时模型的状态变化, 所有这些观察者都会被通知
+note top of observer : All these observers are notified whenever the model's state changes
 
-model -right-> observer : 我的状态改变了
+model -right-> observer : My state has changed
 
-observer -left-> model : 对于模型状态变化感兴趣的对象, 向模型注册为观察者
+observer -left-> model : Objects interested in the model's state changes register with the model \
+as observers
 
 @enduml
 ```
 
-##### 策略模式
+##### Strategy pattern
 
 ```plantuml
 @startuml
 !include <cloudinsight/desktop>
 
-rectangle "<$desktop>\n视图" as view
+rectangle "<$desktop>\nView" as view
 
-rectangle "控制器" as controller1
-rectangle "控制器" as controller2
+rectangle "Controller" as controller1
+rectangle "Controller" as controller2
 
 view -down-> controller1
 view -down-> controller2
 
 note bottom of controller1
-对于视图来说, 控制器时策略
-它值的如何处理用户动作
+For the view, the controller is the strategy:
+it knows how to handle user actions
 end note
 
 note bottom of controller2
-通过改变控制器, 我们可以切换到另一种行为
+By changing the controller, we can switch to another behavior
 end note
 
 @enduml
 ```
 
-##### 组合模式
+##### Composite pattern
 
 ```plantuml
 @startuml
 !include <cloudinsight/desktop>
 
-rectangle "<$desktop>\n视图" as view_root
-rectangle "<$desktop>\n视图" as view_1
-rectangle "<$desktop>\n视图" as view_2
+rectangle "<$desktop>\nView" as view_root
+rectangle "<$desktop>\nView" as view_1
+rectangle "<$desktop>\nView" as view_2
 
 view_root -down-> view_1
 view_root -down-> view_2
 
 note top of view_root
-视图时GUI组件(标签,窗口, 文本输入等)的组合,
-顶层组件包含其他组件,其他组件又包含其他组件
-以此类推,直到叶节点
+The view is a composite of GUI components (labels, windows, text inputs, etc.);
+the top-level component contains other components, which contain other components,
+and so on until you get to the leaf nodes
 end note
 
 @enduml
 ```
 
-## 桥接模式
+## Bridge Pattern
 
-`桥接模式`: 将抽象和实现解耦，使得两者可以独立地变化
+`Bridge pattern`: decouples an abstraction from its implementation so that the two can vary
+independently
 
-桥梁模式是一个非常简单的模式，它只是使用了类间的聚合关系、继承、覆写等常用功能，但是它却提供了一个非常清晰、稳定的架构。
+The Bridge pattern is a very simple pattern: it only uses common features like aggregation between
+classes, inheritance and overriding, yet it provides a very clear and stable architecture.
 
-桥梁模式是非常简单的，使用该模式时主要考虑如何拆分抽象和实现，并不是一涉及继承就要考虑使用该模式，那还要继承干什么呢？桥梁模式的意图还是对变化的封装，尽量把可能变化的因素封装到最细、最小的逻辑单元中，避免风险扩散。因此读者在进行系统设计时，发现类的继承有N层时，可以考虑使用桥梁模式。
+The Bridge pattern is very simple; the main consideration when using it is how to split the
+abstraction from the implementation. You shouldn't reach for it whenever inheritance is involved,
+otherwise what would inheritance be for? The intent of the Bridge pattern is still to encapsulate
+change, packing the factors that may change into the finest, smallest logical units to avoid
+spreading risk. So when designing a system, if you find class inheritance going N levels deep,
+consider using the Bridge pattern.
 
-### 桥接模式类图
+### Bridge pattern class diagram
 
 ```plantuml
 @startuml
@@ -7114,10 +7523,10 @@ abstract class Abstraction {
 }
 
 note top of Abstraction
-Abstraction(抽象化角色)
-它的主要职责是定义出该角色的行为，
-同时保存一个对实现化角色的引用，
-该角色一般是抽象类。
+Abstraction (the abstraction role)
+Its main responsibility is to define the role's behavior,
+while holding a reference to the implementor role;
+this role is usually an abstract class.
 end note
 
 interface Implementor {
@@ -7125,8 +7534,8 @@ interface Implementor {
 }
 
 note top of Implementor
-Implementor(实现化角色)
-它是接口或者抽象类，定义角色必需的行为和属性
+Implementor (the implementor role)
+It is an interface or abstract class that defines the behaviors and properties the role must have
 end note
 
 class RefinedAbstraction extends Abstraction {
@@ -7134,8 +7543,8 @@ class RefinedAbstraction extends Abstraction {
 }
 
 note bottom of RefinedAbstraction
-RefinedAbstraction(修正抽象化角色)
-它引用实现化角色对抽象化角色进行修正。
+RefinedAbstraction (the refined abstraction role)
+It references the implementor role to refine the abstraction role.
 end note
 
 note left of RefinedAbstraction::operation
@@ -7149,8 +7558,8 @@ class ConcreteImplementor implements Implementor {
 }
 
 note bottom of ConcreteImplementor
-ConcreteImplementor(具体实现化角色)
-它实现接口或抽象类定义的方法和属性。
+ConcreteImplementor (the concrete implementor role)
+It implements the methods and properties defined by the interface or abstract class.
 end note
 
 class Client {}
@@ -7164,59 +7573,62 @@ Abstraction -right-> Implementor
 @enduml
 ```
 
-桥梁模式中的几个名词比较拗口，大家只要记住一句话就成：抽象角色引用实现角色，或者说抽象角色的部分实现是由实现角色完成的。我们来看其通用源码，先看实现化角色
+The terms in the Bridge pattern are a bit of a mouthful; just remember one sentence: the abstraction
+role references the implementor role, or in other words, part of the abstraction role's
+implementation is done by the implementor role. Let's look at its generic source code, starting with
+the implementor role
 
 ```java
 public interface Implementor {
-    //基本方法
+    //basic method
     public void doSomething();
     public void doAnything();
 }
 
 public class ConcreteImplementor1 implements Implementor{
     public void doSomething(){
-        //业务逻辑处理
+        //business logic
     }
     public void doAnything(){
-        //业务逻辑处理
+        //business logic
     }
 }
 
 public class ConcreteImplementor2 implements Implementor{
     public void doSomething(){
-        //业务逻辑处理
+        //business logic
     }
     public void doAnything(){
-        //业务逻辑处理
+        //business logic
     }
 }
 
 public abstract class Abstraction {
-    //定义对实现化角色的引用
+    //define a reference to the implementor role
     private Implementor imp;
-    //约束子类必须实现该构造函数
+    //require subclasses to implement this constructor
     public Abstraction(Implementor imp){
         this.imp = imp;
     }
-    //自身的行为和属性
+    //own behaviors and properties
     public void request(){
         this.imp.doSomething();
     }
-    //获得实现化角色
+    //get the implementor role
     public Implementor getImp(){
         return imp;
     }
 }
 
 public class RefinedAbstraction extends Abstraction {
-    //覆写构造函数
+    //override the constructor
     public RefinedAbstraction(Implementor imp){
         super(imp);
     }
-    //修正父类的行为
+    //refine the parent's behavior
     @Override
     public void request(){
-        // 业务处理...
+        // business processing...
         super.request();
         super.getImp().doAnything();
     }
@@ -7224,33 +7636,50 @@ public class RefinedAbstraction extends Abstraction {
 
 public class Client {
     public static void main(String[] args) {
-        //定义一个实现化角色
+        //define an implementor role
         Implementor imp = new ConcreteImplementor1();
-        //定义一个抽象化角色
+        //define an abstraction role
         Abstraction abs = new RefinedAbstraction(imp);
-        //执行行文
+        //execute the behavior
         abs.request();
     }
 }
 ```
 
 
-### 桥接模式优点
+### Bridge pattern advantages
 
-1. 抽象和实现分离: 这也是桥梁模式的主要特点，它完全是为了解决继承的缺点而提出的设计模式。在该模式下，实现可以不受抽象的约束，不用再绑定在一个固定的抽象层次上。
-2. 优秀的扩充能力: 想增加实现？没问题！想增加抽象，也没有问题！只要对外暴露的接口层允许这样的变化，我们已经把变化的可能性减到最小。
-3. 实现细节对客户透明: 客户不用关心细节的实现，它已经由抽象层通过聚合关系完成了封装。
+1. Separation of abstraction and implementation: this is the main feature of the Bridge pattern, a
+   design pattern proposed entirely to address the drawbacks of inheritance. With this pattern, the
+   implementation is no longer constrained by the abstraction and no longer bound to a fixed
+   abstraction level.
+2. Excellent extensibility: want to add an implementation? No problem! Want to add an abstraction?
+   Also no problem! As long as the exposed interface layer allows such changes, we have minimized
+   the possibility of change.
+3. Implementation details are transparent to clients: clients don't need to care about how details
+   are implemented; the abstraction layer has already encapsulated them through aggregation.
 
-### 桥接模式使用场景
+### Bridge pattern use cases
 
-1. 不希望或不适用使用继承的场景: 例如继承层次过渡、无法更细化设计颗粒等场景，需要考虑使用桥梁模式
-2. 接口或抽象类不稳定的场景: 明知道接口不稳定还想通过实现或继承来实现业务需求，那是得不偿失的，也是比较失败的做法。
-3. 重用性要求较高的场景: 设计的颗粒度越细，则被重用的可能性就越大，而采用继承则受父类的限制，不可能出现太细的颗粒度。
+1. Where inheritance is unwanted or unsuitable: e.g. where the inheritance hierarchy is too deep or
+   the design granularity can't be refined further, consider the Bridge pattern
+2. Where interfaces or abstract classes are unstable: knowingly trying to meet business needs
+   through implementation or inheritance of an unstable interface is not worth it and is a poor
+   approach.
+3. Where reusability requirements are high: the finer the design granularity, the more likely it is
+   to be reused, while inheritance is limited by the parent class and can't achieve very fine
+   granularity.
 
 
-### 桥接模式例子: 公司生产
+### Bridge pattern example: company production
 
-我们每个人都有理想，但不要只是空想，理想是要靠今天的拼搏来实现的。今天咱们就来谈谈自己的理想，如希望成为一个富翁，身价过亿，有两家大公司，一家是房地产公司，另一家是服装制造公司。这两家公司都很赚钱，天天帮你累积财富。其实你并不关心公司的类型，你关心的是它们是不是在赚钱，赚了多少，这才是你关注的。商人嘛，唯利是图是其本性，偷税漏税是方法，欺上瞒下、压榨员工血汗是常用的手段，先用类图表示一下这两个公司
+We all have dreams, but don't just daydream; dreams are achieved by working hard today. Let's talk
+about our own dream, say, becoming a rich man worth over a hundred million with two big companies: a
+real estate company and a clothing manufacturer. Both companies make plenty of money and pile up
+wealth for you every day. You don't actually care about the type of company; what you care about is
+whether they make money and how much. Businessmen are profit-driven by nature, tax evasion is a
+method, and deceiving superiors and subordinates and squeezing employees are common tactics. First,
+let's represent these two companies with a class diagram
 
 ```plantuml
 @startuml
@@ -7271,73 +7700,78 @@ Client -right-> Corp
 @enduml
 ```
 
-类图很简单，声明了一个Corp抽象类，定义一个公司的抽象模型，公司首要是赚钱的，做义务或善举那也是有背后利益支撑的，还是赞成这句话“天下熙熙，皆为利来；天下攘攘，皆为利往”。我们先看Corp类的源代码
+The class diagram is simple: it declares an abstract Corp class defining an abstract model of a
+company. A company's first priority is making money; even charity has interests behind it, as the
+saying goes, "the whole world bustles about for profit". Let's look at the source code of the Corp
+class first
 
 ```java
-// 怎么这是模板方法模式啊？是的，这是个引子，请继续往下看。合适的方法存在合适的类中，这个基本上是每本Java基础书上都会讲的，但是到实际的项目中应用的时候就不是这么回事儿了。我们继续看两个实现类是如何实现的
-// 抽象公司
+// Isn't this the Template Method pattern? Yes, it's an introduction, keep reading. The right method
+// belongs in the right class; nearly every Java basics book says so, but it's a different story
+// when applied to real projects. Let's see how the two implementation classes are implemented
+// Abstract company
 public abstract class Corp {
     /*
-    * 如果是公司就应该有生产，不管是软件公司还是制造业公司
-    * 每家公司生产的东西都不一样，所以由实现类来完成
+    * Every company should produce something, whether it's a software company or a manufacturer
+    * Each company produces something different, so it's left to the implementation classes
     */
     protected abstract void produce();
     /*
-    * 有产品了，那肯定要销售啊，不销售公司怎么生存
+    * Once there are products, they must be sold; how else would the company survive
     */
     protected abstract void sell();
-        //公司是干什么的？赚钱的
+        //What does a company do? Make money
         public void makeMoney(){
-        //每个公司都是一样，先生产
+        //Every company is the same: first produce
         this.produce();
-        //然后销售
+        //then sell
     this.sell();
     }
 }
 
-// 房地产公司
+// Real estate company
 public class HouseCorp extends Corp {
-    //房地产公司盖房子
+    //The real estate company builds houses
     protected void produce() {
-        System.out.println("房地产公司盖房子...");
+        System.out.println("The real estate company builds houses...");
     }
-    //房地产公司卖房子，自己住那可不赚钱
+    //The real estate company sells houses; living in them yourself makes no money
     protected void sell() {
-        System.out.println("房地产公司出售房子...");
+        System.out.println("The real estate company sells houses...");
     }
-    //房地产公司很High了，赚钱，计算利润
+    //The real estate company is on a high: making money, calculating profit
     public void makeMoney(){
         super.makeMoney();
-        System.out.println("房地产公司赚大钱了...");
+        System.out.println("The real estate company makes big money...");
     }
 }
 
-// 服装公司
+// Clothing company
 public class ClothesCorp extends Corp {
-    //服装公司生产的就是衣服了
+    //The clothing company produces clothes
     protected void produce() {
-        System.out.println("服装公司生产衣服...");
+        System.out.println("The clothing company produces clothes...");
     }
-    //服装公司卖服装，可只卖服装，不卖穿衣服的模特
+    //The clothing company sells clothes, only clothes, not the models wearing them
     protected void sell() {
-        System.out.println("服装公司出售衣服...");
+        System.out.println("The clothing company sells clothes...");
     }
-    //服装公司不景气，但怎么说也是赚钱行业
+    //The clothing company is in a slump, but it's still a money-making business
     public void makeMoney(){
         super.makeMoney();
-        System.out.println("服装公司赚小钱...");
+        System.out.println("The clothing company makes a little money...");
     }
 }
 
 public class Client {
     public static void main(String[] args) {
-        System.out.println("-------房地产公司是这样运行的-------");
-        //先找到我的公司
+        System.out.println("-------This is how the real estate company runs-------");
+        //first find my company
         HouseCorp houseCorp =new HouseCorp();
-        //看我怎么挣钱
+        //see how I make money
         houseCorp.makeMoney();
         System.out.println("\n");
-        System.out.println("-------服装公司是这样运行的-------");
+        System.out.println("-------This is how the clothing company runs-------");
         ClothesCorp clothesCorp = new ClothesCorp();
         clothesCorp.makeMoney();
     }
@@ -7345,9 +7779,16 @@ public class Client {
 ```
 
 
-上述代码完全可以描述我现在的公司，但是你要知道万物都是运动的，你要用运动的眼光看问题，公司才会发展……终于有一天你觉得赚钱速度太慢，于是你上下疏通，左右打关系，终于开辟了一条赚钱的“康庄大道”：生产山寨产品！什么产品呢？即市场上什么牌子的东西火爆我生产什么牌子的东西，不管是打火机还是电脑，只要它火爆，我就生产，赚过了高峰期就换个产品，打一枪换一个牌子，不承担售后成本、也不担心销路问题，我只要正品的十分之一的价格，你买不买？哈哈，赚钱啊！
+The code above fully describes my current companies, but you have to know that everything is in
+motion, and you have to look at problems dynamically for the company to grow... One day you feel
+money is coming in too slowly, so you pull strings in all directions and finally open a "broad
+highway" to riches: making knock-off products! What products? Whatever brand is hot on the market, I
+make that brand, whether lighters or computers; as long as it's hot, I make it, and once the peak
+has passed I switch products, one shot per brand, with no after-sales costs and no worries about
+sales. I only charge a tenth of the price of the genuine product; would you buy it? Ha, money!
 
-企业的方向定下来了，通过调查，苹果公司的iPod系列产品比较火爆，那咱就生产这个，把服装厂改成iPod生产厂，看类图的变化
+The company's direction is set. Research shows Apple's iPod line is hot, so let's make that, turning
+the clothing factory into an iPod factory; look at how the class diagram changes
 
 ```plantuml
 @startuml
@@ -7368,45 +7809,56 @@ Client -right-> Corp
 @enduml
 ```
 
-好，我的企业改头换面了，开始生产iPod产品了，看我IPodCorp类的实现
+OK, my company has had a makeover and started making iPods; here's my IPodCorp class implementation
 
 ```java
 public class IPodCorp extends Corp {
-    //我开始生产iPod了
+    //I start producing iPods
     protected void produce() {
-        System.out.println("我生产iPod...");
+        System.out.println("I produce iPods...");
     }
-    //山寨的iPod很畅销，便宜嘛
+    //Knock-off iPods sell well, they're cheap
     protected void sell() {
-        System.out.println("iPod畅销...");
+        System.out.println("iPods sell well...");
     }
-    //狂赚钱
+    //make loads of money
     public void makeMoney(){
         super.makeMoney();
-        System.out.println("我赚钱呀...");
+        System.out.println("I'm making money...");
     }
 }
 ```
 
-服装工厂改成了电子工厂，你这个董事长还是要去看看到底生产什么的，场景类如代码
+The clothing factory has become an electronics factory; as chairman you still need to go and see
+what's being produced; the scenario class code
 
 ```java
 public class Client {
     public static void main(String[] args) {
-        System.out.println("-------房地产公司是按这样运行的-------");
-        //先找到我的公司
+        System.out.println("-------This is how the real estate company runs-------");
+        //first find my company
         HouseCorp houseCorp =new HouseCorp();
-        //看我怎么挣钱
+        //see how I make money
         houseCorp.makeMoney();
         System.out.println("\n");
-        System.out.println("-------山寨公司是按这样运行的-------");
+        System.out.println("-------This is how the knock-off company runs-------");
         IPodCorp iPodCorp = new IPodCorp();
         iPodCorp.makeMoney();
     }
 }
 ```
 
-确实，只用修改了黑色字体这几句话，服装厂就开始变成山寨iPod生产车间，然后你就看着你的财富在积累。山寨的东西不需要特别的销售渠道（正品到哪里我就到哪里），不需要维修成本（大不了给你换个，你还想怎么样，过了高峰期我就改头换面了，你找谁维修去？投诉？投诉谁呢？），不承担广告成本（正品在打广告，我还需要吗？需要吗？），但是也有犯愁的时候，这是一个山寨工厂，要及时地生产出市场上流行的产品，转型要快，要灵活，今天从生产iPod转为生产MP4,明天再转为生产上网本，这都需要灵活的变化，不要限制得太死！那问题来了，每次我的厂房，我的工人，我的设备都在，不可能每次我换个山寨产品厂子就彻底不要了。这不行，成本忒高了点，那怎么办, 既然产品和工厂绑得太死，那我就给你来松松，改变设计, 类图如下
+Indeed, changing just these few lines in bold turns the clothing factory into a knock-off iPod
+workshop, and you watch your wealth accumulate. Knock-offs need no special sales channels (wherever
+the genuine product goes, I go), no repair costs (at worst I'll swap it for you; what more do you
+want? Once the peak passes I'll have reinvented myself; who will you go to for repairs? Complain? To
+whom?), and no advertising costs (the genuine product is advertising, why would I need to?). But
+there are worries too: this is a knock-off factory that has to quickly produce whatever is popular,
+transitioning fast and flexibly, switching from iPods to MP4 players today and to netbooks tomorrow;
+all this requires flexible change and mustn't be too rigid! So here's the problem: my plant, my
+workers and my equipment are always there; I can't throw the whole factory away every time I switch
+knock-off products. That's too costly. So what to do? Since the product and the factory are bound
+too tightly, let's loosen them up and change the design; the class diagram is as follows
 
 ```plantuml
 @startuml
@@ -7420,7 +7872,7 @@ abstract class Corp {
     Corp(Product product)
     void makeMoney()
 }
-note top of Corp : 公司
+note top of Corp : Company
 
 class HouseCorp extends Corp {}
 class SanZhaiCorp extends Corp {}
@@ -7429,7 +7881,7 @@ interface Product {
     void beProducted()
     void beSelled()
 }
-note top of Product : 产品
+note top of Product : Product
 
 class House implements Product {}
 class IPod implements Product {}
@@ -7440,118 +7892,126 @@ Corp -right-> Product
 @enduml
 ```
 
-公司和产品之间建立关联关系，可以彻底解决以后山寨公司生产产品的问题，工厂想换产品？太容易了！看程序说话，先看Product抽象类，如代码
+Establishing an association between company and product completely solves the problem of what the
+knock-off company will produce in the future. Want the factory to switch products? Too easy! Let the
+code speak; first the abstract Product class
 
 ```java
-// 抽象产品类
+// Abstract product class
 public abstract class Product {
-    //甭管是什么产品它总要能被生产出来
+    //Whatever the product is, it must be possible to produce it
     public abstract void beProducted();
-    //生产出来的东西，一定要销售出去，否则亏本
+    //Whatever is produced must be sold, or you lose money
     public abstract void beSelled();
 }
 
-// 房子
+// House
 public class House extends Product {
-    //豆腐渣就豆腐渣呗，好歹也是房子
+    //Shoddy construction is shoddy construction, but at least it's a house
     public void beProducted() {
-        System.out.println("生产出的房子是这样的...");
+        System.out.println("This is what the produced house looks like...");
     }
-    //虽然是豆腐渣，也是能够销售出去的
+    //Shoddy as it is, it can still be sold
     public void beSelled() {
-        System.out.println("生产出的房子卖出去了...");
+        System.out.println("The produced house has been sold...");
     }
 }
 
-// iPod产品
+// iPod product
 public class IPod extends Product {
     public void beProducted() {
-        System.out.println("生产出的iPod是这样的...");
+        System.out.println("This is what the produced iPod looks like...");
     }
     public void beSelled() {
-        System.out.println("生产出的iPod卖出去了...");
+        System.out.println("The produced iPod has been sold...");
     }
 }
 
-// 抽象公司类
+// Abstract company class
 public abstract class Corp {
-    //定义一个抽象的产品对象，不知道具体是什么产品
+    //define an abstract product object; we don't know what concrete product it is
     private Product product;
-    //构造函数，由子类定义传递具体的产品进来
+    //constructor; subclasses pass in the concrete product
     public Corp(Product product){
         this.product = product;
     }
-    //公司是干什么的？赚钱的！
+    //What does a company do? Make money!
     public void makeMoney(){
-        //每家公司都是一样，先生产
+        //Every company is the same: first produce
         this.product.beProducted();
-        //然后销售
+        //then sell
         this.product.beSelled();
     }
 }
 
-// 房地产公司
+// Real estate company
 public class HouseCorp extends Corp {
-    //定义传递一个House产品进来
+    //define passing in a House product
     public HouseCorp(House house){
         super(house);
     }
-    //房地产公司很High了，赚钱，计算利润
+    //The real estate company is on a high: making money, calculating profit
     public void makeMoney(){
         super.makeMoney();
-        // 修正抽象化角色
-        System.out.println("房地产公司赚大钱了...");
+        // refined abstraction role
+        System.out.println("The real estate company makes big money...");
     }
 }
 
-// 山寨公司
+// Knock-off company
 public class ShanZhaiCorp extends Corp {
-    //产什么产品，不知道，等被调用的才知道
+    //What product will it make? Unknown until it's called
     public ShanZhaiCorp(Product product){
         super(product);
     }
-    //狂赚钱
+    //make loads of money
     public void makeMoney(){
         super.makeMoney();
-        System.out.println("我赚钱呀...");
+        System.out.println("I'm making money...");
     }
 }
 
-// HouseCorp类和ShanZhaiCorp类的区别是在有参构造的参数类型上，HouseCorp类比较明确，我就是只要House类，
-// 所以直接定义传递进来的必须是House类， 一个类尽可能少地承担职责，那方法也一样，
-// 既然HouseCorp类已经非常明确地只生产House产品，那为什么不定义成House类型呢？
-// ShanZhaiCorp就不同了，它确定不了生产什么类型。
+// The difference between HouseCorp and ShanZhaiCorp is the parameter type of the constructor:
+// HouseCorp is explicit, it only wants the House class,
+// so it directly requires that what's passed in is a House. A class should take on as few
+// responsibilities as possible, and so should methods;
+// since HouseCorp very clearly only produces House products, why not declare it as the House type?
+// ShanZhaiCorp is different: it can't determine what type it will produce.
 
 public class Client {
     public static void main(String[] args) {
         House house = new House();
-        System.out.println("-------房地产公司是这样运行的-------");
-        //先找到房地产公司
+        System.out.println("-------This is how the real estate company runs-------");
+        //first find the real estate company
         HouseCorp houseCorp =new HouseCorp(house);
-        //看我怎么挣钱
+        //see how I make money
         houseCorp.makeMoney();
         System.out.println("\n");
-        //山寨公司生产的产品很多，不过我只要指定产品就成了
-        System.out.println("-------山寨公司是这样运行的-------");
+        //the knock-off company produces many products, but I just need to specify the product
+        System.out.println("-------This is how the knock-off company runs-------");
         ShanZhaiCorp shanZhaiCorp = new ShanZhaiCorp(new IPod());
         shanZhaiCorp.makeMoney();
-        // 突然有一天，老板良心发现了，不准备生产这种“三无”产品了，那我们程序该怎么修改呢？
-        // 如果仍重操旧业，生产衣服，那该如何处理呢？很容易处理，增加一个产品类，
-        // 然后稍稍修改一下场景就可以了，我们来看衣服产品类
-        // System.out.println("-------山寨公司是这样运行的-------");
+        // One day the boss suddenly grows a conscience and decides to stop making these "three-no"
+        // (no brand, no certification, no manufacturer) products; how should we change the program?
+        // What if he goes back to the old business of making clothes? Easy: add a product class
+        // and then tweak the scenario slightly; let's look at the clothes product class
+        // System.out.println("-------This is how the knock-off company runs-------");
         // ShanZhaiCorp shanZhaiCorp = new ShanZhaiCorp(new Clothes());
         // shanZhaiCorp.makeMoney();
     }
 }
 ```
 
-## 生成器模式
+## Builder Pattern
 
-`生成器模式`: 将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示
+`Builder pattern`: separates the construction of a complex object from its representation, so that
+the same construction process can create different representations
 
-建造者模式关注的是零件类型和装配工艺（顺序），这是它与工厂方法模式最大不同的地方，虽然同为创建类模式，但是注重点不同
+The Builder pattern focuses on part types and the assembly process (order); that's the biggest
+difference from the Factory Method pattern. Although both are creational patterns, their focus
+differs
 
-### 生成器模式类图
+### Builder pattern class diagram
 
 ```plantuml
 @startuml
@@ -7562,8 +8022,8 @@ class Director {
     + make(type)
 }
 note top of Director
-主管(Director)类定义调用构造步骤的顺序， 
-这样你就可以创建和复用特定的产品配置。
+The Director class defines the order in which to call construction steps,
+so you can create and reuse specific configurations of products.
 end note
 note left of Director::make
 builder.reset();
@@ -7585,8 +8045,8 @@ interface Builder {
 
 
 note top of Builder
-生成器(Builder)
-接口声明在所有类型生成器中通用的产品构造步骤。
+Builder
+The interface declares product construction steps that are common to all types of builders.
 end note
 
 class ConcreteBuilder extends Builder {
@@ -7599,9 +8059,9 @@ class ConcreteBuilder extends Builder {
     + getResult()
 }
 note bottom of ConcreteBuilder
-具体生成器(Concrete Builders)
-提供构造过程的不同实现。 
-具体生成器也可以构造不遵循通用接口的产品。
+Concrete Builders
+provide different implementations of the construction steps.
+Concrete builders may produce products that don't follow the common interface.
 end note
 note right of ConcreteBuilder::reset
 result = new ConcreteProduct();
@@ -7610,17 +8070,19 @@ class Product {
 
 }
 note bottom of Product
-产品(Products)是最终生成的对象。 
-由不同生成器构造的产品无需属于同一类层次结构或接口。
+Products are the resulting objects.
+Products constructed by different builders don't have to belong to the same class hierarchy or
+interface.
 end note
 
 class Client {}
 note bottom of Client
-客户端(Client)必须将某个生成器对象与主管类关联。 
-一般情况下， 你只需通过主管类构造函数的参数进行一次性关联即可。
-此后主管类就能使用生成器对象完成后续所有的构造任务。 
-但在客户端将生成器对象传递给主管类制造方法时还有另一种方式。 
-在这种情况下， 你在使用主管类生产产品时每次都可以使用不同的生成器。
+The Client must associate one of the builder objects with the director.
+Usually, it's done just once, via parameters of the director's constructor.
+Then the director uses that builder object for all further construction.
+However, there's an alternative approach for when the client passes the builder object to the
+production method of the director.
+In this case, you can use a different builder each time you produce something with the director.
 end note
 
 Director -right-> Builder
@@ -7631,49 +8093,53 @@ Client -right-> Product
 @enduml
 ```
 
-代码示例
+Code example
 
 ```java
-// 产评类通常是一个组合或继承（如模板方法模式）产生的类
+// The product class is usually a class produced by composition or inheritance (as in the Template
+// Method pattern)
 public class Product {
     public void doSomething(){
-        //独立业务处理
+        //independent business logic
     }
 }
 
-// 抽象建造者
+// Abstract builder
 public abstract class Builder {
-    // setPart方法是零件的配置，什么是零件？其他的对象，获得一个不同零件，或者
-    // 不同的装配顺序就可能产生不同的产品
-    //设置产品的不同部分，以获得不同的产品
+    // The setPart method configures parts. What are parts? Other objects; getting a different part,
+    // or
+    // a different assembly order, may produce a different product
+    //set different parts of the product to get different products
     public abstract void setPart();
-    //建造产品
+    //build the product
     public abstract Product buildProduct();
 }
 
-// 需要注意的是，如果有多个产品类就有几个具体的建造者，而且这多个产品类具有相同接口或抽象类
-// 具体建造者
+// Note that if there are several product classes there are several concrete builders, and these
+// product classes share the same interface or abstract class
+// Concrete builder
 public class ConcreteProduct extends Builder {
     private Product product = new Product();
-    //设置产品零件public void setPart(){
-        //产品类内的逻辑处理
+    //set product parts public void setPart(){
+        //logic inside the product class
     }
-    //组建一个产品
+    //assemble a product
     public Product buildProduct() {
         return product;
     }
 }
 
-// 导演类起到封装的作用，避免高层模块深入到建造者内部的实现类。
-// 当然，在建造者模式比较庞大时，导演类可以有多个。
-// 导演类
+// The director class encapsulates things, keeping high-level modules from reaching into the
+// builders' implementation classes.
+// Of course, when the Builder pattern gets large, there can be multiple director classes.
+// Director class
 public class Director {
     private Builder builder = new ConcreteProduct();
-        //构建不同的产品
+        //build different products
         public Product getAProduct(){
         builder.setPart();
         /*
-        * 设置不同的零件，产生不同的产品
+        * set different parts to produce different products
         */
         return builder.buildProduct();
     }
@@ -7682,27 +8148,52 @@ public class Director {
 
 ```
 
-### 生成器模式的优点
+### Builder pattern advantages
 
-1. 封装性: 使用建造者模式可以使客户端不必知道产品内部组成的细节，如例子中我们就不需要关心每一个具体的模型内部是如何实现的
-2. 建造者独立，容易扩展: BenzBuilder和BMWBuilder是相互独立的，对系统的扩展非常有利。
-3. 便于控制细节风险: 由于具体的建造者是独立的，因此可以对建造过程逐步细化，而不对其他的模块产生任何影响。
+1. Encapsulation: with the Builder pattern, the client doesn't need to know the details of the
+   product's internal composition; in the example we don't need to care how each concrete model is
+   implemented internally
+2. Builders are independent and easy to extend: BenzBuilder and BMWBuilder are independent of each
+   other, which is great for extending the system.
+3. Easier to control detail risks: since the concrete builders are independent, the build process
+   can be refined step by step without affecting other modules.
 
-### 建造者模式的使用场景
+### Builder pattern use cases
 
-1. 相同的方法，不同的执行顺序，产生不同的事件结果时，可以采用建造者模式
-2. 多个部件或零件，都可以装配到一个对象中，但是产生的运行结果又不相同时，则可以使用该模式。
-3. 产品类非常复杂，或者产品类中的调用顺序不同产生了不同的效能，这个时候使用建造者模式非常合适。
-4. 在对象创建过程中会使用到系统中的一些其他对象，这些对象在产品对象的创建过程中不易得到时，也可以采用建造者模式封装该对象的创建过程。该种场景只能是一个补偿方法，因为一个对象不容易获得，而在设计阶段竟然没有发觉，而要通过创建者模式柔化创建
-过程，本身已经违反设计的最初目标。
+1. When the same methods executed in a different order produce different results, use the Builder
+   pattern
+2. When multiple components or parts can be assembled into one object but produce different results,
+   use this pattern.
+3. When the product class is very complex, or different call orders in the product class produce
+   different effects, the Builder pattern is a great fit.
+4. When creating an object uses other objects in the system that are hard to obtain during the
+   product's creation, you can also use the Builder pattern to encapsulate the creation process.
+   This scenario can only be a compensating measure, since not noticing during design that an object
+   is hard to obtain, and having to soften the creation through the Builder
+process, already violates the original design goals.
 
-### 生成器模式例子: 汽车厂
+### Builder pattern example: car factory
 
-又是一个周三，快要下班了，老大突然拉住我，喜滋滋地告诉我：“××公司很满意我们做的模型，又签订了一个合同，把奔驰、宝马的车辆模型都交给我们公司制作了，不过这次又额外增加了一个新需求：汽车的启动、停止、喇叭声音、引擎声音都由客户自己控制，他想什么顺序就什么顺序，这个没问题吧？”
+Another Wednesday, almost time to leave work, when the boss suddenly grabbed me and happily told me:
+"Company XX is very pleased with the models we made and has signed another contract, giving our
+company the Mercedes-Benz and BMW car models to make. But this time there's an extra requirement:
+the car's start, stop, horn sound and engine sound are controlled by the customer, in whatever order
+they like. That's no problem, right?"
 
-那任务又是一个时间紧、工程量大的项目，为什么是“又”呢？因为基本上每个项目都是如此，我该怎么来完成这个任务呢？
+So the task is yet another project with a tight schedule and a heavy workload. Why "yet another"?
+Because basically every project is like this. How should I get this done?
 
-首先，我们分析一下需求，奔驰、宝马都是一个产品，它们有共有的属性，××公司关心的是单个模型的运行过程：奔驰模型A是先有引擎声音，然后再响喇叭；奔驰模型B是先启动起来，然后再有引擎声音，这才是××公司要关心的。那到我们老大这边呢，就是满足人家的要求，要什么顺序就立马能产生什么顺序的模型出来。我就负责把老大的要求实现出来，而且还要是批量的，也就是说××公司下单订购宝马A车模，我们老大马上就找我“生产一个这样的车模，启动完毕后，喇叭响一下”，然后我们就准备开始批量生产这些模型。由我生产出N多个奔驰和宝马车辆模型，这些车辆模型都有run()方法，但是具体到每一个模型的run()方法中间的执行任务的顺序是不同的，老大说要啥顺序，我就给啥顺序，最终客户买走后只能是既定的模型。好，需求还是比较复杂，我们先一个一个地解决，先从找一个最简单的切入点——产品类，每个车都是一个产品, 类图如下
+First, let's analyze the requirements. Benz and BMW are both products with shared attributes. What
+Company XX cares about is how a single model runs: Benz model A makes the engine sound first and
+then honks; Benz model B starts first and then makes the engine sound. That's what Company XX cares
+about. For our boss, the job is to satisfy their requirements and immediately produce a model with
+whatever order they ask for. I'm responsible for implementing the boss's requirements, in bulk: when
+Company XX orders BMW model A, our boss immediately tells me "produce a car model like this: after
+starting, honk once", and then we get ready to mass-produce these models. I produce lots of Benz and
+BMW car models; they all have a run() method, but the order of the tasks executed in each model's
+run() differs. Whatever order the boss asks for, I give, and once the customer buys it, it's a fixed
+model. OK, the requirements are fairly complex, so let's solve them one at a time, starting from the
+simplest entry point: the product class. Each car is a product; the class diagram is as follows
 
 ```plantuml
 @startuml
@@ -7717,104 +8208,111 @@ abstract class CarModel {
 }
 
 class BenzModel extends CarModel {}
-note bottom of BenzModel : 奔驰实现类
+note bottom of BenzModel : Benz implementation class
 
 class BMWModel extends CarModel {}
-note bottom of BMWModel : 宝马实现类
+note bottom of BMWModel : BMW implementation class
 
 @enduml
 ```
 
-类图比较简单，在CarModel中我们定义了一个setSequence方法，车辆模型的这几个动作要如何排布，是在这个ArrayList中定义的。然后run()方法根据sequence定义的顺序完成指定的顺序动作，与第10章介绍的模板方法模式是不是非常类似？好，我们先看CarModel源代码，代码清单如下
+The class diagram is fairly simple. In CarModel we define a setSequence method; how the car model's
+actions are arranged is defined in this ArrayList. Then the run() method performs the actions in the
+order defined by sequence. Isn't that very similar to the Template Method pattern from chapter 10?
+OK, let's look at the CarModel source code first
 
 ```java
-// 车辆模型的抽象类
-// CarModel的设计原理是这样的，setSequence方法是允许客户自己设置一个顺序，
-// 是要先启动响一下喇叭再跑起来，还是要先响一下喇叭再启动。对于一个具体的模型永远都固定的，
-// 但是对N多个模型就是动态的了。在子类中实现父类的基本方法，run()方法读取
-sequence，然后遍历sequence中的字符串，哪个字符串在先，就先执行哪个方法
+// Abstract car model class
+// The design of CarModel works like this: the setSequence method lets the customer set an order
+// themselves,
+// whether to start first and honk then run, or honk first and then start. For a specific model it's
+// always fixed,
+// but across many models it's dynamic. Subclasses implement the parent's basic methods; the run()
+// method reads
+sequence, then walks through the strings in sequence and executes whichever method comes first
 public abstract class CarModel {
-    //这个参数是各个基本方法执行的顺序
+    //this parameter is the order in which the basic methods are executed
     private ArrayList<String> sequence = new ArrayList<String>();
-    //模型是启动开始跑了
+    //the model starts and begins to run
     protected abstract void start();
-    //能发动，还要能停下来，那才是真本事
+    //it can start, and it must be able to stop too; that's real skill
     protected abstract void stop();
-    //喇叭会出声音，是滴滴叫，还是哔哔叫
+    //the horn makes a sound: beep beep or honk honk
     protected abstract void alarm();
-    //引擎会轰隆隆地响，不响那是假的
+    //the engine rumbles; if it doesn't, it's fake
     protected abstract void engineBoom();
-    //那模型应该会跑吧，别管是人推的，还是电力驱动，总之要会跑
+    //the model should be able to run, whether pushed by hand or electrically driven; anyway it must
+    //run
     final public void run() {
-        //循环一边，谁在前，就先执行谁
+        //loop through; whoever is first gets executed first
         for(int i=0;i<this.sequence.size();i++){
             String actionName = this.sequence.get(i);
 
             if(actionName.equalsIgnoreCase("start")){
-                this.start(); //启动汽车
+                this.start(); //start the car
             } else if(actionName.equalsIgnoreCase("stop")){
-                this.stop(); //停止汽车
+                this.stop(); //stop the car
             } else if(actionName.equalsIgnoreCase("alarm")){
-                this.alarm(); //喇叭开始叫了
+                this.alarm(); //the horn starts honking
             } else if(actionName.equalsIgnoreCase("engine boom")){
-                //如果是engine boom关键
-                this.engineBoom(); //引擎开始轰鸣
+                //if it's the engine boom keyword
+                this.engineBoom(); //the engine starts roaring
             }
         }
     }
-    //把传递过来的值传递到类内
+    //pass the given value into the class
     final public void setSequence(ArrayList sequence){
         this.sequence = sequence;
     }
 }
 
-// 奔驰模型代码
+// Benz model code
 public class BenzModel extends CarModel {
     protected void alarm() {
-        System.out.println("奔驰车的喇叭声音是这个样子的...");
+        System.out.println("This is what the Benz horn sounds like...");
     }
     protected void engineBoom() {
-        System.out.println("奔驰车的引擎是这个声音的...");
+        System.out.println("This is what the Benz engine sounds like...");
     }
     protected void start() {
-        System.out.println("奔驰车跑起来是这个样子的...");
+        System.out.println("This is how the Benz runs...");
     }
     protected void stop() {
-        System.out.println("奔驰车应该这样停车...");
+        System.out.println("This is how the Benz should stop...");
     }
 }
 
-// 宝马模型代码
+// BMW model code
 public class BMWModel extends CarModel {
     protected void alarm() {
-        System.out.println("宝马车的喇叭声音是这个样子的...");
+        System.out.println("This is what the BMW horn sounds like...");
     }
     protected void engineBoom() {
-        System.out.println("宝马车的引擎是这个声音的...");
+        System.out.println("This is what the BMW engine sounds like...");
     }
     protected void start() {
-        System.out.println("宝马车跑起来是这个样子的...");
+        System.out.println("This is how the BMW runs...");
     }
     protected void stop() {
-        System.out.println("宝马车应该这样停车...");
+        System.out.println("This is how the BMW should stop...");
     }
 }
 
-// 奔驰模型代码
+// Benz model code
 public class Client {
     public static void main(String[] args) {
         /*
-        * 客户告诉XX公司，我要这样一个模型，然后XX公司就告诉我老大
-        * 说要这样一个模型，这样一个顺序，然后我就来制造
+        * The customer tells Company XX: I want a model like this; Company XX then tells my boss
+        * that they want such a model with such an order, and then I build it
         */
         BenzModel benz = new BenzModel();
-        //存放run的顺序
+        //store the run order
         ArrayList<String> sequence = new ArrayList<String>();
-        sequence.add("engine boom"); //客户要求，run的时候先发动引擎
-        sequence.add("start"); //启动起来
+        sequence.add("engine boom"); //customer requirement: start the engine first when running
+        sequence.add("start"); //start up
         sequence.add("stop");
-        //开了一段就停下来
-        //我们把这个顺序赋予奔驰车
+        //drive a while and then stop
+        //give this order to the Benz
         benz.setSequence(sequence);
         benz.run();
     }
@@ -7822,7 +8320,13 @@ public class Client {
 
 ```
 
-看，我们组装了这样的一辆汽车，满足了××公司的需求。但是想想我们的需求，汽车的动作执行顺序是要能够随意调整的。我们只满足了一个需求，还有下一个需求呀，然后是第二个宝马模型，只要启动、停止，其他的什么都不要；第三个模型，先喇叭，然后启动，然后停止；第四个……直到把你逼疯为止，那怎么办？我们就一个一个地来写场景类满足吗？不可能了，那我们要想办法来解决这个问题，有了！我们为每种模型产品模型定义一个建造者，你要啥顺序直接告诉建造者，由建造者来建造，于是乎我们就有了如下类图。
+Look, we've assembled a car like this and met Company XX's requirement. But think about the
+requirements: the order of the car's actions must be freely adjustable. We've only met one
+requirement; there's the next one, then a second BMW model that only starts and stops and nothing
+else; a third model that honks, then starts, then stops; a fourth... until you go mad. What do we
+do? Write a scenario class for each one? Impossible. We need a way to solve this. Got it! We define
+a builder for each product model: whatever order you want, just tell the builder, and the builder
+builds it. So we get the following class diagram.
 
 ```plantuml
 @startuml
@@ -7833,15 +8337,15 @@ abstract class CarBuilder {
 }
 
 note top of CarBuilder
-增加了一个CarBuilder抽象类，由它来组装各个车模，
-要什么类型什么顺序的车辆模型，都由相关的子类完成
+A CarBuilder abstract class is added to assemble each car model;
+whatever type and order of car model is needed is handled by the relevant subclass
 end note
 
 class BenzCarBuilder extends CarBuilder {}
-note bottom of BenzCarBuilder : 奔驰车组装
+note bottom of BenzCarBuilder : Benz assembly
 
 class BMWCarBuilder extends CarBuilder {}
-note bottom of BMWCarBuilder : 宝马车组装
+note bottom of BMWCarBuilder : BMW assembly
 
 abstract class CarModel {
     start()
@@ -7853,29 +8357,29 @@ abstract class CarModel {
 }
 
 class BenzModel extends CarModel {}
-note bottom of BenzModel : 奔驰实现类
+note bottom of BenzModel : Benz implementation class
 
 class BMWModel extends CarModel {}
-note bottom of BMWModel : 宝马实现类
+note bottom of BMWModel : BMW implementation class
 
 CarBuilder -right-> CarModel
 
 @enduml
 ```
 
-代码清单如下
+The code listing is as follows
 
 ```java
-// 抽象汽车组装者
+// Abstract car builder
 public abstract class CarBuilder {
-    //建造一个模型，你要给我一个顺序要求，就是组装顺序
+    //to build a model, you give me an order requirement, i.e. the assembly order
     public abstract void setSequence(ArrayList<String> sequence);
-    //设置完毕顺序后，就可以直接拿到这个车辆模型
+    //once the order is set, you can get the car model directly
     public abstract CarModel getCarModel();
 }
 
-// 很简单，每个车辆模型都要有确定的运行顺序，然后才能返回一个车辆模型
-// 奔驰车组装者
+// Very simple: each car model needs a defined running order before a car model can be returned
+// Benz builder
 public class BenzBuilder extends CarBuilder {
     private BenzModel benz = new BenzModel();
         public CarModel getCarModel() {
@@ -7886,7 +8390,7 @@ public class BenzBuilder extends CarBuilder {
     }
 }
 
-// 宝马车组装者
+// BMW builder
 public class BMWBuilder extends CarBuilder {
     private BMWModel bmw = new BMWModel();
         public CarModel getCarModel() {
@@ -7897,46 +8401,47 @@ public class BMWBuilder extends CarBuilder {
     }
 }
 
-// 我们再来看看××公司的需求如何满足
+// Now let's see how Company XX's requirements are met
 public class Client {
     public static void main(String[] args) {
         /*
-        * 客户告诉XX公司，我要这样一个模型，然后XX公司就告诉我老大
-        * 说要这样一个模型，这样一个顺序，然后我就来制造
+        * The customer tells Company XX: I want a model like this; Company XX then tells my boss
+        * that they want such a model with such an order, and then I build it
         */
-        //存放run的顺序
+        //store the run order
         ArrayList<String> sequence = new ArrayList<String>();
-        sequence.add("engine boom"); //客户要求，run时候时候先发动引擎
-        sequence.add("start"); //启动起来
+        sequence.add("engine boom"); //customer requirement: start the engine first when running
+        sequence.add("start"); //start up
         sequence.add("stop");
-        //开了一段就停下来
-        //要一个奔驰车：
-        BenzBuilder benzBuilder = new BenzBuilder();//把顺序给这个builder类，制造出这样一个车出来
+        //drive a while and then stop
+        //we want a Benz:
+        //give the order to this builder class and build such a car
+        BenzBuilder benzBuilder = new BenzBuilder();
         benzBuilder.setSequence(sequence);
-        //制造出一个奔驰车
+        //build a Benz
         BenzModel benz = (BenzModel)benzBuilder.getCarModel();
-        //奔驰车跑一下看看
+        //take the Benz for a run
         benz.run();
     }
 }
 
-// 那如果我再想要个同样顺序的宝马车呢
+// What if I want a BMW with the same order
 public class Client {
     public static void main(String[] args) {
-        //存放run的顺序
+        //store the run order
         ArrayList<String> sequence = new ArrayList<String>();
-        sequence.add("engine boom"); //客户要求，run的时候先发动引擎
-        sequence.add("start"); //启动起来
-        sequence.add("stop"); //开了一段就停下来
-        //要一个奔驰车：
+        sequence.add("engine boom"); //customer requirement: start the engine first when running
+        sequence.add("start"); //start up
+        sequence.add("stop"); //drive a while and then stop
+        //we want a Benz:
         BenzBuilder benzBuilder = new BenzBuilder();
-        //把顺序给这个builder类，制造出这样一个车出来
+        //give the order to this builder class and build such a car
         benzBuilder.setSequence(sequence);
-        //制造出一个奔驰车
+        //build a Benz
         BenzModel benz = (BenzModel)benzBuilder.getCarModel();
-        //奔驰车跑一下看看
+        //take the Benz for a run
         benz.run();
-        //按照同样的顺序，我再要一个宝马
+        //with the same order, I want a BMW too
         BMWBuilder bmwBuilder = new BMWBuilder();
         bmwBuilder.setSequence(sequence);
         BMWModel bmw = (BMWModel)bmwBuilder.getCarModel();
@@ -7945,7 +8450,14 @@ public class Client {
 }
 ```
 
-看，同样运行顺序的宝马车也生产出来了，而且代码是不是比刚开始直接访问产品类（Procuct）简单了很多。我们在做项目时，经常会有一个共识：需求是无底洞，是无理性的，不可能你告诉它不增加需求就不增加，这4个过程（start、stop、alarm、engine boom）按照排列组合有很多种，××公司可以随意组合，它要什么顺序的车模我就必须生成什么顺序的车模，客户可是上帝！那我们不可能预知他们要什么顺序的模型呀，怎么办？封装一下，找一个导演，指挥各个事件的先后顺序，然后为每种顺序指定一个代码，你说一种我们立刻就给你生产处理，好方法，厉害！我们先修改一下类图，类图如下
+Look, a BMW with the same running order has been produced too, and the code is much simpler than
+directly accessing the product class (Procuct) at the start. In projects we often agree on one
+thing: requirements are a bottomless pit and irrational; you can't stop them just by saying so.
+These 4 steps (start, stop, alarm, engine boom) have many permutations, and Company XX can combine
+them however they like; whatever order they want, I have to produce. The customer is god! We can't
+predict which order they'll want, so what do we do? Encapsulate it: find a director to command the
+order of events, assign a code to each order, and whichever one you name, we produce it right away.
+Great idea! Let's first modify the class diagram, as follows
 
 ```plantuml
 @startuml
@@ -7965,15 +8477,15 @@ abstract class CarBuilder {
 }
 
 note top of CarBuilder
-增加了一个CarBuilder抽象类，由它来组装各个车模，
-要什么类型什么顺序的车辆模型，都由相关的子类完成
+A CarBuilder abstract class is added to assemble each car model;
+whatever type and order of car model is needed is handled by the relevant subclass
 end note
 
 class BenzCarBuilder extends CarBuilder {}
-note bottom of BenzCarBuilder : 奔驰车组装
+note bottom of BenzCarBuilder : Benz assembly
 
 class BMWCarBuilder extends CarBuilder {}
-note bottom of BMWCarBuilder : 宝马车组装
+note bottom of BMWCarBuilder : BMW assembly
 
 abstract class CarModel {
     start()
@@ -7985,10 +8497,10 @@ abstract class CarModel {
 }
 
 class BenzModel extends CarModel {}
-note bottom of BenzModel : 奔驰实现类
+note bottom of BenzModel : Benz implementation class
 
 class BMWModel extends CarModel {}
-note bottom of BMWModel : 宝马实现类
+note bottom of BMWModel : BMW implementation class
 
 CarBuilder -right-> CarModel
 Client --> Director
@@ -7998,7 +8510,7 @@ Director ..> CarModel
 @enduml
 ```
 
-导演类代码清单如下
+The Director class code listing is as follows
 
 ```java
 public class Director {
@@ -8006,21 +8518,21 @@ public class Director {
     private BenzBuilder benzBuilder = new BenzBuilder();
     private BMWBuilder bmwBuilder = new BMWBuilder();
     /*
-    * A类型的奔驰车模型，先start，然后stop，其他什么引擎、喇叭一概没有
+    * Type A Benz model: start first, then stop; no engine sound, no horn
     */
     public BenzModel getABenzModel(){
-        //清理场景，这里是一些初级程序员不注意的地方
+        //clear the scenario; this is something junior programmers tend to overlook
         this.sequence.clear();
-        //ABenzModel的执行顺序
+        //the execution order of ABenzModel
         this.sequence.add("start");
         this.sequence.add("stop");
-        //按照顺序返回一个奔驰车
+        //return a Benz in that order
         this.benzBuilder.setSequence(this.sequence);
         return (BenzModel)this.benzBuilder.getCarModel();
     }
     
     /*
-    * B型号的奔驰车模型，是先发动引擎，然后启动，然后停止，没有喇叭
+    * Type B Benz model: start the engine first, then start, then stop; no horn
     */
     public BenzModel getBBenzModel(){
         this.sequence.clear();
@@ -8031,7 +8543,7 @@ public class Director {
     }
     
     /*
-    * C型号的宝马车是先按下喇叭（炫耀嘛），然后启动，然后停止
+    * Type C BMW: honk first (to show off), then start, then stop
     */
     public BMWModel getCBMWModel(){
         this.sequence.clear();
@@ -8043,7 +8555,7 @@ public class Director {
     }
     
     /*
-    * D类型的宝马车只有一个功能，就是跑，启动起来就跑，永远不停止
+    * Type D BMW has only one function: run. Once started it runs and never stops
     */
     public BMWModel getDBMWModel(){
         this.sequence.clear();
@@ -8052,23 +8564,23 @@ public class Director {
         return (BMWModel)this.benzBuilder.getCarModel();
     }
     /*
-    * 这里还可以有很多方法，你可以先停止，然后再启动，或者一直停着不动，静态的嘛
-    * 导演类嘛，按照什么顺序是导演说了算
+    * There can be many more methods here: stop first and then start, or stay stopped, static
+    * It's the director class; the director decides the order
     */
 }
 
 public class Client {
     public static void main(String[] args) {
         Director director = new Director();
-        //1万辆A类型的奔驰车
+        //10,000 type A Benz cars
         for(int i=0;i<10000;i++){
             director.getABenzModel().run();
         }
-        //100万辆B类型的奔驰车
+        //1,000,000 type B Benz cars
         for(int i=0;i<1000000;i++){
             director.getBBenzModel().run();
         }
-        //1000万辆C类型的宝马车
+        //10,000,000 type C BMW cars
         for(int i=0;i<10000000;i++){
             director.getCBMWModel().run();
         }
@@ -8076,12 +8588,14 @@ public class Client {
 }
 ```
 
-## 责任链模式
+## Chain of Responsibility Pattern
 
-`责任链模式`: 使多个对象都有机会处理请求，从而避免了请求的发送者和接受者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递该请求，直到有对象处理它为止。
+`Chain of Responsibility pattern`: gives more than one object a chance to handle a request, avoiding
+coupling between the sender and receiver of the request. Chains the receiving objects and passes the
+request along the chain until an object handles it.
 
 
-### 责任链模式类图
+### Chain of Responsibility pattern class diagram
 
 ```plantuml
 @startuml
@@ -8089,9 +8603,10 @@ public class Client {
 class Client {}
 
 note right of Client
-客户端(Client), 可根据程序逻辑一次性或者动态地生成链。
-值得注意的是， 请求可发送给链上的任意一个处理者， 
-而非必须是第一个处理者。
+The Client may compose chains just once or compose them dynamically, depending on the application's
+logic.
+Note that a request can be sent to any handler in the chain;
+it doesn't have to be the first one.
 end note
 
 note left of Client
@@ -8112,9 +8627,9 @@ interface Handler {
 }
 
 note right of Handler
-处理者(Handler)声明了所有具体处理者的通用接口。 
-该接口通常仅包含单个方法用于请求处理， 
-但有时其还会包含一个设置链上下个处理者的方法。
+The Handler declares the interface common to all concrete handlers.
+It usually contains just a single method for handling requests,
+but sometimes it may also have another method for setting the next handler in the chain.
 end note
 
 abstract class AbstractHandler implements Handler {
@@ -8128,11 +8643,12 @@ if (next != null)
 end note
 
 note right of AbstractHandler
-抽象处理者(Abstract Handler)是一个可选的类， 
-你可以将所有处理者共用的样本代码放置在其中。
-通常情况下， 该类中定义了一个保存对于下个处理者引用的成员变量。 
-客户端可通过将处理者传递给上个处理者的构造函数或设定方法来创建链。
-该类还可以实现默认的处理行为： 确定下个处理者存在后再将请求传递给它。
+The Abstract Handler is an optional class
+where you can put the boilerplate code common to all handler classes.
+Usually this class defines a field for storing a reference to the next handler.
+Clients can build a chain by passing a handler to the constructor or setter of the previous handler.
+The class may also implement default handling behavior: it can pass execution to the next handler
+after checking for its existence.
 end note
 
 class ConcreteHandler extends AbstractHandler {
@@ -8148,9 +8664,11 @@ if (canHandle(request)) {
 end note
 
 note right of ConcreteHandler
-具体处理者(Concrete Handlers)包含处理请求的实际代码。 
-每个处理者接收到请求后， 都必须决定是否进行处理， 以及是否沿着链传递请求。
-处理者通常是独立且不可变的， 需要通过构造函数一次性地获得所有必要地数据。
+Concrete Handlers contain the actual code for processing requests.
+Upon receiving a request, each handler must decide whether to process it and, additionally, whether
+to pass it along the chain.
+Handlers are usually self-contained and immutable, accepting all necessary data just once via the
+constructor.
 end note
 
 Client --> Handler
@@ -8170,20 +8688,38 @@ Client --> Handler
 @enduml
 ```
 
-### 责任链模式要点
+### Chain of Responsibility pattern key points
 
-1. 有一些责任链模式，每个Handler都有机会处理Request，通常这种责任链被称为拦截器（Interceptor）或者过滤器（Filter）
-2. 处理者可以决定不再沿着链传递请求， 这可高效地取消所有后续处理步骤。
-3. 责任链模式优点
-    > - 简化你的对象, 因为它不需要知道链的结构以及保持器成员的直接引用
-    > - 允许你通过改变链的成员或次序, 动态地添加或移除责任
-4. 责任链模式缺点
-    > - 并不保证请求一定会被执行, 如果没有对象处理它, 可能会掉到链的末尾(这个可以时优点或缺点)
-    > - 运行时可能会难以观察和调试
+1. In some chains of responsibility, every Handler gets a chance to process the Request; such chains
+   are usually called Interceptors or Filters
+2. A handler can decide not to pass the request further down the chain and effectively stop any
+   further processing.
+3. Advantages of the Chain of Responsibility pattern
+    > - Simplifies your object, because it doesn't need to know the chain's structure or keep direct
+    >   references to its members
+    > - Allows you to add or remove responsibilities dynamically by changing the members or order of
+    >   the chain
+4. Drawbacks of the Chain of Responsibility pattern
+    > - Execution of the request isn't guaranteed; it may fall off the end of the chain if no object
+    >   handles it (this can be an advantage or a disadvantage)
+    > - Can be hard to observe and debug at runtime
 
-### 责任链模式例子: 三从四德
+### Chain of Responsibility pattern example: the "three obediences"
 
-中国古代对妇女制定了“三从四德”的道德规范，“三从”是指“未嫁从父、既嫁从夫、夫死从子”。也就是说，一位女性在结婚之前要听从于父亲，结婚之后要听从于丈夫，如果丈夫死了还要听从于儿子。举例来说，如果一位女性要出去逛街，在她出嫁前必须征得父亲的同意，出嫁之后必须获得丈夫的许可，那丈夫死了怎么办？那就得问问儿子是否允许自己出去逛街。估计你接下来马上要问：“要是没有儿子怎么办？”那就请示小叔子、侄子等。在父系社会中，妇女只占从属地位，现在想想中国古代的妇女还是挺悲惨的，连逛街都要多番请示。作为父亲、丈夫或儿子，只有两种选择：要不承担起责任来，允许她或不允许她逛街；要不就让她请示下一个人，这是整个社会体系的约束，应用到我们项目中就是业务规则。下面来看如何通过程序来实现“三从”，需求很简单：通过程序描述一下古代妇女的“三从”制度。好，我们先来看类图，如下所示
+Ancient China imposed the moral code of the "three obediences and four virtues" on women. The "three
+obediences" are "obey your father before marriage, your husband after marriage, and your son after
+your husband dies". That is, before marriage a woman must obey her father, after marriage her
+husband, and if her husband dies, her son. For example, if a woman wants to go shopping, before
+marriage she must get her father's consent, after marriage her husband's permission, and if her
+husband is dead? Then she has to ask her son whether she may go shopping. You're probably about to
+ask: "What if she has no son?" Then she asks her brother-in-law, nephew and so on. In a patriarchal
+society women were subordinate; looking back, women in ancient China had a pretty miserable time,
+needing repeated permission just to go shopping. As a father, husband or son, there are only two
+choices: either take responsibility and allow or forbid her to go shopping, or have her ask the next
+person. This is a constraint of the whole social system, which in our project is a business rule.
+Let's see how to implement the "three obediences" in a program. The requirement is simple: describe
+the ancient system of the "three obediences" in code. OK, let's look at the class diagram first, as
+shown below
 
 ```plantuml
 @startuml
@@ -8201,7 +8737,7 @@ interface IHandler {
     + void HandlerMessage(IWomen women)
 }
 
-note top of IHandler : 控制权的抽象
+note top of IHandler : Abstraction of authority
 
 class Father implements IHandler {}
 class Husband implements IHandler {}
@@ -8211,133 +8747,159 @@ IHandler -left--> IWomen
 @enduml
 ```
 
-类图非常简单，IHandler是三个有决策权对象的接口，IWomen是女性的代码，其实现也非常简单，代码清单如下
+The class diagram is very simple: IHandler is the interface for the three objects with
+decision-making power, and IWomen is the woman's code. The implementation is also very simple, as
+listed below
 
 ```java
-// 女性接口
+// Woman interface
 public interface IWomen {
-    //获得个人状况: 一个是取得当前的个人状况getType，通过返回值决定是结婚了还是没结婚、丈夫是否在世等
+    //get personal status: getType gets the current personal status; the return value determines
+    //whether she's married, whether her husband is alive, etc.
     public int getType();
-    //获得个人请示，你要干什么？出去逛街？约会?还是看电影？
+    //get the personal request: what do you want to do? Go shopping? A date? A movie?
     public String getRequest();
 }
 
-// 古代妇女
+// Ancient woman
 public class Women implements IWomen{
     /*
-    * 通过一个int类型的参数来描述妇女的个人状况
-    * 1--未出嫁
-    * 2--出嫁
-    * 3--夫死
+    * An int parameter describes the woman's personal status
+    * 1--unmarried
+    * 2--married
+    * 3--widowed
     */
     private int type=0;
-    //妇女的请示
+    //the woman's request
     private String request = "";
-    //构造函数传递过来请求
+    //the request is passed in via the constructor
     public Women(int _type,String _request){
         this.type = _type;
         this.request = _request;
     }
-    //获得自己的状况
+    //get her status
     public int getType(){
         return this.type;
     }
-    //获得妇女的请求
+    //get the woman's request
     public String getRequest(){
         return this.request;
     }
 }
 
-// 有处理权的人员接口
+// Interface for people with authority to handle requests
 public interface IHandler {
-    //一个女性（女儿、妻子或者母亲）要求逛街，你要处理这个请求
+    //a woman (daughter, wife or mother) asks to go shopping; you must handle this request
     public void HandleMessage(IWomen women);
 }
 
-// 父亲类: 在女儿没有出嫁之前父亲是有决定权的
+// Father class: the father has the say before the daughter marries
 public class Father implements IHandler {
-    //未出嫁的女儿来请示父亲
+    //the unmarried daughter asks her father
     public void HandleMessage(IWomen women) {
-        System.out.println("女儿的请示是："+women.getRequest());
-        System.out.println("父亲的答复是:同意");
+        System.out.println("The daughter's request is: "+women.getRequest());
+        System.out.println("The father's reply is: agreed");
     }
 }
 
-// 丈夫类: 在女性出嫁后，丈夫有决定权
+// Husband class: after a woman marries, the husband has the say
 public class Husband implements IHandler {
-    //妻子向丈夫请示
+    //the wife asks her husband
     public void HandleMessage(IWomen women) {
-        System.out.println("妻子的请示是："+women.getRequest());
-        System.out.println("丈夫的答复是：同意");
+        System.out.println("The wife's request is: "+women.getRequest());
+        System.out.println("The husband's reply is: agreed");
     }
 }
 
-// 儿子类: 在女性丧偶后，对母亲提出的请求儿子有决定权
+// Son class: after a woman is widowed, the son has the say over his mother's requests
 public class Son implements IHandler {
-    //母亲向儿子请示
+    //the mother asks her son
     public void HandleMessage(IWomen women) {
-        System.out.println("母亲的请示是："+women.getRequest());
-        System.out.println("儿子的答复是：同意");
+        System.out.println("The mother's request is: "+women.getRequest());
+        System.out.println("The son's reply is: agreed");
     }
 }
 
-// 场景类: 处理女儿、妻子、母亲提出的请求，我们来模拟一下一个古代妇女出去逛街是如何请示的
-// 首先是通过随机方法产生了5个古代妇女的对象，然后看她们是如何就逛街这件事去请示的
+// Scenario class: handles requests from daughters, wives and mothers; let's simulate how an ancient
+// woman asks permission to go shopping
+// First, a random method generates 5 ancient women objects, then we see how they each ask
+// permission to go shopping
 public class Client {
     public static void main(String[] args) {
-        //随机挑选几个女性
+        //randomly pick a few women
         Random rand = new Random();
         ArrayList<IWomen> arrayList = new ArrayList();
         for(int i=0;i<5;i++){
-            arrayList.add(new Women(rand.nextInt(4),"我要出去逛街"));
+            arrayList.add(new Women(rand.nextInt(4),"I want to go shopping"));
         }
-        //定义三个请示对象
+        //define the three people to ask
         IHandler father = new Father();
         IHandler husband = new Husband();
         IHandler son = new Son();
         for(IWomen women:arrayList){
-            if(women.getType() ==1){ //未结婚少女，请示父亲
-                System.out.println("\n--------女儿向父亲请示-------");
+            if(women.getType() ==1){ //unmarried girl, asks her father
+                System.out.println("\n--------The daughter asks her father-------");
                 father.HandleMessage(women);
-            } else if(women.getType() ==2){ //已婚少妇，请示丈夫
-                System.out.println("\n--------妻子向丈夫请示-------");
+            } else if(women.getType() ==2){ //married woman, asks her husband
+                System.out.println("\n--------The wife asks her husband-------");
                 husband.HandleMessage(women);
-            } else if(women.getType() == 3){ //母亲请示儿子
-                System.out.println("\n--------母亲向儿子请示-------");
+            } else if(women.getType() == 3){ //the mother asks her son
+                System.out.println("\n--------The mother asks her son-------");
                 son.HandleMessage(women);
             }else{
-                //暂时什么也不做
+                //do nothing for now
             }
         }
     }
 }
 
 ```
-“三从四德”的旧社会规范已经完整地表现出来了，你看谁向谁请示都定义出来了，但是你是不是发现这个程序写得有点不舒服？有点别扭？有点想重构它的感觉？那就对了！这段代码有以下几个问题：
+The old social norm of the "three obediences and four virtues" is now fully represented, and who
+asks whom is all defined. But don't you find this program a bit uncomfortable? A bit awkward? Like
+you want to refactor it? Exactly! This code has the following problems:
 
-- 职责界定不清晰: 对女儿提出的请示，应该在父亲类中做出决定，父亲有责任、有义务处理女儿的请示，因此Father类应该是知道女儿的请求自己处理，而不是在Client类中进行组装出来，也就是说原本应该是父亲这个类做的事情抛给了其他类进行处理，不应该是这样的。
-- 代码臃肿: 我们在Client类中写了if...else的判断条件，而且能随着能处理该类型的请示人员越多，if...else的判断就越多，想想看，臃肿的条件判断还怎么有可读性？
-- 耦合过重: 这是什么意思呢，我们要根据Women的type来决定使用IHandler的那个实现类来处理请求。有一个问题是：如果IHandler的实现类继续扩展怎么办？修改Client类？与开闭原则违背了！
-- 异常情况欠考虑: 妻子只能向丈夫请示吗？如果妻子（比如一个现代女性穿越到古代了，不懂什么“三从四德”）向自己的父亲请示了，父亲应该做何处理？我们的程序上可没有体现出来，逻辑失败了！
+- Unclear responsibilities: a daughter's request should be decided in the Father class. The father
+  has the responsibility and duty to handle his daughter's request, so the Father class should know
+  about the daughter's request and handle it itself, rather than having it assembled in the Client
+  class. In other words, what should be the father's job has been thrown to another class, which it
+  shouldn't be.
+- Bloated code: we wrote if...else conditions in the Client class, and the more people who can
+  handle a type of request, the more if...else checks there are. Think about it: how readable can
+  bloated conditionals be?
+- Excessive coupling: what does this mean? We decide which IHandler implementation handles the
+  request based on the Women's type. One problem: what if the IHandler implementations keep growing?
+  Modify the Client class? That violates the Open-Closed Principle!
+- Exceptional cases not considered: can a wife only ask her husband? If a wife (say, a modern woman
+  transported to ancient times who doesn't know the "three obediences and four virtues") asks her
+  own father, how should the father handle it? Our program doesn't reflect that; the logic fails!
 
-既然有这么多的问题，那我们要想办法来解决这些问题，我们先来分析一下需求，女性提出一个请示，必然要获得一个答复，甭管是同意还是不同意，总之是要一个答复的，而且这个答复是唯一的，不能说是父亲作出一个决断，而丈夫也作出了一个决断，也即是请示传递出去，必然有一个唯一的处理人给出唯一的答复，OK，分析完毕，收工，重新设计，我们可以抽象成这样一个结构，女性的请求先发送到父亲类，父亲类一看是自己要处理的，就作出回应处理，如果女儿已经出嫁了，那就要把这个请求转发到女婿来处理，那女婿一旦去天国报道了，那就由儿子来处理这个请求，类似于如图
+Since there are so many problems, we need to find a way to solve them. Let's analyze the requirement
+first: a woman makes a request and must get a reply, whether yes or no; anyway there must be a
+reply, and that reply is unique. It can't be that the father makes a decision and the husband also
+makes one; once a request is passed on, there must be a single handler who gives a single reply. OK,
+analysis done, let's redesign. We can abstract it into this structure: the woman's request is first
+sent to the Father class; if the father sees it's his to handle, he responds; if the daughter is
+already married, the request is forwarded to the son-in-law; and if the son-in-law has gone to
+heaven, the son handles the request, as shown
 
 ```plantuml
 @startuml
 
 autonumber
 
-女性请示 -> 父亲
-父亲 --> 女性请示 : 父亲做出回应
-父亲 -> 丈夫 : 父亲不回应转发请示
-丈夫 --> 女性请示 : 丈夫做出回应
-丈夫 -> 儿子 : 丈夫不回应转发请示
-儿子 --> 女性请示 : 儿子做出回应
+WomanRequest -> Father
+Father --> WomanRequest : the father responds
+Father -> Husband : the father doesn't respond, forwards the request
+Husband --> WomanRequest : the husband responds
+Husband -> Son : the husband doesn't respond, forwards the request
+Son --> WomanRequest : the son responds
 
 @enduml
 ```
 
-父亲、丈夫、儿子每个节点有两个选择：要么承担责任，做出回应；要么把请求转发到后序环节。结构分析得已经很清楚了，那我们看怎么来实现这个功能，类图重新修正，如图
+Each node (father, husband, son) has two choices: either take responsibility and respond, or forward
+the request to the next link. The structure is clear now; let's see how to implement it. The revised
+class diagram is as follows
 
 ```plantuml
 @startuml
@@ -8347,7 +8909,7 @@ interface IWomen {
     + String getRequest()
 }
 
-note top of IWomen : 古代妇女的代表
+note top of IWomen : Representative of ancient women
 
 class Women implements IWomen {
 
@@ -8360,10 +8922,10 @@ interface IHandler {
 }
 
 note top of IHandler
-控制权的抽象
-handlerMessage() : 处理请求
-setNext() : 设置下一个处理环节时谁
-response() : 回应, 各个实现类实现
+Abstraction of authority
+handlerMessage() : handles the request
+setNext() : sets who the next link is
+response() : responds; implemented by each implementation class
 end note
 
 class Father implements IHandler {}
@@ -8374,140 +8936,154 @@ IHandler -left--> IWomen
 @enduml
 ```
 
-从类图上看，三个实现类Father、Husband、Son只要实现构造函数和父类中的抽象方法response就可以了，具体由谁处理女性提出的请求，都已经转移到了Handler抽象类中，我们来看Handler怎么实现，如代码清单
+From the class diagram, the three implementation classes Father, Husband and Son only need to
+implement the constructor and the parent's abstract method response; who actually handles the
+woman's request has been moved into the abstract Handler class. Let's see how Handler is
+implemented, as listed
 
 ```java
 
-// 方法比较长，但是还是比较简单的，读者有没有看到，其实在这里也用到模板方法模式，在模板方法中判断请求的级别和当前能够处理的级别，
-// 如果相同则调用基本方法，做出反馈；如果不相等，则传递到下一个环节，由下一环节做出回应，如果已经达到环节结尾，
-// 则直接做不同意处理。基本方法response需要各个实现类实现，每个实现类只要实现两个职责：一是定义自己能够处理的等级级别；二是对请求做出回应
+// The method is a bit long but still fairly simple. Did you notice that the Template Method pattern
+// is used here too? The template method compares the request's level with the level this handler
+// can handle;
+// if they match, it calls the basic method to respond; if not, it passes the request to the next
+// link to respond; if the end of the chain is reached,
+// it simply treats the request as refused. The basic method response must be implemented by each
+// implementation class, which has just two responsibilities: define the level it can handle, and
+// respond to the request
 public abstract class Handler {
     public final static int FATHER_LEVEL_REQUEST = 1;
     public final static int HUSBAND_LEVEL_REQUEST = 2;
     public final static int SON_LEVEL_REQUEST = 3;
-    //能处理的级别
+    //the level this handler can handle
     private int level =0;
-    //责任传递，下一个人责任人是谁
+    //passing responsibility: who is the next responsible person
     private Handler nextHandler;
-    //每个类都要说明一下自己能处理哪些请求
+    //each class must state which requests it can handle
     public Handler(int _level){
         this.level = _level;
     }
-    //一个女性（女儿、妻子或者是母亲）要求逛街，你要处理这个请求
+    //a woman (daughter, wife or mother) asks to go shopping; you must handle this request
     public final void HandleMessage(IWomen women){
         if(women.getType() == this.level){
             this.response(women);
         }else{
-            if(this.nextHandler != null){ //有后续环节，才把请求往后递送
+            if(this.nextHandler != null){ //only pass the request on if there's a next link
                 this.nextHandler.HandleMessage(women);
-            }else{ //已经没有后续处理人了，不用处理了
-                System.out.println("---没地方请示了，按不同意处理---\n");
+            }else{ //no one left to handle it; nothing to do
+                System.out.println("---No one left to ask, treated as refused---\n");
             }
         }
     }
     /*
-    * 如果不属于你处理的请求，你应该让她找下一个环节的人，如女儿出嫁了，
-    * 还向父亲请示是否可以逛街，那父亲就应该告诉女儿，应该找丈夫请示
+    * If the request isn't yours to handle, you should send her to the next link; e.g. if a married
+    * daughter
+    * still asks her father whether she can go shopping, the father should tell her to ask her
+    * husband
     */
     public void setNext(Handler _handler){
         this.nextHandler = _handler;
     }
-    //有请示那当然要回应
+    //of course a request needs a response
     protected abstract void response(IWomen women);
 }
 
-// 父亲类
+// Father class
 public class Father extends Handler {
-    //父亲只处理女儿的请求
+    //the father only handles the daughter's requests
     public Father(){
         super(Handler.FATHER_LEVEL_REQUEST);
     }
-    //父亲的答复
+    //the father's reply
     protected void response(IWomen women) {
-        System.out.println("--------女儿向父亲请示-------");
+        System.out.println("--------The daughter asks her father-------");
         System.out.println(women.getRequest());
-        System.out.println("父亲的答复是:同意\n");
+        System.out.println("The father's reply is: agreed\n");
     }
 }
-// 丈夫类
+// Husband class
 public class Husband extends Handler {
-    //丈夫只处理妻子的请求
+    //the husband only handles the wife's requests
     public Husband(){
         super(Handler.HUSBAND_LEVEL_REQUEST);
     }
-    //丈夫请示的答复
+    //the husband's reply
     protected void response(IWomen women) {
-        System.out.println("--------妻子向丈夫请示-------");
+        System.out.println("--------The wife asks her husband-------");
         System.out.println(women.getRequest());
-        System.out.println("丈夫的答复是：同意\n");
+        System.out.println("The husband's reply is: agreed\n");
     }
 }
-// 儿子类
+// Son class
 public class Son extends Handler {
-    //儿子只处理母亲的请求
+    //the son only handles the mother's requests
     public Son(){
         super(Handler.SON_LEVEL_REQUEST);
     }
-    //儿子的答复
+    //the son's reply
     protected void response(IWomen women) {
-        System.out.println("--------母亲向儿子请示-------");
+        System.out.println("--------The mother asks her son-------");
         System.out.println(women.getRequest());
-        System.out.println("儿子的答复是：同意\n");
+        System.out.println("The son's reply is: agreed\n");
     }
 }
 
-// 女性类
+// Woman class
 public class Women implements IWomen{
     /*
-    * 通过一个int类型的参数来描述妇女的个人状况* 1--未出嫁
-    * 2--出嫁
-    * 3--夫死
+    * An int parameter describes the woman's personal status* 1--unmarried
+    * 2--married
+    * 3--widowed
     */
     private int type=0;
-    //妇女的请示
+    //the woman's request
     private String request = "";
-    //构造函数传递过来请求
+    //the request is passed in via the constructor
     public Women(int _type,String _request){
         this.type = _type;
-        //为了便于显示，在这里做了点处理
+        //a bit of processing here for display purposes
         switch(this.type){
             case 1:
-            this.request = "女儿的请求是：" + _request;
+            this.request = "The daughter's request is: " + _request;
             break;
         case 2:
-            this.request = "妻子的请求是：" + _request;
+            this.request = "The wife's request is: " + _request;
             break;
             case 3:
-            this.request = "母亲的请求是：" + _request;
+            this.request = "The mother's request is: " + _request;
         }
     }
-    //获得自己的状况
+    //get her status
     public int getType(){
         return this.type;
     }
-    //获得妇女的请求
+    //get the woman's request
     public String getRequest(){
         return this.request;
     }
 }
 
-// 场景类: 业务调用类Client也不用去做判断到底是需要谁去处理，而且Handler抽象类的子类可以继续增加下去，只需要扩展传递链而已，
-// 调用类可以不用了解变化过程，甚至是谁在处理这个请求都不用知道。在这种模式下，即使现代社会的一个小太妹穿越到古代
-// （例如掉入时空隧道，或者时空突然扭转，甚至是突然魔法显灵），对“三从四德”没有任何 了解也可以自由地应付，
-// 反正只要请示父亲就可以了，该父亲处理就父亲处理，不该父亲处理就往下传递。这就是责任链模式
+// Scenario class: the calling class Client no longer has to decide who should handle the request,
+// and subclasses of the abstract Handler class can keep being added; you just extend the chain,
+// and the caller doesn't need to know about the changes, or even who handles the request. With this
+// pattern, even a modern rebel girl transported to ancient times
+// (e.g. falling into a time tunnel, a sudden twist in space-time, or even magic) with no knowledge
+// of the "three obediences and four virtues" can cope freely:
+// she just asks her father; if it's the father's to handle, he handles it, otherwise it's passed
+// down. That's the Chain of Responsibility pattern
 public class Client {
     public static void main(String[] args) {
-        //随机挑选几个女性
+        //randomly pick a few women
         Random rand = new Random();
         ArrayList<IWomen> arrayList = new ArrayList();
         for(int i=0;i<5;i++){
-            arrayList.add(new Women(rand.nextInt(4),"我要出去逛街"));
+            arrayList.add(new Women(rand.nextInt(4),"I want to go shopping"));
         }
-        //定义三个请示对象
+        //define the three people to ask
         Handler father = new Father();
         Handler husband = new Husband();
         Handler son = new Son();
-        //设置请示顺序
+        //set the order of asking
         father.setNext(husband);
         husband.setNext(son);
         for(IWomen women:arrayList){
@@ -8517,32 +9093,42 @@ public class Client {
 }
 ```
 
-## 享元模式
+## Flyweight Pattern
 
-`享元模式`: 使用共享对象可有效地支持大量的细粒度的对象
+`Flyweight pattern`: uses sharing to support large numbers of fine-grained objects efficiently
 
-`内部状态(intrinsic)` : 内部状态是对象可共享出来的信息，存储在享元对象内部并且不会随环境改变而改变
+`Intrinsic state` : information an object can share, stored inside the flyweight object, which
+doesn't change with the environment
 
-`外部状态(extrinsic)` 外部状态是对象得以依赖的一个标记，是随环境改变而改变的、不可以共享的状态
+`Extrinsic state` : a marker the object depends on, which changes with the environment and can't be
+shared
 
-是一种结构型设计模式， 它摒弃了在每个对象中保存所有数据的方式， 通过共享多个对象所共有的相同状态， 让你能在有限的内存容量中载入更多对象。
+It's a structural design pattern that lets you fit more objects into the available amount of RAM by
+sharing common parts of state between multiple objects instead of keeping all of the data in each
+object.
 
-池技术的重要实现方式
+An important way to implement pooling
 
-### 享元模式类图
+### Flyweight pattern class diagram
 
 ```plantuml
 @startuml
 
-note "享元模式只是一种优化。\n在应用该模式之前，\n你要确定程序中存在与大量类似对象同时占用内存相关的内存消耗问题，\n并且确保该问题无法使用其他更好的方式来解决。" as flyweight_note
+note as flyweight_note
+The Flyweight pattern is merely an optimization.
+Before applying it,
+make sure your program does have a RAM consumption problem
+related to having a massive number of similar objects in memory at the same time,
+and that this problem can't be solved in any other meaningful way.
+end note
 
 
 class Client {}
 
 note top of Client
-客户端(Client) 负责计算或存储享元的外在状态。 
-在客户端看来， 享元是一种可在运行时进行配置的模板对象， 
-具体的配置方式为向其方法中传入一些情景数据参数。
+The Client calculates or stores the extrinsic state of flyweights.
+From the client's perspective, a flyweight is a template object that can be configured at runtime
+by passing some contextual data into parameters of its methods.
 end note
 
 class Context {
@@ -8554,21 +9140,24 @@ class Context {
 }
 
 note right of Context
-情景(Context) 类包含原始对象中各不相同的外在状态。 
-情景与享元对象组合在一起就能表示原始对象的全部状态。
-通常情况下， 原始对象的行为会保留在享元类中。 
-因此调用享元方法必须提供部分外在状态作为参数。 
-但你也可将行为移动到情景类中， 然后将连入的享元作为单纯的数据对象。
+The Context class contains the extrinsic state, unique across all original objects.
+When a context is paired with one of the flyweight objects, it represents the full state of the
+original object.
+Usually, the behavior of the original object remains in the flyweight class.
+In this case, whoever calls a flyweight's method must also pass appropriate bits of the extrinsic
+state into the method's parameters.
+On the other hand, the behavior can be moved to the context class, which would use the linked
+flyweight merely as a data object.
 end note
 
 note left of Context::uniqueState
-外部状态: 外部状态是对象得以依赖的一个标记
-是随环境改变而改变的、不可以共享的状态
+Extrinsic state: a marker the object depends on,
+which changes with the environment and can't be shared
 end note
 
 note left of Context::flyweight
-内部状态: 内部状态是对象可共享出来的信息
-存储在享元对象内部并且不会随环境改变而改变
+Intrinsic state: information the object can share,
+stored inside the flyweight object and doesn't change with the environment
 end note
 
 note left of Context::Context
@@ -8587,11 +9176,13 @@ class FlyweightFactory {
 }
 
 note bottom of FlyweightFactory
-享元工厂(Flyweight Factory)会对已有享元的缓存池进行管理。 
-有了工厂后， 客户端就无需直接创建享元， 
-它们只需调用工厂并向其传递目标享元的一些内在状态(reparationState)即可。 
-工厂会根据参数在之前已创建的享元中进行查找， 
-如果找到满足条件的享元就将其返回； 如果没有找到就根据参数新建享元。
+The Flyweight Factory manages a pool of existing flyweights.
+With the factory, clients don't create flyweights directly.
+Instead, they call the factory, passing it bits of the intrinsic state (reparationState) of the
+desired flyweight.
+The factory looks over previously created flyweights
+and either returns an existing one that matches the search criteria or creates a new one if nothing
+is found.
 end note
 
 class Flyweight {
@@ -8600,14 +9191,16 @@ class Flyweight {
 }
 
 note right of Flyweight::reparationState
-内在状态(reparationState) 用于映射内部状态的key可以的和多个字段
+Intrinsic state (reparationState): the key used to map the intrinsic state; it can consist of
+multiple fields
 end note
 
 note bottom of Flyweight
-享元(Flyweight)类包含原始对象中部分能在多个对象中共享的状态。 
-同一享元对象可在许多不同情景中使用。 
-享元中存储的状态被称为 “内在状态(Flyweight内部字段)”。 
-传递给享元方法的状态被称为 “外在状态(uniqueState)”
+The Flyweight class contains the portion of the original object's state that can be shared between
+multiple objects.
+The same flyweight object can be used in many different contexts.
+The state stored inside a flyweight is called "intrinsic (the Flyweight's internal fields)".
+The state passed to the flyweight's methods is called "extrinsic (uniqueState)"
 end note
 
 Client -down-> Context
@@ -8618,39 +9211,65 @@ FlyweightFactory -right-> Flyweight
 @enduml
 ```
 
-### 享元模式要点
+### Flyweight pattern key points
 
-1. 享元与不可变性: 由于享元对象可在不同的情景中使用， 你必须确保其状态不能被修改。 享元类的状态只能由构造函数的参数进行一次性初始化， 它不能对其他对象公开其设置器或公有成员变量。
-2. 享元工厂
-    > 为了能更方便地访问各种享元， 你可以创建一个工厂方法来管理已有享元对象的缓存池。 工厂方法从客户端处接收目标享元对象的内在状态作为参数， 如果它能在缓存池中找到所需享元， 则将其返回给客户端； 如果没有找到， 它就会新建一个享元， 并将其添加到缓存池中
-    > 你可以选择在程序的不同地方放入该函数。 最简单的选择就是将其放置在享元容器中。 除此之外， 你还可以新建一个工厂类， 或者创建一个静态的工厂方法并将其放入实际的享元类中。
-3. 享元模式适合应用场景
-    > - 程序需要生成数量巨大的相似对象
-    > - 这将耗尽目标设备的所有内存
-    > - 对象中包含可抽取且能在多个对象间共享的重复状态。
-4. 实现方式
-    > 1. 将需要改写为享元的类成员变量拆分为两个部分
-    >   - 内在状态： 包含不变的、 可在许多对象中重复使用的数据的成员变量。
-    >   - 外在状态： 包含每个对象各自不同的情景数据的成员变量
-    > 2. 保留类中表示内在状态的成员变量， 并将其属性设置为不可修改。 这些变量仅可在构造函数中获得初始数值。
-    > 3. 找到所有使用外在状态成员变量的方法， 为在方法中所用的每个成员变量新建一个参数， 并使用该参数代替成员变量。
-    > 4. 你可以有选择地创建工厂类来管理享元缓存池， 它负责在新建享元时检查已有的享元。 如果选择使用工厂， 客户端就只能通过工厂来请求享元， 它们需要将享元的内在状态作为参数传递给工厂。
-    > 5. 客户端必须存储和计算外在状态 （情景） 的数值， 因为只有这样才能调用享元对象的方法。 为了使用方便， 外在状态和引用享元的成员变量可以移动到单独的情景类中。
-5. 享元模式优点:  如果程序中有很多相似对象， 那么你将可以节省大量内存。
-6. 享元模式缺点
-    > - 你可能需要牺牲执行速度来换取内存， 因为他人每次调用享元方法时都需要重新计算部分情景数据。
-    > - 代码会变得更加复杂。 团队中的新成员总是会问： “为什么要像这样拆分一个实体的状态？”。
+1. Flyweight and immutability: since the same flyweight object can be used in different contexts,
+   you have to make sure its state can't be modified. A flyweight should initialize its state just
+   once, via constructor parameters. It shouldn't expose any setters or public fields to other
+   objects.
+2. Flyweight factory
+    > For more convenient access to various flyweights, you can create a factory method that manages
+    > a pool of existing flyweight objects. The method accepts the intrinsic state of the desired
+    > flyweight from a client, looks for an existing flyweight object matching this state, and
+    > returns it if it was found. If not, it creates a new flyweight and adds it to the pool
+    > There are several options where this method could be placed. The most obvious place is a
+    > flyweight container. Alternatively, you could create a new factory class, or make the factory
+    > method static and put it inside the actual flyweight class.
+3. When to use the Flyweight pattern
+    > - the program needs to spawn a huge number of similar objects
+    > - this would drain all available RAM on the target device
+    > - the objects contain duplicate states which can be extracted and shared between multiple
+    >   objects.
+4. How to implement
+    > 1. Divide the fields of a class that will become a flyweight into two parts
+    >   - the intrinsic state: the fields that contain unchanging data duplicated across many
+    >     objects.
+    >   - the extrinsic state: the fields that contain contextual data unique to each object
+    > 2. Leave the fields that represent the intrinsic state in the class, but make sure they're
+    >    immutable. They should take their initial values only inside the constructor.
+    > 3. Go over the methods that use fields of the extrinsic state. For each field used in a
+    >    method, introduce a new parameter and use it instead of the field.
+    > 4. Optionally, create a factory class to manage the pool of flyweights. It should check for an
+    >    existing flyweight before creating a new one. Once the factory is in place, clients must
+    >    only request flyweights through it, describing the desired flyweight by passing its
+    >    intrinsic state to the factory.
+    > 5. The client must store or calculate values of the extrinsic state (context) to be able to
+    >    call methods of flyweight objects. For the sake of convenience, the extrinsic state along
+    >    with the flyweight-referencing field may be moved to a separate context class.
+5. Advantages of the Flyweight pattern: you can save lots of RAM, assuming your program has tons of
+   similar objects.
+6. Drawbacks of the Flyweight pattern
+    > - You might be trading RAM over CPU cycles when some of the context data needs to be
+    >   recalculated each time somebody calls a flyweight method.
+    > - The code becomes much more complicated. New team members will always be wondering: "why is
+    >   the state of an entity separated in such a way?".
 
-### 享元模式例子: 渲染一片森林
+### Flyweight pattern example: rendering a forest
 
-本例中， 我们将渲染一片森林 （1,000,000 棵树）！ 每棵树都由包含一些状态的对象来表示 （坐标和纹理等）。 尽管程序能够完成其主要工作， 但很显然它需要消耗大量内存。
+In this example, we're going to render a forest (1,000,000 trees)! Each tree will be represented by
+its own object that has some state (coordinates, texture, and so on). Although the program does its
+primary job, naturally, it consumes a lot of RAM.
 
-原因很简单： 太多树对象包含重复数据 （名称、 纹理和颜色）。 因此我们可用享元模式来将这些数值存储在单独的享元对象中 （ Tree­Type类）。 现在我们不再将相同数据存储在数千个 Tree对象中， 而是使用一组特殊的数值来引用其中一个享元对象。
+The reason is simple: too many tree objects contain duplicate data (name, texture, color). That's
+why we can apply the Flyweight pattern and store these values inside separate flyweight objects (the
+TreeType class). Now, instead of storing the same data in thousands of Tree objects, we reference
+one of the flyweight objects with a particular set of values.
 
-客户端代码不会知道任何事情， 因为重用享元对象的复杂机制隐藏在了享元工厂中。
+The client code won't notice anything, since the complexity of reusing flyweight objects is buried
+inside a flyweight factory.
 
 ```java
-//  包含每棵树的独特状态
+//  Contains state unique to each tree
 import java.awt.*;
 
 public class Tree {
@@ -8669,7 +9288,7 @@ public class Tree {
     }
 }
 
-// 包含多棵树共享的状态
+// Contains state shared by several trees
 import java.awt.*;
 
 public class TreeType {
@@ -8691,7 +9310,7 @@ public class TreeType {
     }
 }
 
-// 封装创建享元的复杂机制
+// Encapsulates the complexity of flyweight creation
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -8709,7 +9328,7 @@ public class TreeFactory {
     }
 }
 
-//  我们绘制的森林
+//  The forest we draw
 import refactoring_guru.flyweight.example.trees.Tree;
 import refactoring_guru.flyweight.example.trees.TreeFactory;
 import refactoring_guru.flyweight.example.trees.TreeType;
@@ -8736,7 +9355,7 @@ public class Forest extends JFrame {
     }
 }
 
-// 客户端代码
+// Client code
 import refactoring_guru.flyweight.example.forest.Forest;
 
 import java.awt.*;
@@ -8773,27 +9392,28 @@ public class Demo {
 }
 ```
 
-## 解释器模式
+## Interpreter Pattern
 
-`解释器模式(Interpreter Pattern)`: 给定一门语言，定义它的文法的一种表示，并定义一个解释器，该解释器使用该表示来解释语言中的句子
+`Interpreter Pattern`: given a language, defines a representation for its grammar along with an
+interpreter that uses the representation to interpret sentences in the language
 
-### 解释器模式类图
+### Interpreter pattern class diagram
 
 ```plantuml
 @startuml
 
 class Client {}
 note top of Client
-通常Client是一个封装类，
-封装的结果就是传递进来一个规范语法文件，
-解析器分析后产生结果并返回，
-避免了调用者与语法解析器的耦合关系
+Client is usually a wrapper class;
+what it wraps is passing in a grammar specification file;
+the parser analyzes it and returns the result,
+avoiding coupling between the caller and the parser
 end note
 
 class Context {}
 
 note right of Context
-环境角色
+Context role
 end note
 
 abstract class AbstractExpression {
@@ -8801,33 +9421,33 @@ abstract class AbstractExpression {
 }
 
 note left of AbstractExpression
-抽象解释器(AbstractExpression)
-具体的解释任务由各个实现类完成，
-具体的解释器分别由TerminalExpression和Non-terminalExpression完成。
+AbstractExpression
+The concrete interpretation tasks are done by the implementation classes;
+the concrete interpreters are TerminalExpression and Non-terminalExpression.
 end note
 
 class TerminalExpression extends AbstractExpression {
 }
 
 note bottom of TerminalExpression
-终结符表达式(TerminalExpression)
-实现与文法中的元素相关联的解释操作，
-通常一个解释器模式中只有一个终结符表达
-式，但有多个实例，对应不同的终结符。
-具体到我们例子就是VarExpression类
-表达式中的每个终结符都在栈中产生了一个VarExpression对象。
+TerminalExpression
+implements the interpretation operations associated with elements of the grammar;
+usually an interpreter pattern has only one terminal
+expression, but with many instances corresponding to different terminals.
+In our example that's the VarExpression class:
+each terminal in the expression produces a VarExpression object on the stack.
 end note
 
 class NonTerminalExpression extends AbstractExpression {
 }
 
 note bottom of NonTerminalExpression
-非终结符表达式(NonTerminalExpression)
-文法中的每条规则对应于一个非终结表达式，
-具体到我们的例子就是加减法规则分别对
-应到AddExpression和SubExpression两个类。
-非终结符表达式根据逻辑的复杂程度而增加，
-原则上每个文法规则都对应一个非终结符表达式。
+NonTerminalExpression
+Each rule in the grammar corresponds to a non-terminal expression;
+in our example the addition and subtraction rules correspond
+to the AddExpression and SubExpression classes respectively.
+Non-terminal expressions grow with the complexity of the logic;
+in principle each grammar rule corresponds to one non-terminal expression.
 end note
 
 Client --> Context
@@ -8835,85 +9455,119 @@ Client --> AbstractExpression
 @enduml
 ```
 
-示例代码如下
+Example code is as follows
 ```java
-// 抽象表达式
-// 抽象表达式是生成语法集合（也叫做语法树）的关键，
-// 每个语法集合完成指定语法解析任务，
-// 它是通过递归调用的方式，最终由最小的语法单元进行解析完成
+// Abstract expression
+// The abstract expression is the key to building the grammar set (also called the syntax tree);
+// each grammar set performs a specific parsing task,
+// done by recursive calls until the smallest grammar units are parsed
 public abstract class Expression {
-    //每个表达式必须有一个解析任务
+    //every expression must have a parsing task
     public abstract Object interpreter(Context
 }
 
-// 终结符表达式
-// 通常，终结符表达式比较简单，主要是处理场景元素和数据的转
+// Terminal expression
+// Terminal expressions are usually fairly simple, mainly converting scenario elements and data
 public class TerminalExpression extends Expression {
-    //通常终结符表达式只有一个，但是有多个对象
+    //there's usually just one terminal expression, but many objects
     public Object interpreter(Context ctx) {
         return null;
     }
 }
 
-// 非终结符表达式
-// 每个非终结符表达式都代表了一个文法规则，并且每个文法规则都只关心自己周边的文法规则的结果（注意是结果），
-// 因此这就产生了每个非终结符表达式调用自己周边的非终结符表达式，然后最终、最小的文法规则就是终结符表达式，
-// 终结符表达式的概念就是如此，不能够再参与比自己更小的文法运算了
+// Non-terminal expression
+// Each non-terminal expression represents a grammar rule, and each rule only cares about the
+// results of the rules around it (note: the results),
+// so each non-terminal expression calls the non-terminal expressions around it, and the final,
+// smallest grammar rule is the terminal expression;
+// that's the concept of a terminal expression: it can't take part in any smaller grammar operation
 public class NonTerminalExpression extends Expression {
-    //每个非终结符表达式都会对其他表达式产生依赖
+    //every non-terminal expression depends on other expressions
     public NonterminalExpression(Expression... expression){
     }
     public Object interpreter(Context ctx) {
-        //进行文法处理
+        //perform grammar processing
         return null;
     }
 }
 
-// 客户类
-// 通常Client是一个封装类，封装的结果就是传递进来一个规范语法文件，
-// 解析器分析后产生结果并返回，避免了调用者与语法解析器的耦合关系
+// Client class
+// Client is usually a wrapper class; what it wraps is passing in a grammar specification file;
+// the parser analyzes it and returns the result, avoiding coupling between the caller and the
+// parser
 public class Client {
     public static void main(String[] args) {
         Context ctx = new Context();
-        //通常定一个语法容器，容纳一个具体的表达式，通常为ListArray、LinkedList、Stack等类型
+        //usually define a grammar container holding a concrete expression, typically ListArray,
+        //LinkedList, Stack, etc.
         Stack&Expression> stack = null;
         for(;;){
-            //进行语法判断，并产生递归调用
+            //check the grammar and make recursive calls
         }
-        //产生一个完整的语法树，由各个具体的语法分析进行解析
+        //produce a complete syntax tree, parsed by each concrete grammar analysis
         Expression exp = stack.pop();
-        //具体元素进入场景
+        //concrete elements enter the scenario
         exp.interpreter(ctx);
     }
 }
 
 ```
 
-### 解析器模式要点
+### Interpreter pattern key points
 
-1. 解析器模式优点: 解释器是一个简单语法分析工具，它最显著的优点就是扩展性，修改语法规则只要修改相应的非终结符表达式就可以了，若扩展语法，则只要增加非终结符类就可以了
-2. 解析器模式缺点
-    > - 解释器模式会引起类膨胀: 每个语法都要产生一个非终结符表达式，语法规则比较复杂时，就可能产生大量的类文件，为维护带来了非常多的麻烦。
-    > - 解释器模式采用递归调用方法: 每个非终结符表达式只关心与自己有关的表达式，每个表达式需要知道最终的结果，必须一层一层地剥茧，无论是面向过程的语言还是面向对象的语言，递归都是在必要条件下使用的，它导致调试非常复杂。想想看，如果要排查一个语法错误，我们是不是要一个断点一个断点地调试下去，直到最小的语法单元。
-    > - 效率问题: 解释器模式由于使用了大量的循环和递归，效率是一个不容忽视的问题，特别是一用于解析复杂、冗长的语法时，效率是难以忍受的。
-3. 解释器模式使用的场景
-    > - 重复发生的问题可以使用解释器模式
-    > - 一个简单语法需要解释的场景
+1. Advantages of the Interpreter pattern: an interpreter is a simple parsing tool; its most notable
+   advantage is extensibility. To change a grammar rule, just change the corresponding non-terminal
+   expression; to extend the grammar, just add non-terminal classes
+2. Drawbacks of the Interpreter pattern
+    > - The Interpreter pattern causes class bloat: every grammar rule produces a non-terminal
+    >   expression, so complex grammars can produce a large number of class files, making
+    >   maintenance very troublesome.
+    > - The Interpreter pattern uses recursion: each non-terminal expression only cares about the
+    >   expressions related to it, and getting the final result means peeling layer by layer.
+    >   Whether in procedural or object-oriented languages, recursion is used only when necessary,
+    >   and it makes debugging very complex. Think about it: to track down a grammar error, we'd
+    >   have to step through breakpoint after breakpoint down to the smallest grammar unit.
+    > - Efficiency: since the Interpreter pattern uses lots of loops and recursion, efficiency can't
+    >   be ignored, especially when parsing complex, lengthy grammars, where it becomes unbearable.
+3. When to use the Interpreter pattern
+    > - recurring problems can use the Interpreter pattern
+    > - scenarios where a simple grammar needs to be interpreted
 
-### 解析器模式例子: 计算器
+### Interpreter pattern example: calculator
 
-在银行、证券类项目中，经常会有一些模型运算，通过对现有数据的统计、分析而预测不可知或未来可能发生的商业行为。模型运算大部分是针对海量数据的，例如建立一个模型公式，分析一个城市的消费倾向，进而影响银行的营销和业务扩张方向。一般的模型运算都有一个或多个运算公式，通常是加、减、乘、除四则运算，偶尔也有指数、开方等复杂运算。具体到一个金融业务中，模型公式是非常复杂的，虽然只有加、减、乘、除四则运算，但是公式有可能有十多个参数，而且上百个业务品各有不同的取参路径，同时相关表的数据量都在百万级。呵呵，复杂了吧，不复杂那就不叫金融业务，我们来讲讲运算的核心——模型公式及其如何实现。
+Banking and securities projects often involve model calculations that predict unknown or future
+business behavior from statistics and analysis of existing data. Most model calculations operate on
+massive data, e.g. building a model formula to analyze a city's consumption tendencies, which in
+turn shapes the bank's marketing and business expansion. Typical model calculations have one or more
+formulas, usually the four basic operations of addition, subtraction, multiplication and division,
+occasionally exponents, square roots and other complex operations. In actual financial business,
+model formulas are very complex: even with only the four basic operations, a formula may have over a
+dozen parameters, hundreds of business products each have different ways of getting parameters, and
+the related tables hold millions of rows. Heh, complicated, right? If it weren't complex it wouldn't
+be financial business. Let's talk about the core of the calculation: the model formula and how to
+implement it.
 
-业务需求：输入一个模型公式（加、减运算），然后输入模型中的参数，运算出结果。
+Business requirement: enter a model formula (addition and subtraction), then enter the model's
+parameters, and compute the result.
 
-设计要求：
+Design requirements:
 
-- 公式可以运行时编辑，并且符合正常算术书写方式，例如a+b-c
-- 高扩展性，未来增加指数、开方、极限、求导等运算符号时较少改动。
-- 效率可以不用考虑，晚间批量运算。
-- 业务种类的公式：a+b+c-d, a+b+e-d, a-f ... 
+- formulas can be edited at runtime and follow normal arithmetic notation, e.g. a+b-c
+- highly extensible, with few changes when adding operators like exponents, square roots, limits and
+  derivatives in the future.
+- efficiency doesn't matter; it runs as a nightly batch.
+- formulas for business types: a+b+c-d, a+b+e-d, a-f ... 
 
-想想公式中有什么？仅有两类元素：运算元素和运算符号，运算元素就是指a、b、c等符号，需要具体赋值的对象，也叫做终结符号，为什么叫终结符号呢？因为这些元素除了需要赋值外，不需要做任何处理，所有运算元素都对应一个具体的业务参数，这是语法中最小的单元逻辑，不可再拆分；运算符号就是加减符号，需要我们编写算法进行处理，每个运算符号都要对应处理单元，否则公式无法运行，运算符号也叫做非终结符号。两类元素的共同点是都要被解析，不同点是所有的运算元素具有相同的功能，可以用一个类表示，而运算符号则是需要分别进行解释，加法需要加法解析器，减法需要减法解析器。分析到这里，我们就可以先画一个简单的类图
+What's in a formula? Only two kinds of elements: operands and operators. Operands are symbols like
+a, b and c that need to be assigned concrete values; they're also called terminal symbols. Why
+terminal? Because apart from being assigned values these elements need no processing; every operand
+corresponds to a concrete business parameter, the smallest unit of logic in the grammar, which can't
+be split further. Operators are the plus and minus signs, which need algorithms to process them;
+every operator must have a processing unit, otherwise the formula can't run. Operators are also
+called non-terminal symbols. What the two kinds of elements have in common is that both must be
+parsed; the difference is that all operands have the same function and can be represented by one
+class, while operators must each be interpreted separately: addition needs an addition parser and
+subtraction needs a subtraction parser. With this analysis, we can draw a simple class diagram first
 
 ```plantuml
 @startuml
@@ -8924,21 +9578,21 @@ class Calculator {
     Calculator(String expStr)
 }
 note top of Calculator
-Calculator的作用是封装，
-根据迪米特法则，Client只与直接的朋友Calculator交流，
-与其他类没关系
+The role of Calculator is encapsulation:
+following the Law of Demeter, Client only talks to its direct friend Calculator
+and has nothing to do with the other classes
 end note
 
 abstract class Expression {
     + int interpreter(Map<String, Integer> var)
 }
-note top of Expression : 解释器
+note top of Expression : Interpreter
 
 class VarExpression extends Expression {
 
     + int interpreter(Map<String, Integer> var)
 }
-note bottom of VarExpression : 运算元素解析
+note bottom of VarExpression : Operand parsing
 
 abstract class SymbolExpression extends Expression {
     # Expression left
@@ -8946,17 +9600,17 @@ abstract class SymbolExpression extends Expression {
 
     + SymbolExpression(Expression left, Expression right)
 }
-note top of SymbolExpression : 运算符号解析
+note top of SymbolExpression : Operator parsing
 
 class AddExpression extends SymbolExpression {
     + int interpreter(Map<String, Integer> var)
 }
-note bottom of AddExpression : 加法解析
+note bottom of AddExpression : Addition parsing
 
 class SubExpression extends SymbolExpression {
     + int interpreter(Map<String, Integer> var)
 }
-note bottom of SubExpression : 减法解析
+note bottom of SubExpression : Subtraction parsing
 
 Client -> Calculator
 Calculator -> Expression
@@ -8964,82 +9618,87 @@ Calculator -> Expression
 @enduml
 ```
 
-代码清单如下
+The code listing is as follows
 
 ```java
 
-// 抽象表达式类
-// 抽象类非常简单，仅一个方法interpreter负责对传递进来的参数和值进行解析和匹配，
-// 其中输入参数为HashMap类型，key值为模型中的参数，如a、b、c等，value为运算时取得的具体数字
+// Abstract expression class
+// The abstract class is very simple: a single method, interpreter, parses and matches the
+// parameters and values passed in,
+// where the input is a HashMap whose keys are the model's parameters, like a, b, c, and whose
+// values are the concrete numbers obtained at calculation time
 public abstract class Expression {
-    //解析公式和数值，其中var中的key值是公式中的参数，value值是具体的数字
+    //parse the formula and values; the keys in var are the formula's parameters and the values are
+    //concrete numbers
     public abstract int interpreter(HashMap<String,Integer> var);
 }
 
-// 变量解析器
+// Variable parser
 public class VarExpression extends Expression {
     private String key;
     public VarExpression(String _key){
         this.key = _key;
     }
-    //从map中取之
+    //get it from the map
     public int interpreter(HashMap<String, Integer> var) {
         return var.get(this.key);
     }
 }
 
-// 抽象运算符号解析器
-// 这个解析过程还是比较有意思的，每个运算符号都只和自己左右两个数字有关系，但左右两个数字有可能也是一个解析的结果，
-// 无论何种类型，都是Expression的实现类，于是在对运算符解析的子类中增加了一个构造函数，传递左右两个表达式
+// Abstract operator parser
+// This parsing is quite interesting: each operator only relates to the two numbers on its left and
+// right, but those numbers may themselves be the result of parsing;
+// whatever the type, they're implementations of Expression, so the operator parser subclasses get a
+// constructor that takes the left and right expressions
 public abstract class SymbolExpression extends Expression {
     protected Expression left;
     protected Expression right;
-    //所有的解析公式都应只关心自己左右两个表达式的结果
+    //every parsing formula should only care about the results of its left and right expressions
     public SymbolExpression(Expression _left,Expression _right){
         this.left = _left;
         this.right = _right;
     }
 }
 
-// 加法解析器
+// Addition parser
 public class AddExpression extends SymbolExpression {
     public AddExpression(Expression _left,Expression _right){
         super(_left,_right);
     }
-    //把左右两个表达式运算的结果加起来
+    //add the results of the left and right expressions
     public int interpreter(HashMap<String, Integer> var) {
         return super.left.interpreter(var) + super.right.interpreter(var);
     }
 }
 
-// 减法解析器
+// Subtraction parser
 public class SubExpression extends SymbolExpression {
     public SubExpression(Expression _left,Expression _right){
         super(_left,_right);
     }
-    //左右两个表达式相减
+    //subtract the left and right expressions
     public int interpreter(HashMap<String, Integer> var) {
         return super.left.interpreter(var) - super.right.interpreter(var);
     }
 }
 
-// 解析器封装类
+// Parser wrapper class
 public class Calculator {
-    //定义表达式
+    //define the expression
     private Expression expression;
-    //构造函数传参，并解析
+    //pass parameters via the constructor and parse
     public Calculator(String expStr){
-        //定义一个栈，安排运算的先后顺序
+        //define a stack to arrange the order of operations
         Stack<Expression> stack = new Stack<Expression>();
-        //表达式拆分为字符数组
+        //split the expression into a character array
         char[] charArray = expStr.toCharArray();
-        //运算
+        //compute
         Expression left = null;
         Expression right = null;
         for(int i=0;i<charArray.length;i++){
             switch(charArray[i]) {
-            case '+': //加法
-                //加法结果放到栈中
+            case '+': //addition
+                //push the addition result onto the stack
                 left = stack.pop();
                 right=new VarExpression(String.valueOf(charArray[++i]))
                 stack.push(new AddExpression(left,right));
@@ -9049,47 +9708,48 @@ public class Calculator {
                 right=new VarExpression(String.valueOf(charArray[++i]))
                 stack.push(new SubExpression(left,right));
                 break;
-            default: //公式中的变量
+            default: //a variable in the formula
                 stack.push(new VarExpression(String.valueOf(charArray[i
             }
         }
-        //把运算结果抛出来
+        //throw out the result
         this.expression = stack.pop();
     }
-    //开始运算
+    //start computing
     public int run(HashMap<String,Integer> var){
     return this.expression.interpreter(var);
     }
 }
 
-// 客户模拟类
-// getExpStr是从键盘事件中获得的表达式，getValue方法是从键盘事件中获得表达式中的元素映射值，运行过程如下
-// 1. 请输入表达式：a+b-c
-// 2. 请输入a的值：100
-// 3. 请输入b的值：20
-// 4. 请输入c的值:40
-// 5. 运算结果为：a+b-c=80
+// Client simulation class
+// getExpStr gets the expression from keyboard input, and getValue gets the values of the
+// expression's elements from keyboard input; it runs like this
+// 1. Enter the expression: a+b-c
+// 2. Enter the value of a: 100
+// 3. Enter the value of b: 20
+// 4. Enter the value of c: 40
+// 5. The result is: a+b-c=80
 public class Client {
-    //运行四则运算
+    //run the arithmetic
     public static void main(String[] args) throws IOException{
         String expStr = getExpStr();
-        //赋值
+        //assign values
         HashMap<String,Integer> var = getValue(expStr);
         Calculator cal = new Calculator(expStr);
-        System.out.println("运算结果为："+expStr +"="+cal.run(var));
+        System.out.println("The result is: "+expStr +"="+cal.run(var));
     }
-    //获得表达式
+    //get the expression
     public static String getExpStr() throws IOException{
-        System.out.print("请输入表达式：");
+        System.out.print("Enter the expression: ");
         return (new BufferedReader(new InputStreamReader(System.in))).readLine();
     }
-    //获得值映射
+    //get the value map
     public static HashMap<String,Integer> getValue(String exprStr) throws IOException
         HashMap<String,Integer> map = new HashMap<String,Integer>();
-        //解析有几个参数要传递
+        //work out how many parameters need to be passed
         for(char ch:exprStr.toCharArray()){
             if(ch != '+' && ch != '-'){
-                //解决重复参数的问题
+                //handle duplicate parameters
                 if(!map.containsKey(String.valueOf(ch))){
                     String in = (new BufferedReader(new InputStreamReader(System.in))).readLine();
                     map.put(String.valueOf(ch),Integer.valueOf(in));
@@ -9102,11 +9762,14 @@ public class Client {
 
 ```
 
-## 中介者模式
+## Mediator Pattern
 
-`中介者模式`: 用一个中介对象封装一系列的对象交互，中介者使各对象不需要显示地相互作用，从而使其耦合松散，而且可以独立地改变它们之间的交互(该模式会限制对象之间的直接交互， 迫使它们通过一个中介者对象进行合作。)
+`Mediator pattern`: uses a mediator object to encapsulate a set of object interactions; the mediator
+keeps objects from referring to each other explicitly, which loosens their coupling and lets their
+interactions vary independently (the pattern restricts direct communication between objects and
+forces them to collaborate only via a mediator object.)
 
-### 中介者模式类图
+### Mediator pattern class diagram
 
 ```plantuml
 @startuml
@@ -9118,10 +9781,11 @@ interface Mediator {
 }
 
 note top of Mediator
-中介者(Mediator)接口声明了与组件交流的方法， 
-但通常仅包括一个通知方法。 
-组件可将任意上下文 （包括自己的对象） 
-作为该方法的参数， 只有这样接收组件和发送者类之间才不会耦合。
+The Mediator interface declares methods of communication with components,
+which usually include just a single notification method.
+Components may pass any context (including their own objects)
+as arguments of this method, but only in such a way that no coupling occurs between a receiving
+component and the sender's class.
 end note
 
 class ConcreteMediator {
@@ -9138,11 +9802,11 @@ class ConcreteMediator {
 }
 
 note bottom of ConcreteMediator
-具体中介者(Concrete Mediator)封装了多种组件间的关系。 
-具体中介者通常会保存所有组件的引用并对其进行管理， 
-甚至有时会对其生命周期进行管理。
+Concrete Mediators encapsulate relations between various components.
+Concrete mediators often keep references to all components they manage
+and sometimes even manage their lifecycle.
 
-notice() 方法如下
+The notice() method is as follows
 if (sender == componentA)
     reactorOnA()
 end note
@@ -9160,11 +9824,11 @@ class ComponentC {
     + operationC()
 }
 note right of ComponentC
-组件(Component)是各种包含业务逻辑的类。 
-每个组件都有一个指向中介者的引用， 
-该引用被声明为中介者接口类型。 
-组件不知道中介者实际所属的类， 
-因此你可通过将其连接到不同的中介者以使其能在其他程序中复用。
+Components are various classes that contain some business logic.
+Each component has a reference to a mediator,
+declared with the type of the mediator interface.
+The component isn't aware of the actual class of the mediator,
+so you can reuse the component in other programs by linking it to a different mediator.
 end note
 
 
@@ -9173,14 +9837,14 @@ class ComponentD {
     + operationD()
 }
 note right of ComponentD
-组件并不知道其他组件的情况。 
-如果组件内发生了重要事件， 它只能通知中介者。 
-中介者收到通知后能轻易地确定发送者， 
-这或许已足以判断接下来需要触发的组件了。
+Components must not be aware of other components.
+If something important happens within or to a component, it must only notify the mediator.
+When the mediator receives the notification, it can easily identify the sender,
+which might be just enough to decide what component should be triggered in return.
 
-对于组件来说， 中介者看上去完全就是一个黑箱。 
-发送者不知道最终会由谁来处理自己的请求， 
-接收者也不知道最初是谁发出了请求。
+From a component's perspective, it all looks like a total black box.
+The sender doesn't know who'll end up handling its request,
+and the receiver doesn't know who sent the request in the first place.
 end note
 
 
@@ -9198,54 +9862,101 @@ ConcreteMediator -down-o ComponentD
 @enduml
 ```
 
-### 中介者模式要点
+### Mediator pattern key points
 
-1. 与其他模式的关系
-    > - 责任链模式、 命令模式、 中介者模式和观察者模式用于处理请求发送者和接收者之间的不同连接方式：  
-    >   - 责任链按照顺序将请求动态传递给一系列的潜在接收者， 直至其中一名接收者对请求进行处理。
-    >   - 命令在发送者和请求者之间建立单向连接。
-    >   - 中介者清除了发送者和请求者之间的直接连接， 强制它们通过一个中介对象进行间接沟通。
-    >   - 观察者允许接收者动态地订阅或取消接收请求。
-    > - 外观模式和中介者的职责类似： 它们都尝试在大量紧密耦合的类中组织起合作。
-    >   - 外观为子系统中的所有对象定义了一个简单接口， 但是它不提供任何新功能。 子系统本身不会意识到外观的存在。 子系统中的对象可以直接进行交流。
-    >   - 中介者将系统中组件的沟通行为中心化。 各组件只知道中介者对象， 无法直接相互交流。
-    > - 中介者和观察者之间的区别往往很难记住。 在大部分情况下， 你可以使用其中一种模式， 而有时可以同时使用。 让我们来看看如何做到这一点。
-    >   - 中介者的主要目标是消除一系列系统组件之间的相互依赖。 这些组件将依赖于同一个中介者对象。 观察者的目标是在对象之间建立动态的单向连接， 使得部分对象可作为其他对象的附属发挥作用。
-    >   - 有一种流行的中介者模式实现方式依赖于观察者。 中介者对象担当发布者的角色， 其他组件则作为订阅者， 可以订阅中介者的事件或取消订阅。 当中介者以这种方式实现时， 它可能看上去与观察者非常相似。
-    >   - 当你感到疑惑时， 记住可以采用其他方式来实现中介者。 例如， 你可永久性地将所有组件链接到同一个中介者对象。 这种实现方式和观察者并不相同， 但这仍是一种中介者模式。
-    >   - 假设有一个程序， 其所有的组件都变成了发布者， 它们之间可以相互建立动态连接。 这样程序中就没有中心化的中介者对象， 而只有一些分布式的观察者。
+1. Relations with other patterns
+    > - Chain of Responsibility, Command, Mediator and Observer address various ways of connecting
+    >   senders and receivers of requests:  
+    >   - Chain of Responsibility passes a request sequentially along a dynamic chain of potential
+    >     receivers until one of them handles it.
+    >   - Command establishes unidirectional connections between senders and receivers.
+    >   - Mediator eliminates direct connections between senders and receivers, forcing them to
+    >     communicate indirectly via a mediator object.
+    >   - Observer lets receivers dynamically subscribe to and unsubscribe from receiving requests.
+    > - Facade and Mediator have similar jobs: they try to organize collaboration between lots of
+    >   tightly coupled classes.
+    >   - Facade defines a simplified interface to a subsystem of objects, but it doesn't introduce
+    >     any new functionality. The subsystem itself is unaware of the facade. Objects within the
+    >     subsystem can communicate directly.
+    >   - Mediator centralizes communication between components of the system. The components only
+    >     know about the mediator object and don't communicate directly.
+    > - The difference between Mediator and Observer is often elusive. In most cases, you can
+    >   implement either of these patterns; but sometimes you can apply both simultaneously. Let's
+    >   see how we can do that.
+    >   - The primary goal of Mediator is to eliminate mutual dependencies among a set of system
+    >     components. Instead, these components become dependent on a single mediator object. The
+    >     goal of Observer is to establish dynamic one-way connections between objects, where some
+    >     objects act as subordinates of others.
+    >   - There's a popular implementation of the Mediator pattern that relies on Observer. The
+    >     mediator object plays the role of publisher, and the components act as subscribers which
+    >     subscribe to and unsubscribe from the mediator's events. When Mediator is implemented this
+    >     way, it may look very similar to Observer.
+    >   - When you're confused, remember that you can implement the Mediator pattern in other ways.
+    >     For example, you can permanently link all the components to the same mediator object. This
+    >     implementation won't resemble Observer but will still be an instance of the Mediator
+    >     pattern.
+    >   - Now imagine a program where all components have become publishers, allowing dynamic
+    >     connections between each other. There won't be a centralized mediator object, only a
+    >     distributed set of observers.
 
-2. 中介者模式的优点 中介者模式的优点就是减少类间的依赖，把原有的一对多的依赖变成了一对一的依赖，同事类只依赖中介者，减少了依赖，当然同时也降低了类间的耦合
-3. 中介者模式的缺点: 中介者模式的缺点就是中介者会膨胀得很大，而且逻辑复杂，原本N个对象直接的相互依赖关系转换为中介者和同事类的依赖关系，同事类越多，中介者的逻辑就越复杂。
+2. Advantages of the Mediator pattern: the Mediator pattern reduces dependencies between classes,
+   turning the original one-to-many dependencies into one-to-one ones; colleague classes only depend
+   on the mediator, which reduces dependencies and of course lowers coupling between classes
+3. Drawbacks of the Mediator pattern: the mediator can grow very large with complex logic; the
+   mutual dependencies among the original N objects become dependencies between the mediator and the
+   colleague classes, and the more colleague classes there are, the more complex the mediator's
+   logic becomes.
 
-### 中介者模式例子: 进销存系统
+### Mediator pattern example: a purchase-sales-inventory system
 
-大家都来自五湖四海，都要生存，于是都找了个靠山——公司，就是给你发薪水的地方。公司要想尽办法赢利赚钱，赢利方法则不尽相同，但是各个公司都有相同的三个环节：采购、销售和库存。这个怎么说呢？比如一个软件公司，要开发软件，就需要购买开发环境，如Windows操作系统、数据库产品等，这就是采购；开发完产品还要把产品推销出去；有产品就必然有库存，软件产品也有库存，虽然不需要占用库房空间，但也要占用光盘或硬盘，这也是库存。再比如做咨询服务的公司，它要采购什么？采购知识，采购经验，这是这类企业的生存之本，销售的也是知识和经验，库存同样是知识和经验。既然进销存是如此重要，我们今天就来讲讲它的原理和设计，我相信很多人都已经开发过这种类型的软件，基本上都形成了固定套路，不管是单机版还是网络版，一般的做法都是通过数据库来完成相关产品的管理，相对来说这还是比较简单的项目，三个模块的示意图如图
+We all come from all over and need to make a living, so we all find something to lean on: a company,
+the place that pays your salary. A company has to do everything it can to turn a profit, and the
+ways vary, but every company has the same three parts: purchasing, sales and inventory. How so? Take
+a software company: to develop software it needs to buy a development environment, such as the
+Windows operating system and database products; that's purchasing. Once the product is developed it
+has to be sold. With products there's necessarily inventory; software products have inventory too,
+which doesn't take up warehouse space but does take up discs or hard drives. Or take a consulting
+company: what does it purchase? Knowledge and experience, which are what such companies live on;
+what it sells is also knowledge and experience, and its inventory is likewise knowledge and
+experience. Since purchase-sales-inventory is so important, today we'll talk about its principles
+and design. I believe many people have developed this kind of software; it basically follows a fixed
+routine, whether standalone or networked: product management is generally done through a database.
+Relatively speaking, it's a fairly simple project. The three modules are shown below
 
 ```plantuml
 @startuml
 
-[采购管理] <-right-> [销售管理]
-[采购管理] <--> [存货管理]
-[销售管理] <--> [存货管理]
+[Purchasing] <-right-> [Sales]
+[Purchasing] <--> [Inventory]
+[Sales] <--> [Inventory]
 @enduml
 ```
 
-我们从这个示意图上可以看出，三个模块是相互依赖的。我们就以一个终端销售商（以服务最终客户为目标的企业，比如某某超市、某某商店等）为例，采购部门要采购IBM的电脑，它根据以下两个要素来决定采购数量
+From this diagram we can see that the three modules depend on each other. Take a retailer (a
+business serving end customers, such as a supermarket or store) as an example: the purchasing
+department wants to buy IBM computers and decides the quantity based on two factors
 
 
-- 销售情况
-> 销售部门要反馈销售情况，畅销就多采购，滞销就不采购。
-- 库存情况
-> 即使是畅销产品，库存都有1000台了，每天才卖出去10台，也就不需要再采购了！销售模块是企业的赢利核心，对其他两个模块也有影响：
-- 库存情况
-> 库房有货，才能销售，空手套白狼是不行的。
-- 督促采购
-> 在特殊情况下，比如一个企业客户要一次性购买100台电脑，库存只有80台，这时需要催促采购部门赶快采购！
+- Sales
+> The sales department reports on sales: buy more if it sells well, don't buy if it doesn't.
+- Inventory
+> Even for a best-seller, if there are already 1000 units in stock and only 10 sell per day, there's
+> no need to buy more! The sales module is the company's profit core and also affects the other two
+> modules:
+- Inventory
+> You can only sell what's in stock; you can't sell from empty hands.
+- Prompting purchasing
+> In special cases, e.g. when a business customer wants to buy 100 computers at once and there are
+> only 80 in stock, purchasing needs to be urged to buy quickly!
 
-同样地，库存管理也对其他两个模块有影响。库房是有容积限制的，不可能无限大，所以就有了清仓处理，那就要求采购部门停止采购，同时销售部门进行打折销售
+Likewise, inventory management affects the other two modules. The warehouse has limited capacity and
+can't be infinitely large, so there are clearance sales, which require purchasing to stop buying and
+sales to sell at a discount
 
-从以上分析来看，这三个模块都有自己的行为，并且与其他模块之间的行为产生关联，类似于我们办公室的同事，大家各干各的活，但是彼此之间还是有交叉的，于是彼此之间就产生紧耦合，也就是一个团队。我们先来实现这个进销存，类图如图
+From the analysis above, all three modules have their own behaviors that are tied to the behaviors
+of the other modules, like colleagues in an office: everyone does their own job, but there's
+overlap, so tight coupling arises between them, i.e. a team. Let's implement this
+purchase-sales-inventory system first; the class diagram is as follows
 
 ```plantuml
 @startuml
@@ -9255,7 +9966,7 @@ class Purchase {
     + void refuseBuyIBM()
 }
 
-note top of Purchase : 采购管理
+note top of Purchase : Purchasing
 
 class Sale {
     + void sellIBMComputer(int number)
@@ -9263,7 +9974,7 @@ class Sale {
     + void offSale()
 }
 
-note top of Sale : 销售管理
+note top of Sale : Sales
 
 class Stock {
     - static int COMPUTER_NUMBER = 100
@@ -9274,7 +9985,7 @@ class Stock {
     + void clearStock()
 }
 
-note bottom of Stock : 存货管理
+note bottom of Stock : Inventory
 
 Purchase <-right-> Sale
 Purchase <--> Stock
@@ -9283,146 +9994,164 @@ Sale <--> Stock
 @enduml
 ```
 
-代码清单如下
+The code listing is as follows
 
 ```java
-// 采购管理
+// Purchasing management
 public class Purchase {
-    //采购IBM电脑
+    //buy IBM computers
     public void buyIBMcomputer(int number){
-        //访问库存
+        //access inventory
         Stock stock = new Stock();
-        //访问销售
+        //access sales
         Sale sale = new Sale();
-        //电脑的销售情况
+        //computer sales status
         int saleStatus = sale.getSaleStatus();
-        if(saleStatus>80){ //销售情况良好
-            System.out.println("采购IBM电脑:"+number + "台");
+        if(saleStatus>80){ //sales are good
+            System.out.println("Buying IBM computers: "+number + " units");
             stock.increase(number);
-        }else{ //销售情况不好
-            int buyNumber = number/2; //折半采购
-            System.out.println("采购IBM电脑："+buyNumber+ "台");
+        }else{ //sales are poor
+            int buyNumber = number/2; //buy half
+            System.out.println("Buying IBM computers: "+buyNumber+ " units");
         }
     }
-    //不再采购IBM电脑
+    //stop buying IBM computers
     public void refuseBuyIBM(){
-        System.out.println("不再采购IBM电脑");
+        System.out.println("Stop buying IBM computers");
     }
 }
 
-// 库存管理
+// Inventory management
 public class Stock {
-    //刚开始有100台电脑
+    //start with 100 computers
     private static int COMPUTER_NUMBER =100;
-    //库存增加
+    //increase inventory
     public void increase(int number){
         COMPUTER_NUMBER = COMPUTER_NUMBER + number;
-        System.out.println("库存数量为："+COMPUTER_NUMBER);
+        System.out.println("Inventory count: "+COMPUTER_NUMBER);
     }
-    //库存降低
+    //decrease inventory
     public void decrease(int number){
         COMPUTER_NUMBER = COMPUTER_NUMBER - number;
-        System.out.println("库存数量为："+COMPUTER_NUMBER);
+        System.out.println("Inventory count: "+COMPUTER_NUMBER);
     }
-    //获得库存数量
+    //get the inventory count
     public int getStockNumber(){
         return COMPUTER_NUMBER;
     }
-    //存货压力大了，就要通知采购人员不要采购，销售人员要尽快销售
+    //when inventory pressure is high, tell purchasing to stop buying and sales to sell quickly
     public void clearStock(){
         Purchase purchase = new Purchase();
         Sale sale = new Sale();
-        System.out.println("清理存货数量为："+COMPUTER_NUMBER);
-        //要求折价销售
+        System.out.println("Clearing inventory count: "+COMPUTER_NUMBER);
+        //request a discount sale
         sale.offSale();
-        //要求采购人员不要采购
+        //ask purchasing to stop buying
         purchase.refuseBuyIBM();
     }
 }
 
-// 销售管理
+// Sales management
 public class Sale {
-    //销售IBM电脑
+    //sell IBM computers
     public void sellIBMComputer(int number){
-        //访问库存
+        //access inventory
         Stock stock = new Stock();
-        //访问采购
+        //access purchasing
         Purchase purchase = new Purchase();
-        if(stock.getStockNumber()<number){ //库存数量不够销售
+        if(stock.getStockNumber()<number){ //not enough inventory to sell
             purchase.buyIBMcomputer(number);
         }
-        System.out.println("销售IBM电脑"+number+"台");
+        System.out.println("Selling IBM computers: "+number+" units");
         stock.decrease(number);
     }
-    //反馈销售情况，0～100之间变化，0代表根本就没人卖，100代表非常畅销，出一个卖一个
+    //report sales status, ranging from 0 to 100: 0 means nobody buys, 100 means it sells as soon as
+    //it's in stock
     public int getSaleStatus(){
         Random rand = new Random(System.currentTimeMillis());
         int saleStatus = rand.nextInt(100);
-        System.out.println("IBM电脑的销售情况为："+saleStatus);
+        System.out.println("IBM computer sales status: "+saleStatus);
         return saleStatus;
     }
-    //折价处理
+    //discount sale
     public void offSale(){
-        //库房有多少卖多少
+        //sell however many are in the warehouse
         Stock stock = new Stock();
-        System.out.println("折价销售IBM电脑"+stock.getStockNumber()+"台");
+        System.out.println("Discount sale of IBM computers: "+stock.getStockNumber()+" units");
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
-        //采购人员采购电脑
-        System.out.println("------采购人员采购电脑--------");
+        //purchasing buys computers
+        System.out.println("------Purchasing buys computers--------");
         Purchase purchase = new Purchase();
         purchase.buyIBMcomputer(100);
-        //销售人员销售电脑
-        System.out.println("\n------销售人员销售电脑--------");
+        //sales sells computers
+        System.out.println("\n------Sales sells computers--------");
         Sale sale = new Sale();
         sale.sellIBMComputer(1);
-        //库房管理人员管理库存
-        System.out.println("\n------库房管理人员清库处理--------");
+        //the warehouse manager manages inventory
+        System.out.println("\n------Warehouse manager clears inventory--------");
         Stock stock = new Stock();
         stock.clearStock();
     }
 }
 ```
 
-三个不同类型的参与者完成了各自的活动。你有没有发现这三个类是彼此关联的？每个类都与其他两个类产生了关联关系。迪米特法则认为“每个类只和朋友类交流”，这个朋友类并非越多越好，朋友类越多，耦合性越大，要想修改一个就得修改一片，这不是面向对象设计所期望的，况且这还是仅三个模块的情况，属于比较简单的一个小项目。我们把进销存扩展一下，如图
+The three different types of participants completed their own activities. Did you notice that these
+three classes are all related to each other? Each class is associated with the other two. The Law of
+Demeter says "each class only talks to its friends", and more friends isn't better: the more
+friends, the higher the coupling, and changing one means changing a whole bunch, which isn't what
+object-oriented design aims for. And this is only with three modules, a fairly simple small project.
+Let's extend the purchase-sales-inventory system, as shown
 
 ```plantuml
 @startuml
 
-[采购管理] <--> [销售管理]
-[销售管理] <--> [物流管理]
-[采购管理] <--> [物流管理]
-[供应商管理] <--> [存货管理]
-[存货管理] <--> [资产管理]
-[供应商管理] <--> [资产管理]
-[采购管理] <--> [供应商管理]
-[采购管理] <--> [存货管理]
-[采购管理] <--> [资产管理]
+[Purchasing] <--> [Sales]
+[Sales] <--> [Logistics]
+[Purchasing] <--> [Logistics]
+[Supplier management] <--> [Inventory]
+[Inventory] <--> [Asset management]
+[Supplier management] <--> [Asset management]
+[Purchasing] <--> [Supplier management]
+[Purchasing] <--> [Inventory]
+[Purchasing] <--> [Asset management]
 @enduml
 ```
 
-这是一个蜘蛛网的结构，别说是编写程序了，就是给人看估计也能让一大批人昏倒！每个对象都需要和其他几个对象交流，对象越多，每个对象要交流的成本也就越大了，只是维护这些对象的交流就能让一大批程序员望而却步！从这方面来说，我们已经发现设计的缺陷了，作为一个架构师，发现缺陷就要想办法修改。
+This is a spider web structure; never mind writing the program, just looking at it would make a lot
+of people faint! Every object has to communicate with several others, and the more objects there
+are, the higher each object's communication cost; just maintaining this communication would scare
+off plenty of programmers! From this we can see the design flaw, and as an architect, when you find
+a flaw you have to find a way to fix it.
 
 
-大家都学过网络的基本知识，网络拓扑有三种类型：总线型、环型、星型。星型网络拓扑如图所示
+Everyone has learned the basics of networking: there are three types of network topology: bus, ring
+and star. The star topology is shown below
 
-在星型网络拓扑中，每个计算机通过交换机和其他计算机进行数据交换，各个计算机之间并没有直接出现交互的情况。这种结构简单，而且稳定，只要中间那个交换机不瘫痪，整个网络就不会发生大的故障。公司和网吧一般都采用星型网络。我们是不是可以把这种星型结构引入到我们的设计中呢？我们先画一个示意图
+In a star topology, each computer exchanges data with the others through a switch; the computers
+never interact with each other directly. This structure is simple and stable: as long as the switch
+in the middle doesn't go down, the whole network won't have major failures. Companies and internet
+cafes generally use star networks. Could we bring this star structure into our design? Let's draw a
+diagram first
 
 ```plantuml
 @startuml
 
-[中介者] <--> [采购管理]
-[中介者] <--> [销售管理]
-[中介者] <-up-> [存货管理]
+[Mediator] <--> [Purchasing]
+[Mediator] <--> [Sales]
+[Mediator] <-up-> [Inventory]
 
 @enduml
 ```
 
-加入了一个中介者作为三个模块的交流核心，每个模块之间不再相互交流，要交流就通过中介者进行。每个模块只负责自己的业务逻辑，不属于自己的则丢给中介者来处理，简化了各模块之间的耦合关系，类图如图
+A mediator is added as the communication hub of the three modules. The modules no longer communicate
+with each other directly; all communication goes through the mediator. Each module is only
+responsible for its own business logic and hands anything else to the mediator, which simplifies the
+coupling between modules. The class diagram is as follows
 
 ```plantuml
 @startuml
@@ -9432,7 +10161,7 @@ class Purchase extends AbstractColleague {
     + void refuseBuyIBM()
 }
 
-note top of Purchase : 采购管理
+note top of Purchase : Purchasing
 
 class Sale extends AbstractColleague {
     + void sellIBMComputer(int number)
@@ -9440,7 +10169,7 @@ class Sale extends AbstractColleague {
     + void offSale()
 }
 
-note top of Sale : 销售管理
+note top of Sale : Sales
 
 class Stock extends AbstractColleague {
     - static int COMPUTER_NUMBER = 100
@@ -9451,7 +10180,7 @@ class Stock extends AbstractColleague {
     + void clearStock()
 }
 
-note top of Stock : 存货管理
+note top of Stock : Inventory
 
 abstract class AbstractMediator {
     # Purchase purchase
@@ -9480,74 +10209,80 @@ Mediator --|> AbstractMediator
 @enduml
 ```
 
-建立了两个抽象类AbstractMediator和AbstractColeague，每个对象只是与中介者Mediator之间产生依赖，与其他对象之间没有直接关系，AbstractMediator的作用是实现中介者的抽象定义，定义了一个抽象方法execute
+Two abstract classes, AbstractMediator and AbstractColeague, are created. Each object only depends
+on the Mediator and has no direct relationship with the other objects. AbstractMediator implements
+the abstract definition of the mediator and defines an abstract method execute
 
 ```java
-// 抽象中介者
+// Abstract mediator
 public abstract class AbstractMediator {
     protected Purchase purchase;
     protected Sale sale;
     protected Stock stock;
-    //构造函数
+    //constructor
     public AbstractMediator(){
         purchase = new Purchase(this);
         sale = new Sale(this);
         stock = new Stock(this);
     }
-    //中介者最重要的方法叫做事件方法，处理多个对象之间的关系
+    //the mediator's most important method is the event method, which handles the relationships
+    //between multiple objects
     public abstract void execute(String str,Object...objects);
 }
 
-// 具体中介者
-// 中介者Mediator定义了多个private方法，其目的是处理各个对象之间的依赖关系，
-// 就是说把原有一个对象要依赖多个对象的情况移到中介者的private方法中实现。
-// 在实际项目中，一般的做法是中介者按照职责进行划分，每个中介者处理一个或多个类似的关联请求
+// Concrete mediator
+// The Mediator defines several private methods whose purpose is to handle the dependencies between
+// objects,
+// i.e. the cases where one object depended on several others are moved into the mediator's private
+// methods.
+// In real projects, mediators are usually divided by responsibility, each handling one or more
+// similar related requests
 public class Mediator extends AbstractMediator {
-    //中介者最重要的方法
+    //the mediator's most important method
     public void execute(String str,Object...objects){
-        if(str.equals("purchase.buy")){ //采购电脑
+        if(str.equals("purchase.buy")){ //buy computers
             this.buyComputer((Integer)objects[0]);
-        }else if(str.equals("sale.sell")){ //销售电脑
+        }else if(str.equals("sale.sell")){ //sell computers
             this.sellComputer((Integer)objects[0]);
-        }else if(str.equals("sale.offsell")){ //折价销售
+        }else if(str.equals("sale.offsell")){ //discount sale
             this.offSell();
-        }else if(str.equals("stock.clear")){ //清仓处理
+        }else if(str.equals("stock.clear")){ //clearance
             this.clearStock();
         }
     }
-    //采购电脑
+    //buy computers
     private void buyComputer(int number){
         int saleStatus = super.sale.getSaleStatus();
         if(saleStatus>80){ 
-            //销售情况良好
-            System.out.println("采购IBM电脑:"+number + "台");
+            //sales are good
+            System.out.println("Buying IBM computers: "+number + " units");
             super.stock.increase(number);
-        }else{ //销售情况不好
-            int buyNumber = number/2; //折半采购
-            System.out.println("采购IBM电脑："+buyNumber+ "台");
+        }else{ //sales are poor
+            int buyNumber = number/2; //buy half
+            System.out.println("Buying IBM computers: "+buyNumber+ " units");
         }
     }
-    //销售电脑
+    //sell computers
     private void sellComputer(int number){
-        if(super.stock.getStockNumber()<number){ //库存数量不够销售
+        if(super.stock.getStockNumber()<number){ //not enough inventory to sell
             super.purchase.buyIBMcomputer(number);
         }
         super.stock.decrease(number);
     }
-    //折价销售电脑
+    //discount sale of computers
     private void offSell(){
-        System.out.println("折价销售IBM电脑"+stock.getStockNumber()+"台");
+        System.out.println("Discount sale of IBM computers: "+stock.getStockNumber()+" units");
     }
-    //清仓处理
+    //clearance
     private void clearStock(){
-        //要求清仓销售
+        //request a clearance sale
         super.sale.offSale();
-        //要求采购人员不要采购
+        //ask purchasing to stop buying
         super.purchase.refuseBuyIBM();
     }
 }
 
-// 抽象同事类
+// Abstract colleague class
 public abstract class AbstractColleague {
     protected AbstractMediator mediator;
     public AbstractColleague(AbstractMediator _mediator){
@@ -9555,85 +10290,87 @@ public abstract class AbstractColleague {
     }
 }
 
-// 修改后的采购管理
-// 上述Purchase类简化了很多，也清晰了很多，处理自己的职责，与外界有关系的事件处理则交给了中介者来完成
+// Revised purchasing management
+// The Purchase class above is much simpler and clearer: it handles its own responsibilities and
+// hands events involving the outside to the mediator
 public class Purchase extends AbstractColleague{
     public Purchase(AbstractMediator _mediator){
         super(_mediator);
     }
-    //采购IBM电脑
+    //buy IBM computers
     public void buyIBMcomputer(int number){
         super.mediator.execute("purchase.buy", number);
     }
-    //不再采购IBM电脑
+    //stop buying IBM computers
     public void refuseBuyIBM(){
-        System.out.println("不再采购IBM电脑");
+        System.out.println("Stop buying IBM computers");
     }
 }
 
-// 库存管理
+// Inventory management
 public class Stock extends AbstractColleague {
     public Stock(AbstractMediator _mediator){
         super(_mediator);
-    }//刚开始有100台电脑
+    }//start with 100 computers
     private static int COMPUTER_NUMBER =100;
-    //库存增加
+    //increase inventory
     public void increase(int number){
         COMPUTER_NUMBER = COMPUTER_NUMBER + number;
-        System.out.println("库存数量为："+COMPUTER_NUMBER);
+        System.out.println("Inventory count: "+COMPUTER_NUMBER);
     }
-    //库存降低
+    //decrease inventory
     public void decrease(int number){
         COMPUTER_NUMBER = COMPUTER_NUMBER - number;
-        System.out.println("库存数量为："+COMPUTER_NUMBER);
+        System.out.println("Inventory count: "+COMPUTER_NUMBER);
     }
-    //获得库存数量
+    //get the inventory count
     public int getStockNumber(){
         return COMPUTER_NUMBER;
-    }//存货压力大了，就要通知采购人员不要采购，销售人员要尽快销售
+    }//when inventory pressure is high, tell purchasing to stop buying and sales to sell quickly
     public void clearStock(){
-        System.out.println("清理存货数量为："+COMPUTER_NUMBER);
+        System.out.println("Clearing inventory count: "+COMPUTER_NUMBER);
         super.mediator.execute("stock.clear");
     }
 }
 
-// 销售管理
+// Sales management
 public class Sale extends AbstractColleague {
     public Sale(AbstractMediator _mediator){
         super(_mediator);
     }
-    //销售IBM电脑
+    //sell IBM computers
     public void sellIBMComputer(int number){
         super.mediator.execute("sale.sell", number);
-        System.out.println("销售IBM电脑"+number+"台");
+        System.out.println("Selling IBM computers: "+number+" units");
     }
-    //反馈销售情况，0～100变化，0代表根本就没人买，100代表非常畅销，出一个卖一个
+    //report sales status, ranging from 0 to 100: 0 means nobody buys, 100 means it sells as soon as
+    //it's in stock
     public int getSaleStatus(){
         Random rand = new Random(System.currentTimeMillis());
         int saleStatus = rand.nextInt(100);
-        System.out.println("IBM电脑的销售情况为："+saleStatus);
+        System.out.println("IBM computer sales status: "+saleStatus);
         return saleStatus;
     }
-    //折价处理
+    //discount sale
     public void offSale(){
         super.mediator.execute("sale.offsell");
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
         AbstractMediator mediator = new Mediator();
-        //采购人员采购电脑
-        System.out.println("------采购人员采购电脑--------");
+        //purchasing buys computers
+        System.out.println("------Purchasing buys computers--------");
         Purchase purchase = new Purchase(mediator);
         purchase.buyIBMcomputer(100);
-        //销售人员销售电脑
-        System.out.println("\n------销售人员销售电脑--------");
+        //sales sells computers
+        System.out.println("\n------Sales sells computers--------");
         Sale sale = new Sale(mediator);
         sale.sellIBMComputer(1);
-        //库房管理人员管理库存
-        System.out.println("\n------库房管理人员清库处理--------");
+        //the warehouse manager manages inventory
+        System.out.println("\n------Warehouse manager clears inventory--------");
         Stock stock = new Stock(mediator);
         stock.clearStock();
     }
@@ -9641,17 +10378,18 @@ public class Client {
 
 ```
 
-## 备忘录模式
+## Memento Pattern
 
-`备忘录模式`: 在不破坏封装性的前提下，捕获一个对象的内部状态，并在该对象之外保存这个状态。这样以后就可将该对象恢复到原先保存的状态。
+`Memento pattern`: without violating encapsulation, captures an object's internal state and stores
+it outside the object, so the object can later be restored to that state.
 
-### 备忘录模式类图
+### Memento pattern class diagram
 
-1. 基于嵌套类的实现
+1. Implementation based on nested classes
 ```plantuml
 @startuml
 
-title 备忘录模式类图:基于嵌套类的实现
+title Memento pattern class diagram: implementation based on nested classes
 
 class Originator {
     - state
@@ -9661,8 +10399,8 @@ class Originator {
 }
 
 note bottom of Originator
-原发器(Originator)类可以生成自身状态的快照， 
-也可以在需要时通过快照恢复自身状态。
+The Originator class can produce snapshots of its own state,
+as well as restore its state from snapshots when needed.
 end note
 
 class Memento {
@@ -9673,8 +10411,9 @@ class Memento {
 }
 
 note bottom of Memento
-备忘录(Memento) 是原发器状态快照的值对象 （value object）。
-通常做法是将备忘录设为不可变的， 并通过构造函数一次性传递数据。
+The Memento is a value object that acts as a snapshot of the originator's state.
+It's a common practice to make the memento immutable and pass it the data only once, via the
+constructor.
 end note
 
 class Caretaker {
@@ -9697,15 +10436,23 @@ originator.restore(m)
 end note
 
 note top of Caretaker
-负责人(Caretaker) 仅知道 “何时” 和 “为何” 捕捉原发器的状态， 以及何时恢复状态。
+The Caretaker knows not only "when" and "why" to capture the originator's state, but also when the
+state should be restored.
 
-负责人通过保存备忘录栈来记录原发器的历史状态。 
-当原发器需要回溯历史状态时， 负责人将从栈中获取最顶部的备忘录， 
-并将其传递给原发器的恢复 （restoration） 方法。
+The caretaker keeps track of the originator's history by storing a stack of mementos.
+When the originator has to travel back in history, the caretaker fetches the topmost memento from
+the stack
+and passes it to the originator's restoration method.
 
 end note
 
-note "在该实现方法中， 备忘录类将被嵌套在原发器中。\n 这样原发器就可访问备忘录的成员变量和方法， \n 即使这些方法被声明为私有。\n  另一方面， 负责人对于备忘录的成员变量和方法的访问权限非常有限：\n  它们只能在栈中保存备忘录， 而不能修改其状态。" as memento
+note as memento
+In this implementation, the memento class is nested inside the originator.
+This lets the originator access the fields and methods of the memento,
+even though they're declared private.
+On the other hand, the caretaker has very limited access to the memento's fields and methods:
+it can only store mementos in a stack but can't tamper with their state.
+end note
 
 
 Originator .right.> Memento
@@ -9715,12 +10462,12 @@ Caretaker o-- Memento
 @enduml
 ```
 
-2. 基于中间接口的实现
+2. Implementation based on an intermediate interface
 
 ```plantuml
 @startuml
 
-title 备忘录模式类图:基于中间接口的实现
+title Memento pattern class diagram: implementation based on an intermediate interface
 
 class Originator {
     - state
@@ -9755,36 +10502,56 @@ Originator .right.> ConcreteMemento
 Caretaker -left-o Memento
 
 note top of Caretaker
-在没有嵌套类的情况下，
-你可以规定负责人仅可通过明确声明的中间接口与备忘录互动， 
-该接口仅声明与备忘录元数据相关的方法，
-限制其对备忘录成员变量的直接访问权限。
+In the absence of nested classes,
+you can restrict access to the memento's fields by establishing a convention
+that caretakers can work with a memento only through an explicitly declared intermediary interface,
+which only declares methods related to the memento's metadata.
 
-另一方面， 原发器可以直接与备忘录对象进行交互， 
-访问备忘录类中声明的成员变量和方法。 
-这种方式的缺点在于你需要将备忘录的所有成员变量声明为公有。
+On the other hand, originators can work with a memento object directly,
+accessing fields and methods declared in the memento class.
+The downside of this approach is that you need to declare all members of the memento public.
 end note
 
 
 
-note "另外一种实现方法适用于不支持嵌套类的编程语言 \n （没错， 我说的就是 PHP）。" as note
+note as note
+There's an alternative implementation, suitable for programming languages that don't support nested
+classes
+(yeah, PHP, I'm talking about you).
+end note
 
 @enduml
 ```
 
-3. 封装更加严格的实现: 如果你不想让其他类有任何机会通过备忘录来访问原发器的状态， 那么还有另一种可用的实现方式。
+3. Implementation with even stricter encapsulation: if you don't want to leave even the slightest
+   chance of other classes accessing the originator's state through the memento, there's another
+   implementation.
 
 ```plantuml
 @startuml
 
-title 备忘录模式类图:封装更加严格的实现
+title Memento pattern class diagram: implementation with even stricter encapsulation
 
 
-note "这种实现方式允许存在多种不同类型的原发器和备忘录。\n 每种原发器都和其相应的备忘录类进行交互。\n 原发器和备忘录都不会将其状态暴露给其他类。" as note_1
+note as note_1
+This implementation allows having multiple types of originators and mementos.
+Each originator works with a corresponding memento class.
+Neither originators nor mementos expose their state to anyone.
+end note
 
-note "负责人此时被明确禁止修改存储在备忘录中的状态。\n  但负责人类将独立于原发器， \n 因为此时恢复方法被定义在了备忘录类中。" as note_2
+note as note_2
+Caretakers are now explicitly restricted from changing the state stored in mementos.
+Moreover, the caretaker class becomes independent from the originator,
+because the restoration method is now defined in the memento class.
+end note
 
-note "每个备忘录将与创建了自身的原发器连接。 \n 原发器会将自己及状态传递给备忘录的构造函数。\n 由于这些类之间的紧密联系， 只要原发器定义了合适的设置器 （setter），\n  备忘录就能恢复其状态。" as note_3
+note as note_3
+Each memento becomes linked to the originator that produced it.
+The originator passes itself to the memento's constructor, along with the values of its state.
+Thanks to the close relationship between these classes, a memento can restore the state of its
+originator,
+given that the latter has defined the appropriate setters.
+end note
 
 
 interface Originator {
@@ -9818,7 +10585,7 @@ class ConcreteMemento implements Memento {
 }
 
 note bottom of ConcreteMemento
-ConcreteMemento 为 ConcreteOriginator 的内部类
+ConcreteMemento is an inner class of ConcreteOriginator
 end note
 
 Originator .right.> Memento
@@ -9829,57 +10596,105 @@ ConcreteOriginator <-right-> ConcreteMemento
 @enduml
 ```
 
-### 备忘录模式要点
+### Memento pattern key points
 
-1.  备忘录模式适合应用场景
-    > - 当你需要创建对象状态快照来恢复其之前的状态时， 可以使用备忘录模式。
-    >   >  备忘录模式允许你复制对象中的全部状态 （包括私有成员变量）， 并将其独立于对象进行保存。 尽管大部分人因为 “撤销” 这个用例才记得该模式， 但其实它在处理事务 （比如需要在出现错误时回滚一个操作） 的过程中也必不可少。
-    > -  当直接访问对象的成员变量、 获取器或设置器将导致封装被突破时， 可以使用该模式。
-    >   >  备忘录让对象自行负责创建其状态的快照。 任何其他对象都不能读取快照， 这有效地保障了数据的安全性。
-2. 实现方式
-    > 1. 确定担任原发器角色的类。 重要的是明确程序使用的一个原发器中心对象， 还是多个较小的对象。
-    > 2. 创建备忘录类。 逐一声明对应每个原发器成员变量的备忘录成员变量。
-    > 3. 将备忘录类设为不可变。 备忘录只能通过构造函数一次性接收数据。 该类中不能包含设置器。
-    > 4. 如果你所使用的编程语言支持嵌套类， 则可将备忘录嵌套在原发器中； 如果不支持， 那么你可从备忘录类中抽取一个空接口， 然后让其他所有对象通过接口来引用备忘录。 你可在该接口中添加一些元数据操作， 但不能暴露原发器的状态。
-    > 5. 在原发器中添加一个创建备忘录的方法。 原发器必须通过备忘录构造函数的一个或多个实际参数来将自身状态传递给备忘录: 该方法返回结果的类型必须是你在上一步中抽取的接口 （如果你已经抽取了）。 实际上， 创建备忘录的方法必须直接与备忘录类进行交互。
-    > 6. 在原发器类中添加一个用于恢复自身状态的方法。 该方法接受备忘录对象作为参数。 如果你在之前的步骤中抽取了接口， 那么可将接口作为参数的类型。 在这种情况下， 你需要将输入对象强制转换为备忘录， 因为原发器需要拥有对该对象的完全访问权限。
-    > 7. 无论负责人是命令对象、 历史记录或其他完全不同的东西， 它都必须要知道何时向原发器请求新的备忘录、 如何存储备忘录以及何时使用特定备忘录来对原发器进行恢复。
-    > 8. 负责人与原发器之间的连接可以移动到备忘录类中。 在本例中， 每个备忘录都必须与创建自己的原发器相连接。 恢复方法也可以移动到备忘录类中， 但只有当备忘录类嵌套在原发器中， 或者原发器类提供了足够多的设置器并可对其状态进行重写时， 这种方式才能实现。
-3. 备忘录模式优点
-    > - 你可以在不破坏对象封装情况的前提下创建对象状态快照。
-    > - 你可以通过让负责人维护原发器状态历史记录来简化原发器代码。
-4. 备忘录模式缺点
-    > -  如果客户端过于频繁地创建备忘录， 程序将消耗大量内存。
-    > - 负责人必须完整跟踪原发器的生命周期， 这样才能销毁弃用的备忘录。
-    > - 绝大部分动态编程语言 （例如 PHP、 Python 和 JavaScript） 不能确保备忘录中的状态不被修改。
-5. 备忘录模式的使用场景
-    > - 需要保存和恢复数据的相关状态场景。
-    > - 提供一个可回滚（rollback）的操作；比如Word中的CTRL+Z组合键，IE浏览器中的后退按钮，文件管理器上的backspace键等。
-    > - 需要监控的副本场景中。例如要监控一个对象的属性，但是监控又不应该作为系统的主业务来调用，它只是边缘应用，即使出现监控不准、错误报警也影响不大，因此一般的做法是备份一个主线程中的对象，然后由分析程序来分析。
-    > - 数据库连接的事务管理就是用的备忘录模式，想想看，如果你要实现一个JDBC驱动，你怎么来实现事务？还不是用备忘录模式嘛！
+1.  When to use the Memento pattern
+    > - Use the Memento pattern when you want to produce snapshots of an object's state to be able
+    >   to restore a previous state of the object.
+    >   >  The Memento pattern lets you make full copies of an object's state, including private
+    >   >  fields, and store them separately from the object. While most people remember this
+    >   >  pattern thanks to the "undo" use case, it's also indispensable when dealing with
+    >   >  transactions (i.e., if you need to roll back an operation on error).
+    > -  Use the pattern when direct access to the object's fields/getters/setters violates its
+    >    encapsulation.
+    >   >  The Memento makes the object itself responsible for creating a snapshot of its state. No
+    >   >  other object can read the snapshot, making the original object's state data safe and
+    >   >  secure.
+2. How to implement
+    > 1. Determine what class will play the role of the originator. It's important to know whether
+    >    the program uses one central object of this type or multiple smaller ones.
+    > 2. Create the memento class. One by one, declare a set of fields that mirror the fields
+    >    declared inside the originator class.
+    > 3. Make the memento class immutable. A memento should accept the data just once, via the
+    >    constructor. The class should have no setters.
+    > 4. If your programming language supports nested classes, nest the memento inside the
+    >    originator. If not, extract a blank interface from the memento class and make all other
+    >    objects use it to refer to the memento. You may add some metadata operations to the
+    >    interface, but nothing that exposes the originator's state.
+    > 5. Add a method for producing mementos to the originator class. The originator should pass its
+    >    state to the memento via one or multiple arguments of the memento's constructor: the return
+    >    type of the method should be of the interface you extracted in the previous step (assuming
+    >    that you extracted it at all). Under the hood, the memento-producing method should work
+    >    directly with the memento class.
+    > 6. Add a method for restoring the originator's state to its class. It should accept a memento
+    >    object as an argument. If you extracted an interface in the previous step, make it the type
+    >    of the parameter. In this case, you need to typecast the incoming object to the memento
+    >    class, since the originator needs full access to that object.
+    > 7. The caretaker, whether it represents a command object, a history, or something entirely
+    >    different, should know when to request new mementos from the originator, how to store them
+    >    and when to restore the originator with a particular memento.
+    > 8. The link between caretakers and originators may be moved into the memento class. In this
+    >    case, each memento must be connected to the originator that had created it. The restoration
+    >    method would also move to the memento class. However, this would all make sense only if the
+    >    memento class is nested into the originator or the originator class provides sufficient
+    >    setters for overriding its state.
+3. Advantages of the Memento pattern
+    > - You can produce snapshots of the object's state without violating its encapsulation.
+    > - You can simplify the originator's code by letting the caretaker maintain the history of the
+    >   originator's state.
+4. Drawbacks of the Memento pattern
+    > -  The app might consume lots of RAM if clients create mementos too often.
+    > - Caretakers should track the originator's lifecycle to be able to destroy obsolete mementos.
+    > - Most dynamic programming languages, such as PHP, Python and JavaScript, can't guarantee that
+    >   the state within the memento stays untouched.
+5. Use cases for the Memento pattern
+    > - Scenarios where related state of data needs to be saved and restored.
+    > - Providing an operation that can be rolled back, such as CTRL+Z in Word, the back button in
+    >   IE, or the backspace key in a file manager.
+    > - Copy scenarios that need monitoring. For example, to monitor an object's properties where
+    >   monitoring shouldn't be called as part of the system's main business; it's just a peripheral
+    >   application, and even inaccurate monitoring or false alarms don't matter much, so the usual
+    >   approach is to back up an object from the main thread and let an analysis program analyze
+    >   it.
+    > - Transaction management of database connections uses the Memento pattern. Think about it: if
+    >   you were implementing a JDBC driver, how would you implement transactions? With the Memento
+    >   pattern, of course!
 
-### 备忘录模式例子: 预见未来追女孩
+### Memento pattern example: seeing the future to win a girl
 
-大家有没有看过尼古拉斯·凯奇主演的《Next》（中文译名为《预见未来》）？尼古拉斯·凯奇饰演一个可以预视并且扭转未来的人，其中有一个情节很是让人心动——男女主角见面的那段情节：Cris Johnson（尼古拉斯·凯奇饰演）坐在咖啡吧台前，看着离自己近在咫尺的Callie Ferris（朱莉安·摩尔饰演），计划着怎么认识这个命中注定的女人，看Cris Johnson如何利用自己的特异功能：
+Have you seen "Next", starring Nicolas Cage? Nicolas Cage plays a man who can foresee and change the
+future, and one plot point is quite touching: the scene where the leads meet. Cris Johnson (played
+by Nicolas Cage) sits at the coffee bar, looking at Callie Ferris (played by Julianne Moore) just a
+few steps away, planning how to meet this woman he's destined for. Watch how Cris Johnson uses his
+special ability:
 
-- Cris Johnson端着一杯咖啡走过去，说“你好，可以认识你吗？”被拒绝，恢复到坐在咖啡吧台前的状态。
-- 走过去询问是否可以搭车，被拒绝，恢复原状。
-- 帮助解决困境，被拒绝，恢复原状。
-- 采用嬉皮士的方式解决困境，被拒绝，恢复原状。
-- 帮助解决困境，被打伤，装可怜，Callie Ferris怜惜，于是乎相识了。
+- Cris Johnson walks over with a cup of coffee and says "Hi, may I get to know you?" Rejected; back
+  to sitting at the coffee bar.
+- Walks over and asks if he can get a ride. Rejected; back to the original state.
+- Helps her out of a jam. Rejected; back to the original state.
+- Solves her problem hippie-style. Rejected; back to the original state.
+- Helps her out of a jam, gets beaten up and plays pitiful; Callie Ferris takes pity on him, and so
+  they meet.
 
-看看这是一件多么幸福的事情，追求一个女生可以多次反复地实验，直到找到好的方法和途径为止，这估计是大多数男生都希望获得的特异功能。想想看，看到一个心仪的女生，我们若反复尝试，总会有一个方法打动她的，多美好的一件事。现在我们还得回到现实生活，我们来分析一下类似事情的经过：
+See what a happy thing this is: courting a girl can be experimented with over and over until you
+find the right approach, which is probably the special ability most guys wish they had. Think about
+it: when you see a girl you like, if you could keep trying, some approach would eventually win her
+over. How wonderful. Now back to real life; let's analyze how something like this goes:
 
-- 复制一个当前状态，保留下来，这个状态就是等会儿搭讪女孩子失败后要恢复的状态，你不恢复原始状态，这不就露馅儿了吗？
-- 每次试探性尝试失败后，都必须恢复到这个原始状态。
-- N次试探总有一次成功吧，成功以后即可走成功路线。
+- Copy the current state and keep it; this is the state to restore after failing to chat up the
+  girl. If you don't restore the original state, wouldn't you give yourself away?
+- After each failed attempt, you must restore this original state.
+- One of N attempts will succeed; after that you can follow the successful route.
 
-想想看，我们这里的场景中最重要的是哪一块？对的，是原始状态的保留和恢复这块，如何保留一个原始，如何恢复一个原始状态才是最重要的，那想想看，我们应该怎么实现呢？很简单呀，我们可以定义一个中间变量，保留这个原始状态。我们先看看类图，如图
+Think about it: what's the most important part of this scenario? Right, saving and restoring the
+original state. How to keep the original and how to restore it is what matters most. So how should
+we implement it? Simple: we can define an intermediate variable to keep the original state. Let's
+look at the class diagram first
 
 ```plantuml
 @startuml
 
-title 男孩状态类图
+title Boy state class diagram
 
 class Client {}
 
@@ -9892,7 +10707,7 @@ class Boy {
 }
 
 note bottom of Boy
-男孩的状态
+The boy's state
 end note
 
 Client -right-> Boy
@@ -9901,16 +10716,21 @@ Client -right-> Boy
 @enduml
 ```
 
-太简单的类图了，我们来解释一下图中的状态state是什么意思，在某一时间点的所有位置信息、心理信息、环境信息都属于状态，我们这里用了一个标识性的名词state代表所有状态，比如在追女孩子前心情是期待、心理是焦躁不安等。每一次去认识女孩子都是会发生状态变化的，我们使用changeState方法来代替，由于程序比较简单，就没有编写接口，我们来看实现，如代码清单
+A very simple class diagram. Let's explain what state means in the diagram: all the position,
+psychological and environmental information at a point in time belongs to the state. We use the
+single name state to represent all of it, e.g. before courting a girl the mood is hopeful and the
+mind is restless. Every attempt to meet a girl changes the state, which we represent with the
+changeState method. Since the program is quite simple, there's no interface; let's look at the
+implementation
 
 ```java
-// 男孩状态类
+// Boy state class
 public class Boy {
-    //男孩的状态
+    //the boy's state
     private String state = "";
-    //认识女孩子后状态肯定改变，比如心情、手中的花等
+    //after meeting a girl the state is sure to change, e.g. mood, the flowers in hand, etc.
     public void changeState(){
-        this.state = "心情可能很不好";
+        this.state = "Probably in a bad mood";
     }
     public String getState() {
         return state;
@@ -9920,39 +10740,50 @@ public class Boy {
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
-        //声明出主角
+        //declare the protagonist
         Boy boy = new Boy();
-        //初始化当前状态
-        boy.setState("心情很棒！");
-        System.out.println("=====男孩现在的状态======");
+        //initialize the current state
+        boy.setState("Feeling great!");
+        System.out.println("=====The boy's current state======");
         System.out.println(boy.getState());
-        //需要记录下当前状态呀
+        //need to record the current state
         Boy backup = new Boy();
         backup.setState(boy.getState());
-        //男孩去追女孩，状态改变
+        //the boy goes to court the girl, state changes
         boy.changeState();
-        System.out.println("\n=====男孩追女孩子后的状态======");
+        System.out.println("\n=====The boy's state after courting the girl======");
         System.out.println(boy.getState());
-        //追女孩失败，恢复原状
+        //courting failed, restore the original state
         boy.setState(backup.getState());
-        System.out.println("\n=====男孩恢复后的状态======");
+        System.out.println("\n=====The boy's state after restoring======");
         System.out.println(boy.getState());
     }
 }
 
 ```
 
-程序运行正确，输出结果也是我们期望的，但是结果正确并不表示程序是最优的，我们来看看场景类Client，它代表的是高层模块，或者说是非“近亲”模块的调用者，注意看backup变量的使用，它对于高层模块完全是多余的，为什么一个状态的保存和恢复要让高层模块来负责呢？这应该是Boy类的职责，而不应该让高层模块来完成，也就是破坏了Boy类的封装，或者说Boy类没有封装好，它应该是把backup的定义容纳进来，而不应该让高层模块来定义。
+The program runs correctly and the output is what we expected, but a correct result doesn't mean the
+program is optimal. Look at the scenario class Client: it represents a high-level module, or a
+caller that isn't a "close relative". Note the use of the backup variable: it's completely
+superfluous to the high-level module. Why should a high-level module be responsible for saving and
+restoring a state? That should be the Boy class's responsibility, not the high-level module's; it
+breaks the Boy class's encapsulation, or rather the Boy class isn't well encapsulated. It should
+contain the definition of backup instead of leaving it to the high-level module.
 
-问题我们已经知道了，就是Boy类封装不够，那我们应该如何修改呢？如果在Boy类中再增加一个方法或者其他的内部类来保存这个状态，则对单一职责原则是一种破坏，想想看单一职责原则是怎么说的？一个类的职责应该是单一的，Boy类本身的职责是追求女孩子，而保留和恢复原始状态则应该由另外一个类来承担，那我们把这个类取名就叫做备忘录，这和大家经常在桌面上贴的那个便签是一个概念，分析到这里我们的思路已经非常清楚了，我们来修改一下类图，如图
+We know the problem: the Boy class isn't well enough encapsulated. So how should we change it?
+Adding another method or inner class to Boy to save the state would violate the Single
+Responsibility Principle. Remember what it says? A class should have a single responsibility. The
+Boy class's own responsibility is courting girls, while keeping and restoring the original state
+should be handled by another class. Let's name that class Memento, the same concept as the sticky
+notes you put on your desk. With this analysis our approach is clear; let's revise the class diagram
 
 ```plantuml
 @startuml
 
-title 完善后男孩状态类图
+title Improved boy state class diagram
 
 class Client {}
 
@@ -9971,10 +10802,10 @@ class Memento {
     + String getState()
     + void setState(String state)
 }
-note bottom of Memento : 备忘录
+note bottom of Memento : Memento
 
 note bottom of Boy
-男孩的状态
+The boy's state
 end note
 
 Client -up-> Boy
@@ -9986,17 +10817,20 @@ Boy .right.> Memento
 @enduml
 ```
 
-改动很小，增加了一个新的类Memento，负责状态的保存和备份；同时，在Boy类中增加了创建一份备忘录createMemento和恢复一个备忘录resotreMemento，我们先来看Boy类的变化，如代码清单
+The change is small: a new class Memento is added, responsible for saving and backing up the state;
+at the same time, Boy gains createMemento to create a memento and resotreMemento to restore one.
+Let's look at the changes to the Boy class first
 
 ```java
-// 男孩状态类
-// 确实只增加了两个方法创建备份和恢复备份，至于在什么时候创建备份和恢复备份则是由高层模块决定的
+// Boy state class
+// Indeed only two methods were added, to create and restore a backup; when to create and restore
+// backups is decided by the high-level module
 public class Boy {
-    //男孩的状态
+    //the boy's state
     private String state = "";
-    //认识女孩子后状态肯定改变，比如心情、手中的花等
+    //after meeting a girl the state is sure to change, e.g. mood, the flowers in hand, etc.
     public void changeState(){
-        this.state = "心情可能很不好";
+        this.state = "Probably in a bad mood";
     }
     public String getState() {
         return state;
@@ -10004,21 +10838,21 @@ public class Boy {
     public void setState(String state) {
         this.state = state;
     }
-    //保留一个备份
+    //keep a backup
     public Memento createMemento(){
         return new Memento(this.state);
     }
-    //恢复一个备份
+    //restore a backup
     public void restoreMemento(Memento _memento){
         this.setState(_memento.getState());
     }
 }
 
-// 备忘录
+// Memento
 public class Memento {
-    //男孩的状态
+    //the boy's state
     private String state = "";
-    //通过构造函数传递状态信息
+    //pass the state information via the constructor
     public Memento(String _state){
         this.state = _state;
     }
@@ -10030,35 +10864,40 @@ public class Memento {
     }
 }
 
-// 改进后的场景类
+// Improved scenario class
 public class Client {
     public static void main(String[] args) {
-        //声明出主角
+        //declare the protagonist
         Boy boy = new Boy();
-        //初始化当前状态
-        boy.setState("心情很棒！");
-        System.out.println("=====男孩现在的状态======");
+        //initialize the current state
+        boy.setState("Feeling great!");
+        System.out.println("=====The boy's current state======");
         System.out.println(boy.getState());
-        //需要记录下当前状态呀
+        //need to record the current state
         Memento mem = boy.createMemento();
-        //男孩去追女孩，状态改变
+        //the boy goes to court the girl, state changes
         boy.changeState();
-        System.out.println("\n=====男孩追女孩子后的状态======");
+        System.out.println("\n=====The boy's state after courting the girl======");
         System.out.println(boy.getState());
-        //追女孩失败，恢复原状
+        //courting failed, restore the original state
         boy.restoreMemento(mem);
-        System.out.println("\n=====男孩恢复后的状态======");
+        System.out.println("\n=====The boy's state after restoring======");
         System.out.println(boy.getState());
     }
 }
 ```
 
-运行结果保持相同，虽然程序中不再重复定义Boy类的对象了，但是我们还是要关心备忘录，这对迪米特法则是一个亵渎，它告诉我们只和朋友类通信，那这个备忘录对象是我们必须要通信的朋友类吗？对高层模块来说，它最希望要做的就是创建一个备份点，然后在需要的时候再恢复到这个备份点就成了，它不用关心到底有没有备忘录这个类。那根据这一指导思想，我们就需要把备忘录类再包装一下，怎么包装呢？建立一个管理类，就是管理这个备忘录，如图
+The result stays the same. Although the program no longer defines duplicate Boy objects, we still
+have to deal with the memento, which offends the Law of Demeter: it tells us to only talk to
+friends, so is this memento object a friend we must talk to? For the high-level module, all it wants
+is to create a backup point and restore to it when needed; it doesn't care whether there's a Memento
+class at all. Following this idea, we need to wrap the Memento class further. How? Create a manager
+class to manage the memento
 
 ```plantuml
 @startuml
 
-title 完善后男孩状态类图
+title Improved boy state class diagram
 
 
 class Client {}
@@ -10078,10 +10917,10 @@ class Memento {
     + String getState()
     + void setState(String state)
 }
-note top of Memento : 备忘录
+note top of Memento : Memento
 
 note top of Boy
-男孩的状态
+The boy's state
 end note
 
 class Caretaker {
@@ -10100,12 +10939,13 @@ Caretaker -left-o Memento
 @enduml
 ```
 
-又增加了一个JavaBean，Boy类和Memento没有任何改变，不再赘述。我们来看增加的备忘录管理类，如代码清单
+Another JavaBean has been added; the Boy and Memento classes are unchanged, so I won't repeat them.
+Let's look at the added memento manager class
 
 ```java
-// 备忘录管理者
+// Memento manager
 public class Caretaker {
-    //备忘录对象
+    //the memento object
     private Memento memento;
     public Memento getMemento() {
         return memento;
@@ -10115,38 +10955,40 @@ public class Caretaker {
     }
 }
 
-// 进一步改进后的场景类
+// Further improved scenario class
 public class Client {
     public static void main(String[] args) {
-        //声明出主角
+        //declare the protagonist
         Boy boy = new Boy();
-        //声明出备忘录的管理者
+        //declare the memento manager
         Caretaker caretaker = new Caretaker();
-        //初始化当前状态
-        boy.setState("心情很棒！");
-        System.out.println("=====男孩现在的状态======");
+        //initialize the current state
+        boy.setState("Feeling great!");
+        System.out.println("=====The boy's current state======");
         System.out.println(boy.getState());
-        //需要记录下当前状态呀caretaker.setMemento(boy.createMemento());
-        //男孩去追女孩，状态改变
+        //need to record the current state caretaker.setMemento(boy.createMemento());
+        //the boy goes to court the girl, state changes
         boy.changeState();
-        System.out.println("\n=====男孩追女孩子后的状态======");
+        System.out.println("\n=====The boy's state after courting the girl======");
         System.out.println(boy.getState());
-        //追女孩失败，恢复原状
+        //courting failed, restore the original state
         boy.restoreMemento(caretaker.getMemento());
-        System.out.println("\n=====男孩恢复后的状态======");
+        System.out.println("\n=====The boy's state after restoring======");
         System.out.println(boy.getState());
     }
 }
 ```
 
-### clone方式的备忘录
+### Memento using clone
 
-大家还记得在第13章中讲的原型模式吗？我们可以通过复制的方式产生一个对象的内部状态，这是一个很好的办法，发起人角色只要实现Cloneable就成，比较简单，我们来看类图，如图
+Remember the Prototype pattern from chapter 13? We can produce an object's internal state by
+copying, which is a good approach: the originator role just needs to implement Cloneable. It's
+fairly simple; let's look at the class diagram
 
 ```plantuml
 @startuml
 
-title Clone方式的备忘录
+title Memento using clone
 
 interface Cloneable {
     Object clone()
@@ -10170,12 +11012,13 @@ Caretaker -right-o Originator
 @enduml
 ```
 
-从类图上看，发起人角色融合了发起人角色和备忘录角色，具有双重功效，如代码清单
+From the class diagram, the originator role merges the originator and memento roles, doing double
+duty
 
 ```java
-// 融合备忘录的发起人角色
+// Originator role merged with the memento
 public class Originator implements Cloneable{
-    //内部状态
+    //internal state
     private String state = "";
     public String getState() {
         return state;
@@ -10183,15 +11026,15 @@ public class Originator implements Cloneable{
     public void setState(String state) {
         this.state = state;
     }
-    //创建一个备忘录
+    //create a memento
     public Originator createMemento(){
         return this.clone();
     }
-    //恢复一个备忘录
+    //restore a memento
     public void restoreMemento(Originator _originator){
         this.setState(_originator.getState());
     }
-    //克隆当前对象
+    //clone the current object
     @Override
     protected Originator clone(){
         try {
@@ -10203,9 +11046,9 @@ public class Originator implements Cloneable{
     }
 }
 
-// 备忘录管理员角色
+// Memento caretaker role
 public class Caretaker {
-    //发起人对象
+    //the originator object
     private Originator originator;
     public Originator getOriginator() {
         return originator;
@@ -10215,13 +11058,14 @@ public class Caretaker {
     }
 }
 
-// 没什么太大变化，只是备忘录角色转换成了发起人角色，还是一个简单的JavaBean。
-// 我们来想想这种模式是不是还可以简化？要管理员角色干什么？就是为了管理备忘录角色，
-// 现在连备忘录角色都被合并了，还留着它干吗？我们想办法把它也精简掉，
-// 发起人自主备份和恢复
+// Not much changed; the memento role just became the originator role, still a simple JavaBean.
+// Can this pattern be simplified further? What is the caretaker role for? Just to manage the
+// memento role,
+// and now even the memento role has been merged, so why keep it? Let's find a way to drop it too:
+// the originator backs up and restores by itself
 public class Originator implements Cloneable{
     private Originator backup;
-    //内部状态
+    //internal state
     private String state = "";
     public String getState() {
         return state;
@@ -10229,16 +11073,16 @@ public class Originator implements Cloneable{
     public void setState(String state) {
         this.state = state;
     }
-    //创建一个备忘录
+    //create a memento
     public void createMemento(){
         this.backup = this.clone();
     }
-    //恢复一个备忘录
+    //restore a memento
     public void restoreMemento(){
-        //在进行恢复前应该进行断言，防止空指针
+        //an assertion should be made before restoring to avoid null pointers
         this.setState(this.backup.getState());
     }
-    //克隆当前对象
+    //clone the current object
     @Override
     protected Originator clone(){
         try {
@@ -10249,47 +11093,58 @@ public class Originator implements Cloneable{
         return null;
     }
 }
-// 可能你要发问了，这和备忘录模式的定义不相符，它定义是“在该对象之外保存这个状态”，
-// 而你却把这个状态保存在了发起人内部。是的，设计模式定义的诞生比Java的出世略早，
-// 它没有想到Java程序是这么有活力，有远见，而且在面向对象的设计中，
-// 即使把一个类封装在另一个类中也是可以做到的，何况一个小小的对象复制，
-// 这是它的设计模式完全没有预见到的，我们把它弥补回来
+// You might ask: this doesn't match the definition of the Memento pattern, which says "store the
+// state outside the object",
+// yet you store the state inside the originator. True, but the design pattern definitions predate
+// Java slightly;
+// they didn't foresee how lively and far-sighted Java programs would be, and in object-oriented
+// design
+// you can even encapsulate one class inside another, let alone a small object copy;
+// that's something the design pattern never anticipated, so we make up for it
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
-        //定义发起人
+        //define the originator
         Originator originator = new Originator();
-        //建立初始状态
-        originator.setState("初始状态...");
-        System.out.println("初始状态是："+originator.getState());
-        //建立备份
+        //set up the initial state
+        originator.setState("Initial state...");
+        System.out.println("The initial state is: "+originator.getState());
+        //create a backup
         originator.createMemento();
-        //修改状态
-        originator.setState("修改后的状态...");
-        System.out.println("修改后状态是："+originator.getState());
-        //恢复原有状态
+        //modify the state
+        originator.setState("Modified state...");
+        System.out.println("The modified state is: "+originator.getState());
+        //restore the original state
         originator.restoreMemento();
-        System.out.println("恢复后状态是："+originator.getState());
+        System.out.println("The restored state is: "+originator.getState());
     }
 }
 ```
 
-### 多备份的备忘录
+### Memento with multiple backups
 
-不知道你有没有做过系统级别的维护？比如Backup Administrator（备份管理员），每天负责查看系统的备份情况，所有的备份都是由自动化脚本产生的。有一天，突然有一个重要的系统说我数据库有点问题，请把上一个月末的数据拉出来恢复，那怎么办？对备份管理员来说，这很好办，直接根据时间戳找到这个备份，还原回去就成了，但是对于我们刚刚学习的备忘录模式却行不通，为什么呢？它对于一个确定的发起人，永远只有一份备份，在这种情况下，单一的备份就不能满足要求了，我们需要设计一套多备份的架构。
+Have you ever done system-level maintenance? E.g. a Backup Administrator checks the system's backups
+every day, all of them produced by automated scripts. One day an important system suddenly reports a
+database problem and asks for the data from the end of last month to be restored. What then? For the
+backup administrator it's easy: find the backup by timestamp and restore it. But the Memento pattern
+we just learned can't do that. Why? For a given originator it only ever has one backup; in this case
+a single backup isn't enough, so we need to design a multi-backup architecture.
 
-我们先来说一个名词，检查点（Check Point），也就是你在备份的时候做的戳记，系统级的备份一般是时间戳，那我们程序的检查点该怎么设计呢？一般是一个有意义的字符串。
+First a term: Check Point, the mark you make when backing up. System-level backups usually use
+timestamps; how should our program's checkpoints be designed? Usually as a meaningful string.
 
-我们只要把通用代码中的Caretaker管理员稍做修改就可以了，如代码清单
+We just need to slightly modify the Caretaker from the generic code
 
 ```java
-// 把容纳备忘录的容器修改为Map类型就可以了
-// 备忘录管理员
+// Just change the container holding mementos to a Map
+// Memento caretaker
 public class Caretaker {
-    // 内存溢出问题，该备份一旦产生就装入内存，没有任何销毁的意向，这是非常危险的。
-    // 因此，在系统设计时，要严格限定备忘录的创建，建议增加Map的上限
-    //容纳备忘录的容器
+    // Memory overflow problem: once a backup is created it goes into memory with no intention of
+    // ever being destroyed, which is very dangerous.
+    // So when designing the system, strictly limit memento creation; adding an upper limit to the
+    // Map is recommended
+    //the container holding mementos
     private HashMap<String,Memento> memMap = new HashMap<String,Memento>();
     public Memento getMemento(String idx) {
         return memMap.get(idx);
@@ -10299,44 +11154,53 @@ public class Caretaker {
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
-        //定义出发起人
+        //define the originator
         Originator originator = new Originator();
-        //定义出备忘录管理员
+        //define the memento caretaker
         Caretaker caretaker = new Caretaker();
-        //创建两个备忘录
+        //create two mementos
         caretaker.setMemento("001",originator.createMemento());
         caretaker.setMemento("002",originator.createMemento());
-        //恢复一个指定标记的备忘录
+        //restore the memento with a given mark
         originator.restoreMemento(caretaker.getMemento("001"));
     }
 }
 ```
 
-### 封装得更好一点
+### Better encapsulation
 
-在系统管理上，一个备份的数据是完全、绝对不能修改的，它保证数据的洁净，避免数据污染而使备份失去意义。在我们的设计领域中，也存在着同样的问题，备份是不能被篡改的，也就是说需要缩小备份出的备忘录的阅读权限，保证只能是发起人可读就成了，那怎么才能做到这一点呢？使用内置类，如图
+In system administration, backed-up data must absolutely never be modified; this keeps the data
+clean and avoids pollution that would make the backup meaningless. The same problem exists in our
+design domain: backups must not be tampered with, i.e. the read access of backed-up mementos needs
+to be narrowed so that only the originator can read them. How do we do that? Use an inner class, as
+shown
 
-## 原型模式
+## Prototype Pattern
 
-`原型模式`: 用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象.使你能够复制已有对象， 而又无需使代码依赖它们所属的类。
+`Prototype pattern`: specifies the kinds of objects to create using a prototypical instance, and
+creates new objects by copying this prototype. Lets you copy existing objects without making your
+code dependent on their classes.
 
-原型模式将克隆过程委派给被克隆的实际对象。 模式为所有支持克隆的对象声明了一个通用接口， 该接口让你能够克隆对象， 同时又无需将代码和对象所属类耦合。 通常情况下， 这样的接口中仅包含一个 克隆方法
+The Prototype pattern delegates the cloning process to the actual objects that are being cloned. The
+pattern declares a common interface for all objects that support cloning. This interface lets you
+clone an object without coupling your code to the class of that object. Usually, such an interface
+contains just a single clone method
 
-### 原型模式类图
+### Prototype pattern class diagram
 
 ```plantuml
 @startuml
 
-title 原型模式类图
+title Prototype pattern class diagram
 
 class Client {
 
 }
 note top of Client
-客户端(Client) 可以复制实现了原型接口的任何对象。
+The Client can produce a copy of any object that follows the prototype interface.
 copy = existing.clone()
 end note
 
@@ -10345,8 +11209,8 @@ interface Prototype {
 }
 
 note top of Prototype
-原型(Prototype) 接口将对克隆方法进行声明。
-在绝大多数情况下， 其中只会有一个名为 clone克隆的方法。
+The Prototype interface declares the cloning methods.
+In most cases, it's a single clone method.
 end note
 
 
@@ -10358,10 +11222,10 @@ class ConcretePrototype implements Prototype {
 }
 
 note right of ConcretePrototype
-具体原型(Concrete Prototype) 类将实现克隆方法。
-除了将原始对象的数据复制到克隆体中之外，
-该方法有时还需处理克隆过程中的极端情况，
-例如克隆关联对象和梳理递归依赖等等。
+The Concrete Prototype class implements the cloning method.
+In addition to copying the original object's data to the clone,
+this method may also handle some edge cases of the cloning process
+related to cloning linked objects, untangling recursive dependencies, etc.
 end note
 
 note left of ConcretePrototype::ConcretePrototype
@@ -10390,52 +11254,91 @@ end note
 
 Client -right-> Prototype
 
-note "java的Cloneable.clone()方法有以下需要注意的点 \n 1.构造函数不会被执行 \n 2. 为浅拷贝 \n 3. 对象内有final关键字则无法使用" as java_clone_note
+note as java_clone_note
+Java's Cloneable.clone() method has the following caveats
+1. the constructor is not executed
+2. it's a shallow copy
+3. it can't be used if the object has final fields
+end note
 
 
 @enduml
 ```
 
-### 原型模式要点
+### Prototype pattern key points
 
-1. 原型模式适合应用场景
-    > - 如果你需要复制一些对象， 同时又希望代码独立于这些对象所属的具体类， 可以使用原型模式。这一点考量通常出现在代码需要处理第三方代码通过接口传递过来的对象时。 即使不考虑代码耦合的情况， 你的代码也不能依赖这些对象所属的具体类， 因为你不知道它们的具体信息。原型模式为客户端代码提供一个通用接口， 客户端代码可通过这一接口与所有实现了克隆的对象进行交互， 它也使得客户端代码与其所克隆的对象具体类独立开来。
-    > - 如果子类的区别仅在于其对象的初始化方式， 那么你可以使用该模式来减少子类的数量。 别人创建这些子类的目的可能是为了创建特定类型的对象。在原型模式中， 你可以使用一系列预生成的、 各种类型的对象作为原型。客户端不必根据需求对子类进行实例化， 只需找到合适的原型并对其进行克隆即可。
-    > - 资源优化场景: 类初始化需要消化非常多的资源，这个资源包括数据、硬件资源等。
-    > - 性能和安全要求的场景: 通过new产生一个对象需要非常繁琐的数据准备或访问权限，则可以使用原型模式
-    > - 一个对象多个修改者的场景: 一个对象需要提供给其他对象访问，而且各个调用者可能都需要修改其值时，可以考虑使用原型模式拷贝多个对象供调用者使用
-    > - 在实际项目中，原型模式很少单独出现，一般是和工厂方法模式一起出现，通过clone的方法创建一个对象，然后由工厂方法提供给调用者。原型模式已经与Java融为一体，大家可以随手拿来使用。
+1. When to use the Prototype pattern
+    > - Use the Prototype pattern when your code shouldn't depend on the concrete classes of objects
+    >   that you need to copy. This happens a lot when your code works with objects passed to you
+    >   from 3rd-party code via some interface. The concrete classes of these objects are unknown,
+    >   and you couldn't depend on them even if you wanted to. The Prototype pattern provides the
+    >   client code with a general interface for working with all objects that support cloning. This
+    >   interface makes the client code independent from the concrete classes of objects that it
+    >   clones.
+    > - Use the pattern when you want to reduce the number of subclasses that only differ in the way
+    >   they initialize their respective objects. Somebody could have created these subclasses to be
+    >   able to create objects with a specific configuration. With the Prototype pattern you can use
+    >   a set of pre-built objects configured in various ways as prototypes. Instead of
+    >   instantiating a subclass that matches some configuration, the client can simply look for an
+    >   appropriate prototype and clone it.
+    > - Resource optimization scenarios: class initialization consumes a lot of resources, including
+    >   data, hardware resources, etc.
+    > - Performance and security scenarios: when creating an object with new requires very tedious
+    >   data preparation or access permissions, use the Prototype pattern
+    > - Scenarios with multiple modifiers of one object: when an object needs to be accessed by
+    >   other objects and each caller may need to modify its values, consider using the Prototype
+    >   pattern to copy multiple objects for the callers
+    > - In real projects, the Prototype pattern rarely appears alone; it usually appears together
+    >   with the Factory Method pattern: an object is created by clone and then handed to the caller
+    >   by a factory method. The Prototype pattern is built into Java and readily available.
 
-2. 实现方式
-    > 1. 创建原型接口， 并在其中声明 克隆方法。 如果你已有类层次结构， 则只需在其所有类中添加该方法即可。
-    > 2. 原型类必须另行定义一个以该类对象为参数的构造函数。 构造函数必须复制参数对象中的所有成员变量值到新建实体中。 如果你需要修改子类， 则必须调用父类构造函数， 让父类复制其私有成员变量值。
-    > 3. 克隆方法通常只有一行代码： 使用 new运算符调用原型版本的构造函数。 注意， 每个类都必须显式重写克隆方法并使用自身类名调用 new运算符。 否则， 克隆方法可能会生成父 类的对象。
-    > 4. 你还可以创建一个中心化原型注册表， 用于存储常用原型。
+2. How to implement
+    > 1. Create the prototype interface and declare the clone method in it. Or just add the method
+    >    to all classes of an existing class hierarchy, if you have one.
+    > 2. A prototype class must define an alternative constructor that accepts an object of that
+    >    class as an argument. The constructor must copy the values of all fields defined in the
+    >    class from the passed object into the newly created instance. If you're changing a
+    >    subclass, you must call the parent constructor to let the superclass handle the cloning of
+    >    its private fields.
+    > 3. The cloning method usually consists of just one line: running a new operator with the
+    >    prototypical version of the constructor. Note that every class must explicitly override the
+    >    cloning method and use its own class name along with the new operator. Otherwise, the
+    >    cloning method may produce an object of a parent class.
+    > 4. Optionally, create a centralized prototype registry to store a catalog of frequently used
+    >    prototypes.
 
-3.  原型模式优缺点
-    > - 你可以克隆对象， 而无需与它们所属的具体类相耦合。
-    > - 你可以克隆预生成原型， 避免反复运行初始化代码。
-    > - 你可以更方便地生成复杂对象。
-    > - 你可以用继承以外的方式来处理复杂对象的不同配置。
-    > - 克隆包含循环引用的复杂对象可能会非常麻烦。
-4. java Cloneable.clone()优缺点
-    > - 性能优良: 原型模式是在内存二进制流的拷贝，要比直接new一个对象性能好很多，特别是要在一个循环体内产生大量的对象时，原型模式可以更好地体现其优点。
-    > - 逃避构造函数的约束: 这既是它的优点也是缺点，直接在内存中拷贝，构造函数是不会执行的。优点就是减少了约束，缺点也是减少了约束，需要大家在实际应用时考虑。
+3.  Pros and cons of the Prototype pattern
+    > - You can clone objects without coupling to their concrete classes.
+    > - You can get rid of repeated initialization code in favor of cloning pre-built prototypes.
+    > - You can produce complex objects more conveniently.
+    > - You get an alternative to inheritance when dealing with configuration presets for complex
+    >   objects.
+    > - Cloning complex objects that have circular references might be very tricky.
+4. Pros and cons of Java's Cloneable.clone()
+    > - Good performance: the Prototype pattern copies a binary stream in memory, which performs
+    >   much better than directly new-ing an object, especially when producing many objects in a
+    >   loop, where it really shows its advantage.
+    > - Escapes constructor constraints: this is both an advantage and a drawback. Copying directly
+    >   in memory means the constructor isn't executed. The advantage is fewer constraints, and so
+    >   is the drawback; consider this in practice.
 
-5. 使用原型模式时，引用的成员变量必须满足两个条件才不会被拷贝:
-    > - 一是类的成员变量，而不是方法内变量；
-    > - 二是必须是一个可变的引用对象，而不是一个原始类型或不可变对象。
+5. When using the Prototype pattern, a referenced member variable is not copied only if it meets two
+   conditions:
+    > - first, it's a class member variable, not a variable inside a method;
+    > - second, it's a mutable reference object, not a primitive type or immutable object.
 
-### java Cloneable.clone()注意事项
+### Caveats of Java's Cloneable.clone()
 
-#### 构造函数不会被执行
+#### The constructor is not executed
 
-对象拷贝时构造函数确实没有被执行，这点从原理来讲也是可以讲得通的，Object类的clone方法的原理是从内存中（具体地说就是堆内存）以二进制流的方式进行拷贝，重新分配一个内存块，那构造函数没有被执行也是非常正常的了。
+The constructor really isn't executed when the object is copied, which makes sense in principle:
+Object's clone method copies from memory (specifically heap memory) as a binary stream and allocates
+a new block of memory, so it's perfectly normal that the constructor isn't executed.
 
 ```java
 public class Thing implements Cloneable{
     public Thing(){
-        System.out.println("构造函数被执行了...");
+        System.out.println("Constructor executed...");
     }
     @Override
     public Thing clone(){
@@ -10449,31 +11352,35 @@ public class Thing implements Cloneable{
     }
 }
 
-// 运行结果只会打印一次 "构造函数被执行了..."
+// The output prints "Constructor executed..." only once
 public class Client {
     public static void main(String[] args) {
-        //产生一个对象
+        //create an object
         Thing thing = new Thing();
-        //拷贝一个对象
+        //copy an object
         Thing cloneThing = thing.clone();
     }
 }
 ```
 
-#### 为浅拷贝
+#### It's a shallow copy
 
-Java做了一个偷懒的拷贝动作，Object类提供的方法clone只是拷贝本对象，其对象内部的数组、引用对象等都不拷贝，还是指向原生对象的内部元素地址，这种拷贝就叫做浅拷贝。确实是非常浅，两个对象共享了一个私有变量，你改我改大家都能改，是一种非常不安全的方式，在实际项目中使用还是比较少的（当然，这也是一种“危机”环境的一种救命方式）
+Java takes a lazy approach to copying: the clone method provided by Object only copies the object
+itself; arrays, referenced objects and the like inside it are not copied but still point to the
+original object's internal elements. This kind of copy is called a shallow copy. It really is very
+shallow: the two objects share a private variable that anyone can change, which is very unsafe and
+rarely used in real projects (although it can be a lifesaver in "crisis" situations)
 
 ```java
 public class Thing implements Cloneable{
-    //定义一个私有变量
+    //define a private variable
     private ArrayList<String> arrayList = new ArrayList<String>();
 
-    //设置arrayList的值
+    //set the value of arrayList
     public void setValue(String value){
         this.arrayList.add(value);
     }
-    //取得arrayList的值
+    //get the value of arrayList
     public ArrayList<String> getValue(){
         return this.arrayList;
     }
@@ -10483,8 +11390,8 @@ public class Thing implements Cloneable{
         Thing thing=null;
         try {
             thing = (Thing)super.clone();
-            // java Cloneable.clone() 为为浅拷贝
-            // 如果要改成深拷贝则需要对其独立拷贝
+            // Java's Cloneable.clone() is a shallow copy
+            // to make it a deep copy, the field must be copied separately
             // thing.arrayList = (ArrayList<String>)this.arrayList.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
@@ -10493,16 +11400,16 @@ public class Thing implements Cloneable{
     }
 }
 
-// 输出: [张三，李四]
+// Output: [Zhang San, Li Si]
 public class Client {
     public static void main(String[] args) {
-        //产生一个对象
+        //create an object
         Thing thing = new Thing();
-        //设置一个值
-        thing.setValue("张三");
-        //拷贝一个对象
+        //set a value
+        thing.setValue("Zhang San");
+        //copy an object
         Thing cloneThing = thing.clone();
-        cloneThing.setValue("李四");
+        cloneThing.setValue("Li Si");
 
 
         System.out.println(thing.getValue());
@@ -10512,19 +11419,23 @@ public class Client {
 
 ```
 
-####  对象内有final关键字则无法使用
+####  It can't be used if the object has final fields
 
-粗体部分仅仅增加了一个final关键字，然后编译器就报斜体部分错误，正常呀，final类型你还想重赋值呀！你要实现深拷贝的梦想在final关键字的威胁下破灭了，路总是有的，我们来想想怎么修改这个方法：删除掉final关键字，这是最便捷、安全、快速的方式。你要使用clone方法，在类的成员变量上就不要增加final关键字。
+The bold part just adds a final keyword, and the compiler reports an error on the italic part. Of
+course: you want to reassign a final field? Your dream of a deep copy is shattered by the final
+keyword. There's always a way; let's think about how to change this method: remove the final
+keyword, which is the most convenient, safe and quick way. If you want to use the clone method,
+don't put the final keyword on the class's member variables.
 
 ```java
 public class Thing implements Cloneable{
-    //定义一个私有变量
+    //define a private variable
     private final ArrayList<String> arrayList = new ArrayList<String>();
     @Override
         public Thing clone(){
         Thing thing=null;
         try {
-            // 编译报错: 对象内有final关键字则无法使用
+            // Compile error: can't be used if the object has final fields
             thing = (Thing)super.clone();
             this.arrayList = (ArrayList<String>)this.arrayList.clone();
         } catch (CloneNotSupportedException e) {
@@ -10536,19 +11447,36 @@ public class Thing implements Cloneable{
 
 ```
 
-### 原型模式例子: 发邮件
+### Prototype pattern example: sending emails
 
-现在电子账单越来越流行了，比如你的信用卡，每到月初的时候银行就会发一份电子邮件给你，说你这个月消费了多少，什么时候消费的，积分是多少等，这是每个月发一次。还有一种也是银 行发的邮件你肯定非常有印象：广告信，现在各大银行的信用卡部门都在拉拢客户，电子邮件是一种廉价、快捷的通信方式，你用纸质的广告信那个费用多高呀，比如我行今天推出一个信用卡 刷卡抽奖活动，通过电子账单系统可以一个晚上发送给600万客户，为什么要用电子账单系统呢？直接找个发垃圾邮件的工具不就解决问题了吗？是个好主意，但是这个方案在金融行业是行不通的，为什么？因为银行发送该类邮件是有要求的：
+Electronic statements are getting more and more popular. Take your credit card: at the start of each
+month the bank sends you an email saying how much you spent this month, when, how many points you
+have, etc. That's sent once a month. There's another kind of bank email you surely remember:
+advertising mail. Credit card departments of all the big banks are courting customers, and email is
+a cheap, fast way to communicate; paper advertising letters are so expensive. For example, if our
+bank launches a credit card swipe-to-win lottery today, the electronic statement system can send it
+to 6 million customers in one night. Why use the electronic statement system? Wouldn't a spam tool
+do the job? Good idea, but that approach doesn't work in the financial industry. Why? Because banks
+have requirements for sending this kind of email:
 
-- 个性化服务: 一般银行都要求个性化服务，发过去的邮件上总有一些个人信息吧，比如“××先生”，“××女士”等。
-- 递送成功率: 邮件的递送成功率有一定的要求，由于大批量地发送邮件会被接收方邮件服务器误认是垃圾邮件，因此在邮件头要增加一些伪造数据，以规避被反垃圾邮件引擎误认为是垃圾邮 件。
+- Personalized service: banks generally require personalized service; the email sent must contain
+  some personal information, such as "Mr. XX" or "Ms. XX".
+- Delivery success rate: there are requirements for the delivery success rate. Since bulk email gets
+  mistaken for spam by the recipients' mail servers, some forged data has to be added to the email
+  headers to avoid being flagged as spam by anti-spam engines.
 
-从这两方面考虑广告信的发送也是电子账单系统（电子账单系统一般包括：账单分析、账单生成器、广告信管理、发送队列管理、发送机、退信处理、报表管理等）的一个子功能，我们今天就 来考虑一下广告信这个模块是怎么开发的。那既然是广告信，肯定需要一个模板，然后再从数据库中把客户的信息一个一个地取出，放到模板中生成一份完整的邮件，然后扔给发送机进行发送 处理，类图如图
+Considering these two aspects, sending advertising mail is also a sub-feature of the electronic
+statement system (which typically includes statement analysis, a statement generator, advertising
+mail management, send queue management, the sender, bounce handling, report management, etc.). Today
+let's consider how the advertising mail module is developed. Since it's advertising mail, it
+certainly needs a template; customer information is then taken from the database one by one and put
+into the template to produce a complete email, which is handed to the sender for sending. The class
+diagram is as follows
 
 ```plantuml
 @startuml
 
-title 发送电子账单类图
+title Electronic statement sending class diagram
 
 class Mail {
     - String receiver
@@ -10580,43 +11508,44 @@ Client --> AdvTemplate
 @enduml
 ```
 
-代码清单如下
+The code listing is as follows
 
 ```java
-// 广告信模板代码
+// Advertising mail template code
 public class AdvTemplate {
-    //广告信名称
-    private String advSubject ="XX银行国庆信用卡抽奖活动";
-    //广告信内容
-    private String advContext = "国庆抽奖活动通知：只要刷卡就送你一百万！...";
-    //取得广告信的名称
+    //advertising mail name
+    private String advSubject ="XX Bank National Day credit card lottery";
+    //advertising mail content
+    private String advContext =
+            "National Day lottery notice: just swipe your card and win a million! ...";
+    //get the advertising mail name
     public String getAdvSubject(){
         return this.advSubject;
     }
-    //取得广告信的内容
+    //get the advertising mail content
     public String getAdvContext(){
         return this.advContext;
     }
 }
 
-// 邮件类代码
+// Mail class code
 public class Mail {
-    //收件人
+    //recipient
     private String receiver;
-    //邮件名称
+    //mail name
     private String subject;
-    //称谓
+    //salutation
     private String appellation;
-    //邮件内容
+    //mail content
     private String contxt;
-    //邮件的尾部，一般都是加上"XXX版权所有"等信息
+    //mail footer, usually "All rights reserved by XXX" etc.
     private String tail;
-    //构造函数
+    //constructor
     public Mail(AdvTemplate advTemplate){
         this.contxt = advTemplate.getAdvContext();
         this.subject = advTemplate.getAdvSubject();
     }
-    //以下为getter/setter方法
+    //getters/setters below
     public String getReceiver() {
         return receiver;
     }
@@ -10649,29 +11578,30 @@ public class Mail {
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
-    //发送账单的数量，这个值是从数据库中获得
+    //the number of statements to send; this value comes from the database
     private static int MAX_COUNT = 6;
     public static void main(String[] args) {
-        //模拟发送邮件
+        //simulate sending emails
         int i=0;
-        //把模板定义出来，这个是从数据库中获得
+        //define the template; this comes from the database
         Mail mail = new Mail(new AdvTemplate());
-        mail.setTail("XX银行版权所有");
+        mail.setTail("All rights reserved by XX Bank");
         while(i<MAX_COUNT){
-            //以下是每封邮件不同的地方
-            mail.setAppellation(getRandString(5)+" 先生（女士）");
-            mail.setReceiver(getRandString(5)+"@"+getRandString(8) +".//然后发送邮件
+            //the following differs for each email
+            mail.setAppellation(getRandString(5)+" Mr. (Ms.)");
+            mail.setReceiver(getRandString(5)+"@"+getRandString(8) +".//then send the email
             sendMail(mail);
             i++;
         }
     }
-    //发送邮件
+    //send the email
     public static void sendMail(Mail mail){
-        System.out.println("标题："+mail.getSubject() + "\t收件人："+mail.getReceiver()+"\t...发送成功！");
+        System.out.println("Subject: "+mail.getSubject() + "\tRecipient: "+mail.getReceiver()
+                + "\t...sent successfully!");
     }
-    //获得指定长度的随机字符串
+    //get a random string of the given length
     public static String getRandString(int maxLength){
         String source ="abcdefghijklmnopqrskuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuffer sb = new StringBuffer();
@@ -10683,14 +11613,24 @@ public class Client {
     }
 }
 ```
-由于是随机数，每次运行都有所差异，不管怎么样，我们这个电子账单发送程序是编写出来了，也能正常发送。我们再来仔细地想想，这个程序是否有问题？Look here，这是一个线程在运行，也就是你发送的是单线程的，那按照一封邮件发出去需要0.02秒（够小了，你还要到数据库中取数据呢），600万封邮件需要33个小时，也就是一个整天都发送不完，今天的没发送完，明天的账单又产生了，日积月累，激起甲方人员一堆抱怨，那怎么办？
+Because of the random numbers, each run differs, but anyway we've written the electronic statement
+sending program and it sends normally. Let's think carefully again: does this program have a
+problem? Look here: it runs on one thread, i.e. sending is single-threaded. If one email takes 0.02
+seconds to send (small enough; you still have to fetch data from the database), 6 million emails
+take 33 hours, i.e. a whole day isn't enough. Today's aren't done sending and tomorrow's statements
+are already generated; it piles up day after day and draws a pile of complaints from the client.
+What then?
 
-好办，把sendMail修改为多线程，但是只把sendMail修改为多线程还是有问题的呀，产生第一封邮件对象，放到线程1中运行，还没有发送出去；线程2也启动了，直接就把邮件对象mail的收件 人地址和称谓修改掉了，线程不安全了。说到这里，你会说这有N多种解决办法，其中一种是使用一种新型模式来解决这个问题：通过对象的复制功能来解决这个问题，类图稍做修改，如图
+Easy: make sendMail multithreaded. But only making sendMail multithreaded still has a problem: the
+first mail object is created and put on thread 1, and before it's sent, thread 2 starts and directly
+changes the recipient address and salutation of the mail object; it's not thread safe. At this point
+you'll say there are many solutions; one is to use a new pattern: solve it by copying objects. The
+class diagram is slightly modified
 
 ```plantuml
 @startuml
 
-title 修改后电子账单类图
+title Revised electronic statement class diagram
 
 interface Cloneable {
 
@@ -10710,7 +11650,7 @@ class Mail implements Cloneable {
 }
 
 note left of Mail::clone
-添加clone()方法
+Add a clone() method
 end note
 
 class AdvTemplate {
@@ -10731,22 +11671,23 @@ Client --> AdvTemplate
 @enduml
 ```
 
-增加了一个Cloneable接口（Java自带的一个接口）， Mail实现了这个接口，在Mail类中覆写clone()方法，我们来看Mail类的改变，如代码清单
+A Cloneable interface (built into Java) is added; Mail implements it and overrides clone() in the
+Mail class. Let's look at the changes to the Mail class
 
 ```java
-// 邮件类代码
+// Mail class code
 public class Mail implements Cloneable {
-    //收件人
+    //recipient
     private String receiver;
-    //邮件名称
+    //mail name
     private String subject;
-    //称谓
+    //salutation
     private String appellation;
-    //邮件内容
+    //mail content
     private String contxt;
-    //邮件的尾部，一般都是加上"XXX版权所有"等信息
+    //mail footer, usually "All rights reserved by XXX" etc.
     private String tail;
-    //构造函数
+    //constructor
     public Mail(AdvTemplate advTemplate){
         this.contxt = advTemplate.getAdvContext();
         this.subject = advTemplate.getAdvSubject();
@@ -10762,7 +11703,7 @@ public class Mail implements Cloneable {
         }
         return mail;
     }
-    //以下为getter/setter方法
+    //getters/setters below
     public String getReceiver() {
         return receiver;
     }
@@ -10795,30 +11736,31 @@ public class Mail implements Cloneable {
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
-    //发送账单的数量，这个值是从数据库中获得
+    //the number of statements to send; this value comes from the database
     private static int MAX_COUNT = 6;
     public static void main(String[] args) {
-        //模拟发送邮件
+        //simulate sending emails
         int i=0;
-        //把模板定义出来，这个是从数据库中获得
+        //define the template; this comes from the database
         Mail mail = new Mail(new AdvTemplate());
-        mail.setTail("XX银行版权所有");
+        mail.setTail("All rights reserved by XX Bank");
         while(i<MAX_COUNT){
-            //以下是每封邮件不同的地方
+            //the following differs for each email
             Mail cloneMail = mail.clone();
-            cloneMail.setAppellation(getRandString(5)+" 先生（女士）");
-            cloneMail.setReceiver(getRandString(5)+"@"+getRandString(8)+".//然后发送邮件
+            cloneMail.setAppellation(getRandString(5)+" Mr. (Ms.)");
+            cloneMail.setReceiver(getRandString(5)+"@"+getRandString(8)+".//then send the email
             sendMail(cloneMail);
             i++;
         }
     }
-    //发送邮件
+    //send the email
     public static void sendMail(Mail mail){
-        System.out.println("标题："+mail.getSubject() + "\t收件人："+mail.getReceiver()+"\t...发送成功！");
+        System.out.println("Subject: "+mail.getSubject() + "\tRecipient: "+mail.getReceiver()
+                + "\t...sent successfully!");
     }
-    //获得指定长度的随机字符串
+    //get a random string of the given length
     public static String getRandString(int maxLength){
         String source ="abcdefghijklmnopqrskuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuffer sb = new StringBuffer();
@@ -10832,19 +11774,24 @@ public class Client {
 
 ```
 
-运行结果不变，一样完成了电子广告信的发送功能，而且sendMail即使是多线程也没有关系。注意，看Client类中的粗体字mail.clone()这个方法，把对象复制一份，产生一个新的对象，和原 有对象一样，然后再修改细节的数据，如设置称谓、设置收件人地址等。这种不通过new关键字来产生一个对象，而是通过对象复制来实现的模式就叫做原型模式
+The result is unchanged; the electronic advertising mail is sent just the same, and it doesn't
+matter even if sendMail is multithreaded. Note the bold mail.clone() in the Client class: it copies
+the object to produce a new object identical to the original, and then modifies the details, such as
+setting the salutation and recipient address. This pattern of producing an object by copying instead
+of with the new keyword is called the Prototype pattern
 
 
-## 访问者模式
+## Visitor Pattern
 
-`访问者模式`: 封装一些作用于某种数据结构中的各元素的操作，它可以在不改变数据结构的前提下定义作用于这些元素的新的操作。
+`Visitor pattern`: encapsulates operations that act on the elements of some data structure, letting
+you define new operations on these elements without changing the data structure.
 
-### 访问者模式类图
+### Visitor pattern class diagram
 
 ```plantuml
 @startuml
 
-title 访问者模式类图
+title Visitor pattern class diagram
 
 interface Visitor {
     + visit(ElementA e)
@@ -10852,8 +11799,10 @@ interface Visitor {
 }
 
 note top of Visitor
-访问者(Visitor)接口声明了一系列以对象结构的具体元素为参数的访问者方法。
-如果编程语言支持重载， 这些方法的名称可以是相同的， 但是其参数一定是不同的。
+The Visitor interface declares a set of visiting methods that can take concrete elements of an
+object structure as arguments.
+These methods may have the same names if the program supports overloading, but the type of their
+parameters must be different.
 end note
 
 class ConcreteVisitor {
@@ -10862,8 +11811,8 @@ class ConcreteVisitor {
 }
 
 note left of ConcreteVisitor
-具体访问者(Concrete Visitor)
-会为不同的具体元素类实现相同行为的几个不同版本。
+Each Concrete Visitor
+implements several versions of the same behaviors, tailored for different concrete element classes.
 end note
 
 interface Element {
@@ -10871,8 +11820,8 @@ interface Element {
 }
 
 note top of Element
-元素(Element)接口声明了一个方法来 “接收” 访问者。 该
-方法必须有一个参数被声明为访问者接口类型。
+The Element interface declares a method for "accepting" visitors.
+This method should have one parameter declared with the type of the visitor interface.
 end note
 
 class ElementA implements Element {
@@ -10890,18 +11839,21 @@ class ElementB implements Element {
 }
 
 note bottom of ElementB
-具体元素(Concrete Element)必须实现接收方法。
-该方法的目的是根据当前元素类将其调用重定向到相应访问者的方法。
-请注意， 即使元素基类实现了该方法，
-所有子类都必须对其进行重写并调用访问者对象中的合适方法。
+Each Concrete Element must implement the acceptance method.
+The purpose of this method is to redirect the call to the proper visitor's method corresponding to
+the current element class.
+Be aware that even if a base element class implements this method,
+all subclasses must still override it and call the appropriate method on the visitor object.
 end note
 
 
 class Client {}
 
 note top of Client
-客户端(Client)通常会作为集合或其他复杂对象 （例如一个组合树） 的代表。
-客户端通常不知晓所有的具体元素类， 因为它们会通过抽象接口与集合中的对象进行交互。
+The Client usually represents a collection or some other complex object (for example, a Composite
+tree).
+Usually, clients aren't aware of all the concrete element classes because they work with objects
+from that collection via some abstract interface.
 
 element.accept(new ConcreteVisitor())
 end note
@@ -10918,35 +11870,64 @@ ConcreteVisitor .right.|> Visitor
 @enduml
 ```
 
-### 访问者模式要点
+### Visitor pattern key points
 
-1. 访问者模式的优点
-    > - 符合单一职责原则: 具体元素角色也就是Employee抽象类的两个子类负责数据的加载，而Visitor类则负责报表的展现，两个不同的职责非常明确地分离开来，各自演绎变化。
-    > - 优秀的扩展性: 由于职责分开，继续增加对数据的操作是非常快捷的，例如，现在要增加一份给大老板的报表，这份报表格式又有所不同，直接在Visitor中增加一个方法，传递数据后进行整理打印。
-    > - 灵活性非常高:  访问者对象可以在与各种对象交互时收集一些有用的信息。 当你想要遍历一些复杂的对象结构 （例如对象树）， 并在结构中的每个对象上应用访问者时， 这些信息可能会有所帮助。
-    > - 开闭原则: 你可以引入在不同类对象上执行的新行为， 且无需对这些类做出修改。
+1. Advantages of the Visitor pattern
+    > - Follows the Single Responsibility Principle: the concrete element roles, i.e. the two
+    >   subclasses of the abstract Employee class, are responsible for loading data, while the
+    >   Visitor class is responsible for presenting the report; the two different responsibilities
+    >   are clearly separated and evolve independently.
+    > - Excellent extensibility: since responsibilities are separated, adding further operations on
+    >   the data is very quick. For example, to add a report for the big boss in a different format,
+    >   just add a method to the Visitor that organizes and prints the data passed in.
+    > - Very flexible: a visitor object can accumulate some useful information while working with
+    >   various objects. This might be handy when you want to traverse some complex object
+    >   structure, such as an object tree, and apply the visitor to each object of this structure.
+    > - Open-Closed Principle: you can introduce a new behavior that can work with objects of
+    >   different classes without changing these classes.
 
-2. 访问者模式的缺点
-    > - 具体元素对访问者公布细节: 访问者要访问一个类就必然要求这个类公布一些方法和数据，也就是说访问者关注了其他类的内部细节，这是迪米特法则所不建议的。
-    > - 具体元素变更比较困难:  每次在元素层次结构中添加或移除一个类(或元素字段发送变化)时， 你都要更新所有的访问者。更新
-    > - 违背了依赖倒置转原则: 访问者依赖的是具体元素，而不是抽象元素，这破坏了依赖倒置原则，特别是在面向对象的编程中，抛弃了对接口的依赖，而直接依赖实现类，扩展比较难。
+2. Drawbacks of the Visitor pattern
+    > - Concrete elements expose details to the visitor: for a visitor to visit a class, the class
+    >   must expose some methods and data, i.e. the visitor knows about other classes' internal
+    >   details, which the Law of Demeter advises against.
+    > - Changing concrete elements is hard: you need to update all visitors each time a class gets
+    >   added to or removed from the element hierarchy (or an element's fields change). Update
+    > - Violates the Dependency Inversion Principle: visitors depend on concrete elements rather
+    >   than abstract elements, which breaks dependency inversion; especially in object-oriented
+    >   programming, abandoning dependence on interfaces in favor of depending directly on
+    >   implementation classes makes extension harder.
 
-3. 访问者模式的使用场景
-    > - 一个对象结构包含很多类对象，它们有不同的接口，而你想对这些对象实施一些依赖于其具体类的操作，也就说是用迭代器模式已经不能胜任的情景。
-    > - 需要对一个对象结构中的对象进行很多不同并且不相关的操作，而你想避免让这些操作“污染”这些对象的类。
-    > - 访问者模式通过在访问者对象中为多个目标类提供相同操作的变体， 让你能在属于不同类的一组对象上执行同一操作。
-    > - 当某个行为仅在类层次结构中的一些类中有意义， 而在其他类中没有意义时， 可使用该模式。
+3. Use cases for the Visitor pattern
+    > - An object structure contains many classes of objects with different interfaces, and you want
+    >   to perform operations on these objects that depend on their concrete classes, i.e. a
+    >   situation the Iterator pattern can no longer handle.
+    > - You need to perform many different and unrelated operations on objects in an object
+    >   structure, and you want to avoid "polluting" their classes with these operations.
+    > - The Visitor pattern lets you execute an operation over a set of objects with different
+    >   classes by having a visitor object implement several variants of the same operation, which
+    >   correspond to all target classes.
+    > - Use the pattern when a behavior makes sense only in some classes of a class hierarchy, but
+    >   not in others.
 
-### 访问者模式例子: 数据报表
+### Visitor pattern example: data report
 
-我们在前面讲过了组合模式和迭代器模式。通过组合模式能够把一个公司的人员组织机构树搭建起来，给管理带来非常大的便利，通过迭代器模式把每一个员工都遍历一遍，看看是不是 “有人 去世了还在领退休金”，“拿高工资而不干活的尸位素餐”等情况，我们今天要做的就是把这些情况统计成一个报表呈报上去，让领导看看这种恶劣的情况有多严重。
+Earlier we covered the Composite and Iterator patterns. With the Composite pattern we can build a
+company's organizational tree, which makes management much easier; with the Iterator pattern we can
+go through every employee to check for things like "someone who has died but is still drawing a
+pension" or "freeloaders on high salaries who don't work". Today we'll compile these cases into a
+report and submit it, so the leadership can see how serious this bad situation is.
 
-我们公司有700名多技术人员，分布在全国各地，组织架构在组合模式中已经介绍过了，是很常见的家长领导型模式，每个技术人员的岗位都是固定的，你在组织机构的哪棵树下，充当的角色是什么，叶子节点都是非常明确的，每一个员工的信息（如名字、性别、薪水等）都是记录在数据库中，现在有这样一个需求，我要把公司中的所有人员信息都打印汇报上去。我们来看类图，如 图
+Our company has more than 700 technical staff spread across the country. The organizational
+structure was introduced in the Composite pattern; it's the very common paternalistic leadership
+model. Every technical staff member's position is fixed: which tree in the organization you're under
+and what role you play is very clear for the leaf nodes, and each employee's information (such as
+name, gender, salary) is recorded in the database. Now there's a requirement: I want to print a
+report of all staff information in the company. Let's look at the class diagram
 
 ```plantuml
 @startuml
 
-title 员工信息类图
+title Employee information class diagram
 
 class Client {}
 
@@ -10962,7 +11943,7 @@ abstract class Employee {
     + setter()
 }
 
-note top of Employee : 抽象员工
+note top of Employee : Abstract employee
 
 class CommonEmployee extends Employee {
     - String job
@@ -10971,7 +11952,7 @@ class CommonEmployee extends Employee {
     + setter()
 }
 
-note bottom of CommonEmployee : 普通员工
+note bottom of CommonEmployee : Regular employee
 
 class Manager extends Employee {
     - String performance
@@ -10980,26 +11961,29 @@ class Manager extends Employee {
     + setter()
 }
 
-note bottom of Manager : 管理层员工
+note bottom of Manager : Management employee
 
 Client -right-> Employee
 
 @enduml
 ```
-这个类图还是比较简单的，我们定义每个员工都有薪水salary、名称name、性别sex这3个属性，然后提供了一个抽象方法getOtherInfo由子类进行扩展，同时通过report方法打印出每一个员工 的信息，这里使用模板方法模式。我们先来看一下抽象类，如代码清单
+This class diagram is fairly simple. We define three attributes for every employee: salary, name and
+sex, then provide an abstract method getOtherInfo for subclasses to extend, and print each
+employee's information through the report method; this uses the Template Method pattern. Let's look
+at the abstract class first
 
 ```java
-// 抽象员工
+// Abstract employee
 public abstract class Employee {
-    public final static int MALE = 0; //0代表是男性
-    public final static int FEMALE = 1; //1代表是女性
-    //甭管是谁，都有工资
+    public final static int MALE = 0; //0 means male
+    public final static int FEMALE = 1; //1 means female
+    //whoever it is, they get paid
     private String name;
-    //只要是员工那就有薪水
+    //every employee has a salary
     private int salary;
-    //性别很重要
+    //gender matters
     private int sex;
-    //以下是简单的getter/setter
+    //simple getters/setters below
     public String getName() {
         return name;
     }
@@ -11018,22 +12002,22 @@ public abstract class Employee {
     public void setSex(int sex) {
         this.sex = sex;
     }
-    //打印出员工的信息
+    //print the employee's information
     public final void report(){
-        String info = "姓名：" + this.name + "\t";
-        info = info + "性别：" + (this.sex == FEMALE?"女":"男") + "\t";
-        info = info + "薪水：" + this.salary + "\t";
-        //获得员工的其他信息
+        String info = "Name: " + this.name + "\t";
+        info = info + "Gender: " + (this.sex == FEMALE?"female":"male") + "\t";
+        info = info + "Salary: " + this.salary + "\t";
+        //get the employee's other information
         info = info + this.getOtherInfo();
         System.out.println(info);
     }
-    //拼装员工的其他信息
+    //assemble the employee's other information
     protected abstract String getOtherInfo();
 }
 
-// 普通员工
+// Regular employee
 public class CommonEmployee extends Employee {
-    //工作内容，这非常重要，以后的职业规划就是靠它了
+    //job content; this is very important, your future career path depends on it
     private String job;
     public String getJob() {
         return job;
@@ -11042,13 +12026,13 @@ public class CommonEmployee extends Employee {
         this.job = job;
     }
     protected String getOtherInfo(){
-        return "工作："+ this.job + "\t";
+        return "Job: "+ this.job + "\t";
     }
 }
 
-// 管理阶层
+// Management
 public class Manager extends Employee {
-    //这类人物的职责非常明确：业绩
+    //the responsibility of these people is very clear: performance
     private String performance;
     public String getPerformance() {
         return performance;
@@ -11057,38 +12041,38 @@ public class Manager extends Employee {
         this.performance = performance;
     }
     protected String getOtherInfo(){
-        return "业绩："+ this.performance + "\t";
+        return "Performance: "+ this.performance + "\t";
     }
 }
 
-// 场景类
+// Scenario class
 public class Client {
     public static void main(String[] args) {
         for(Employee emp:mockEmployee()){
             emp.report();
         }
     }
-    //模拟出公司的人员情况，我们可以想象这个数据是通过持久层传递过来的
+    //simulate the company's staff; we can imagine this data comes from the persistence layer
     public static List<Employee> mockEmployee(){
         List<Employee> empList = new ArrayList<Employee>();
-        //产生张三这个员工
+        //create the employee Zhang San
         CommonEmployee zhangSan = new CommonEmployee();
-        zhangSan.setJob("编写Java程序，绝对的蓝领、苦工加搬运工");
-        zhangSan.setName("张三");
+        zhangSan.setJob("Writing Java programs, a true blue-collar drudge and porter");
+        zhangSan.setName("Zhang San");
         zhangSan.setSalary(1800);
         zhangSan.setSex(Employee.MALE);
         empList.add(zhangSan);
-        //产生李四这个员工
+        //create the employee Li Si
         CommonEmployee liSi = new CommonEmployee();
-        liSi.setJob("页面美工，审美素质太不流行了！");
-        liSi.setName("李四");
+        liSi.setJob("Page designer, aesthetic sense way out of fashion!");
+        liSi.setName("Li Si");
         liSi.setSalary(1900);
         liSi.setSex(Employee.FEMALE);
         empList.add(liSi);
-        //再产生一个经理
+        //create a manager too
         Manager wangWu = new Manager();
-        wangWu.setName("王五");
-        wangWu.setPerformance("基本上是负值，但是我会拍马屁呀");
+        wangWu.setName("Wang Wu");
+        wangWu.setPerformance("Basically negative, but I'm good at sucking up");
         wangWu.setSalary(18750);
         wangWu.setSex(Employee.MALE);
         empList.add(wangWu);
@@ -11096,18 +12080,30 @@ public class Client {
     }
 }
 ```
-结果出来了，非常正确。我们来想一想实际的情况，人力资源部门拿这份表格会给谁看呢？那当然是大老板了！大老板关心的是什么？关心部门经理的业绩！小兵的情况不是他要了解的，就像 战争时期一位将军说：“我一想到我的士兵也有孩子、妻子、父母，我就痛心疾首……但是这是战场，我只能认为他们是一群机器……”是啊，其实我们也一样啊，那问题就出来了：
+The results are out and completely correct. Let's think about the real situation: who will HR show
+this table to? The big boss, of course! What does the big boss care about? The department managers'
+performance! The rank and file aren't what he wants to know about, just like a general in wartime
+who said: "When I think that my soldiers also have children, wives and parents, my heart aches...
+but this is the battlefield, and I can only think of them as a bunch of machines..." Yes, we're no
+different. So here's the problem:
 
-- 大老板就看部门经理的报表，小兵的报表可看可不看。
-- 多个大老板的“嗜好”是不同的，主管销售的，则主要关心营销的情况；主管会计的，则主要关心企业的整体财务运行状态；主管技术的，则主要看技术的研发情况。
+- The big boss only looks at the department managers' report; the rank-and-file report is optional.
+- Different big bosses have different "tastes": the one in charge of sales mainly cares about
+  marketing; the one in charge of accounting mainly cares about the company's overall financial
+  state; the one in charge of technology mainly looks at R&D.
 
-综合成一句话，这个报表会修改：数据的修改以及报表的展现修改，按照开闭原则，项目分析的时候已经考虑到这些可能引起变更的因素，就需要在设计时考虑通过扩展来避开未来需求变更而 引起的代码修改风险。我们来想一想，每个普通员工类和经理类都用一个方法report（从父类继承过来的），他无法为每一个子类定制特殊的属性，简化类图如图
+To sum up in one sentence, this report will change: both the data and the presentation of the
+report. Following the Open-Closed Principle, the factors that may cause changes were already
+considered during project analysis, so the design needs to avoid the risk of code changes caused by
+future requirement changes through extension. Let's think: every regular employee class and manager
+class uses a single report method (inherited from the parent), which can't customize special
+attributes for each subclass. The simplified class diagram is as follows
 
 
 ```plantuml
 @startuml
 
-title 简化类图
+title Simplified class diagram
 
 abstract class Employee {
     + void report()
@@ -11118,12 +12114,16 @@ class Manager extends Employee {}
 @enduml
 ```
 
-我们思考一下，如何提供一个能够为每个子类定制报表的方法呢？可以这样思考，普通员工和管理层员工是两个不同的对象，例如，我邀请一个人过来参观我的家，参观者参观完毕后分别进行 描述，那参观的对象不同，描述的结果也当然不同。好，按照这思路，我们把方法report提取到另外一个类Visitor中来实现，如图
+Let's think: how can we provide a method that customizes the report for each subclass? Think of it
+this way: regular employees and management employees are two different objects. For example, if I
+invite people to visit my home, each visitor describes it afterwards; different visitors give
+different descriptions. OK, following this idea, we extract the report method into another class,
+Visitor, as shown
 
 ```plantuml
 @startuml
 
-title 改造后的简化类图
+title Simplified class diagram after refactoring
 
 abstract class Employee {
 }
@@ -11140,12 +12140,14 @@ Manager ..> Visitor
 @enduml
 ```
 
-两个子类的report方法都不需要了，只有Visitor类来实现了report的方法，这个猛一看还真有点委托（intergration）的意味，我们实现出来你就知道这和委托有非常大的差距。详细类图如图
+Neither subclass needs a report method anymore; only the Visitor class implements report. At first
+glance this looks a bit like delegation (intergration), but once we implement it you'll see it's
+very different from delegation. The detailed class diagram is as follows
 
 ```plantuml
 @startuml
 
-title 改造后的详细类图
+title Detailed class diagram after refactoring
 
 class Client {}
 
@@ -11153,7 +12155,7 @@ interface IVisitor {
     + visit(CommonEmployee commonEmployee)
     + visit(Manager manager)
 }
-note right of IVisitor : 访问者
+note right of IVisitor : Visitor
 
 class Visitor implements IVisitor {}
 
@@ -11168,7 +12170,7 @@ abstract class Employee {
     + setter()
 }
 
-note left of Employee : 抽象员工
+note left of Employee : Abstract employee
 
 class CommonEmployee extends Employee {
     - String job
@@ -11178,7 +12180,7 @@ class CommonEmployee extends Employee {
     + setter()
 }
 
-note bottom of CommonEmployee : 普通员工
+note bottom of CommonEmployee : Regular employee
 
 class Manager extends Employee {
     - String performance
@@ -11188,7 +12190,7 @@ class Manager extends Employee {
     + setter()
 }
 
-note bottom of Manager : 管理层员工
+note bottom of Manager : Management employee
 
 Client --> Employee
 Client --> IVisitor
@@ -11197,60 +12199,65 @@ Employee .right.> IVisitor
 @enduml
 ```
 
-在抽象类Employee中增加了accept方法，该方法是一个抽象方法，由子类实现，其意义就是说我这个类可以允许谁来访问，也就是定义一类访问者，在具体的实现类中调用访问者的方法。我们 先看访问者接口IVisitor程序，如代码清单
+An accept method is added to the abstract class Employee. It's an abstract method implemented by
+subclasses, meaning "who I allow to visit this class", i.e. it defines a kind of visitor, and the
+concrete implementation classes call the visitor's methods. Let's look at the visitor interface
+IVisitor first
 
 ```java
-// 访问者接口
-// 该接口的意义是：该接口可以访问两个对象，一个是普通员工，一个是高层员工。
+// Visitor interface
+// The meaning of this interface: it can visit two kinds of objects, regular employees and senior
+// employees.
 public interface IVisitor {
-    //首先，定义我可以访问普通员工
+    //first, define that I can visit regular employees
     public void visit(CommonEmployee commonEmployee);
-    //其次，定义我还可以访问部门经理
+    //second, define that I can also visit department managers
     public void visit(Manager manager);
 }
 
-// 访问者实现
+// Visitor implementation
 public class Visitor implements IVisitor {
-    //访问普通员工，打印出报表
+    //visit a regular employee and print the report
     public void visit(CommonEmployee commonEmployee) {
         System.out.println(this.getCommonEmployee(commonEmployee));
     }
-    //访问部门经理，打印出报表
+    //visit a department manager and print the report
     public void visit(Manager manager) {
         System.out.println(this.getManagerInfo(manager));
     }
-    //组装出基本信息
+    //assemble the basic information
     private String getBasicInfo(Employee employee){
-        String info = "姓名：" + employee.getName() + "\t";
-        info = info + "性别：" + (employee.getSex() == Employee.FEMALE?"女":"男info = info + "薪水：" + employee.getSalary() + "\t";
+        String info = "Name: " + employee.getName() + "\t";
+        info = info + "Gender: " + (employee.getSex() == Employee.FEMALE?"female":
+                "maleinfo = info + "Salary: " + employee.getSalary() + "\t";
         return info;
     }
-    //组装出部门经理的信息
+    //assemble the department manager's information
     private String getManagerInfo(Manager manager){
         String basicInfo = this.getBasicInfo(manager);
-        String otherInfo = "业绩："+manager.getPerformance() + "\t";
+        String otherInfo = "Performance: "+manager.getPerformance() + "\t";
         return basicInfo + otherInfo;
     }
-    //组装出普通员工信息
+    //assemble the regular employee's information
     private String getCommonEmployee(CommonEmployee commonEmployee){
         String basicInfo = this.getBasicInfo(commonEmployee);
-        String otherInfo = "工作："+commonEmployee.getJob()+"\t";
+        String otherInfo = "Job: "+commonEmployee.getJob()+"\t";
         return basicInfo + otherInfo;
     }
 }
 
-// 抽象员工类
-// 删除了report/getOtherInfo方法, 增加了accept方法，接受访问者的访问
+// Abstract employee class
+// Removed the report/getOtherInfo methods and added the accept method to accept visitors
 public abstract class Employee {
-    public final static int MALE = 0; //0代表是男性
-    public final static int FEMALE = 1; //1代表是女性
-    //甭管是谁，都有工资
+    public final static int MALE = 0; //0 means male
+    public final static int FEMALE = 1; //1 means female
+    //whoever it is, they get paid
     private String name;
-    //只要是员工那就有薪水
+    //every employee has a salary
     private int salary;
-    //性别很重要
+    //gender matters
     private int sex;
-    //以下是简单的getter/setter
+    //simple getters/setters below
     public String getName() {
         return name;
     }
@@ -11269,13 +12276,13 @@ public abstract class Employee {
     public void setSex(int sex) {
         this.sex = sex;
     }
-    //我允许一个访问者访问
+    //I allow a visitor to visit
     public abstract void accept(IVisitor visitor);
 }
 
-// 普通员工
+// Regular employee
 public class CommonEmployee extends Employee {
-    //工作内容，这非常重要，以后的职业规划就是靠它了
+    //job content; this is very important, your future career path depends on it
     private String job;
     public String getJob() {
         return job;
@@ -11283,16 +12290,16 @@ public class CommonEmployee extends Employee {
     public void setJob(String job) {
         this.job = job;
     }
-    //我允许访问者访问
+    //I allow visitors to visit
     @Override
     public void accept(IVisitor visitor){
         visitor.visit(this);
     }
 }
 
-// 管理层员工
+// Management employee
 public class Manager extends Employee {
-    //这类人物的职责非常明确：业绩
+    //the responsibility of these people is very clear: performance
     private String performance;
     public String getPerformance() {
         return performance;
@@ -11300,7 +12307,7 @@ public class Manager extends Employee {
     public void setPerformance(String performance) {
         this.performance = performance;
     }
-    //部门经理允许访问者访问
+    //department managers allow visitors to visit
     @Override
     public void accept(IVisitor visitor){
         visitor.visit(this);
@@ -11308,40 +12315,41 @@ public class Manager extends Employee {
 }
 
 
-// 场景类
-// 运行结果也完全相同，那回过头来看看这个程序是怎么实现的:
-// 第一，通过循环遍历所有元素。
-// 第二，每个员工对象都定义了一个访问者。
-// 第三，员工对象把自己作为一个参数调用访问者visit方法。
-// 第四，访问者调用自己内部的计算逻辑，计算出相应的数据和表格元素。
-// 第五，访问者打印出报表和数据。
+// Scenario class
+// The result is also exactly the same; let's look back at how this program works:
+// First, loop through all the elements.
+// Second, each employee object defines a visitor.
+// Third, the employee object calls the visitor's visit method with itself as an argument.
+// Fourth, the visitor runs its own internal logic to compute the corresponding data and table
+// elements.
+// Fifth, the visitor prints the report and data.
 public class Client {
     public static void main(String[] args) {
         for(Employee emp:mockEmployee()){
             emp.accept(new Visitor());
         }
     }
-    //模拟出公司的人员情况，我们可以想象这个数据是通过持久层传递过来的
+    //simulate the company's staff; we can imagine this data comes from the persistence layer
     public static List<Employee> mockEmployee(){
         List<Employee> empList = new ArrayList<Employee>();
-        //产生张三这个员工
+        //create the employee Zhang San
         CommonEmployee zhangSan = new CommonEmployee();
-        zhangSan.setJob("编写Java程序，绝对的蓝领、苦工加搬运工");
-        zhangSan.setName("张三");
+        zhangSan.setJob("Writing Java programs, a true blue-collar drudge and porter");
+        zhangSan.setName("Zhang San");
         zhangSan.setSalary(1800);
         zhangSan.setSex(Employee.MALE);
         empList.add(zhangSan);
-        //产生李四这个员工
+        //create the employee Li Si
         CommonEmployee liSi = new CommonEmployee();
-        liSi.setJob("页面美工，审美素质太不流行了！");
-        liSi.setName("李四");
+        liSi.setJob("Page designer, aesthetic sense way out of fashion!");
+        liSi.setName("Li Si");
         liSi.setSalary(1900);
         liSi.setSex(Employee.FEMALE);
         empList.add(liSi);
-        //再产生一个经理
+        //create a manager too
         Manager wangWu = new Manager();
-        wangWu.setName("王五");
-        wangWu.setPerformance("基本上是负值，但是我会拍马屁呀");
+        wangWu.setName("Wang Wu");
+        wangWu.setPerformance("Basically negative, but I'm good at sucking up");
         wangWu.setSalary(18750);
         wangWu.setSex(Employee.MALE);
         empList.add(wangWu);
@@ -11351,4 +12359,10 @@ public class Client {
 
 ```
 
-事情的经过就是这个样子。那我们再来看看上面提到的数据和报表格式都会改变的情况。首先是数据的改变，数据改了当然都要改，说不上两个方案有什么优劣；其次是报表格式的修改，这个 方案绝对是有优势的，我只要再产生一个IVisitor的实现类就可以产生一个新的报表格式，而其他的类都不用修改，如果你用Spring开发，那就更好了，在Spring的配置文件中使用的是接口注 入，我只要把配置文件中的 ref修改一下就行了，其他的都不用修改了！这就是访问者模式的优势所在。
+That's how it goes. Now let's look at the case mentioned above where both the data and the report
+format change. First, data changes: when the data changes everything has to change, so neither
+approach is better. Second, report format changes: here this approach definitely has the advantage.
+I just need to create another IVisitor implementation to get a new report format, without changing
+any other class. If you develop with Spring, even better: Spring's configuration file uses interface
+injection, so I just change the ref in the configuration file and nothing else! That's the advantage
+of the Visitor pattern.
