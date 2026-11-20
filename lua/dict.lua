@@ -3,7 +3,9 @@
 --
 -- Reads StarDict binary format (.idx required; .ifo/.dict/.dict.dz optional)
 -- and provides prefix search with case-insensitive matching. Supports dictzip
--- random-access decompression via LuaJIT FFI + Neovim's bundled zlib.
+-- random-access decompression via a built-in pure-LuaJIT DEFLATE decoder —
+-- no zlib library dependency (Windows has no system zlib to ffi.load, and
+-- probing third-party installs by absolute path is brittle).
 --
 -- File detection: pass any path sharing the dictionary's base name (e.g.
 -- "foo.ifo", "foo.idx", "foo.dict", "foo.dict.dz") — the module strips the
@@ -47,43 +49,226 @@
 local uv = vim.uv or vim.loop
 local ts_html = require("tree_sitter_html")
 
--- LuaJIT FFI binding to zlib for dictzip (.dict.dz) random-access decompression.
--- ffi.load resolves by file name, not by what the process already links: "z"/"libz.so"
--- only exist when the zlib dev package is installed. Try versioned sonames first
--- (always present at runtime), then the dev-symlink names.
+-- Pure-LuaJIT raw DEFLATE (RFC 1951) decoder for dictzip (.dict.dz) chunks.
+-- Each dictzip chunk is an independent raw-deflate stream whose output never
+-- exceeds the chunk size, which is the only shape this decoder supports:
+-- single stream, hard output cap. Structured after Mark Adler's puff
+-- reference decoder (canonical code walk with count/offset symbol tables).
 local ffi = require("ffi")
-pcall(ffi.cdef, [[
-typedef struct z_stream_s {
-  const unsigned char *next_in;
-  unsigned int avail_in;
-  unsigned long total_in;
-  unsigned char *next_out;
-  unsigned int avail_out;
-  unsigned long total_out;
-  const char *msg;
-  void *state;
-  void *zalloc;
-  void *zfree;
-  void *opaque;
-  int data_type;
-  unsigned long adler;
-  unsigned long reserved;
-} z_stream;
-const char *zlibVersion(void);
-int inflateInit2_(z_stream *strm, int windowBits, const char *version, int stream_size);
-int inflate(z_stream *strm, int flush);
-int inflateEnd(z_stream *strm);
-]])
-local zlib_names = ({
-  Linux = { "libz.so.1", "libz.so", "z" },
-  OSX = { "libz.dylib", "libz.1.dylib", "z" },
-  BSD = { "libz.so", "z" },
-  Windows = { "zlib1", "zlib" },
-})[ffi.os] or { "z" }
-local zlib_ok, zlib = false, nil
-for _, name in ipairs(zlib_names) do
-  zlib_ok, zlib = pcall(ffi.load, name)
-  if zlib_ok then break end
+local bitlib = require("bit")
+local band, bxor, rshift = bitlib.band, bitlib.bxor, bitlib.rshift
+
+-- Powers of two as plain numbers; double arithmetic is exact below 2^53.
+local P2 = {}
+for i = 0, 24 do P2[i] = 2 ^ i end
+
+-- RFC 1951 §3.2.5 length/distance bases and extra-bit counts (1-based).
+local LENGTH_BASE = { 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
+  35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258 }
+local LENGTH_EXTRA = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
+  3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0 }
+local DIST_BASE = { 1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
+  257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577 }
+local DIST_EXTRA = { 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
+  7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13 }
+-- Order in which code lengths are stored in a dynamic block header.
+local CLEN_ORDER = { 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 }
+
+--- Decoding tables for the fixed block type, built once on first use.
+local fixed_l_desc, fixed_d_desc
+
+--- Build a canonical Huffman decoding table from per-symbol code lengths.
+--- Over-subscribed code sets are rejected; incomplete ones are tolerated
+--- (deflate allows a single-code distance tree).
+--- @param lengths integer[]  code length per symbol, 0 = unused
+--- @param from integer  first index into lengths
+--- @param count integer  number of symbols starting at `from`
+--- @return { counts: integer[], symbols: integer[] }|nil  nil on bad lengths
+local function build_huffman(lengths, from, count)
+  local counts = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+  for i = from, from + count - 1 do
+    local l = lengths[i]
+    if l > 0 then
+      if l > 15 then return nil end
+      counts[l] = counts[l] + 1
+    end
+  end
+  local left = 1
+  for len = 1, 15 do
+    left = 2 * left - counts[len]
+    if left < 0 then return nil end
+  end
+  -- Symbols of each code length occupy a contiguous run, ordered by symbol.
+  local offs = { 1 }
+  for len = 1, 14 do offs[len + 1] = offs[len] + counts[len] end
+  local symbols = {}
+  for i = from, from + count - 1 do
+    local l = lengths[i]
+    if l > 0 then
+      symbols[offs[l]] = i - from
+      offs[l] = offs[l] + 1
+    end
+  end
+  return { counts = counts, symbols = symbols }
+end
+
+--- Decode one raw DEFLATE stream (each dictzip chunk is a complete stream).
+--- Raises on malformed input or output overflow; callers wrap in pcall.
+--- @param data string  raw deflate bytes (no gzip/dictzip wrapper)
+--- @param max_out integer  output cap, also the buffer size
+--- @return string  decompressed bytes
+local function raw_inflate(data, max_out)
+  local out = ffi.new("unsigned char[?]", max_out)
+  local outn = 0
+  local pos, bitbuf, bitcnt = 1, 0, 0
+
+  --- Read `need` bits, LSB-first (deflate packs bits within bytes low-end first).
+  local function bits(need)
+    local val, cnt = bitbuf, bitcnt
+    while cnt < need do
+      local b = data:byte(pos)
+      if not b then error("out of input") end
+      pos = pos + 1
+      val = val + b * P2[cnt]
+      cnt = cnt + 8
+    end
+    bitcnt = cnt - need
+    bitbuf = math.floor(val / P2[need])
+    return val % P2[need]
+  end
+
+  --- Decode one canonical Huffman code, one bit at a time (puff-style walk).
+  local function decode(h)
+    local counts, symbols = h.counts, h.symbols
+    local code, first, index = 0, 0, 1
+    for len = 1, 15 do
+      if bitcnt == 0 then
+        local b = data:byte(pos)
+        if not b then error("out of input") end
+        pos = pos + 1
+        bitbuf, bitcnt = b, 8
+      end
+      code = code * 2 + band(bitbuf, 1)
+      bitbuf = rshift(bitbuf, 1)
+      bitcnt = bitcnt - 1
+      local count = counts[len]
+      if code < first + count then
+        return symbols[index + (code - first)]
+      end
+      index = index + count
+      first = (first + count) * 2
+    end
+    error("invalid code")
+  end
+
+  local lens = {} -- scratch code-length array for dynamic block headers
+
+  while true do
+    -- A dictzip chunk is a slice of one long deflate stream: every chunk but
+    -- the last ends with a non-final block, so running out of input at a
+    -- block boundary is the normal end of a chunk, not an error. (Bits left
+    -- in the final byte are byte-alignment padding.)
+    if pos > #data then break end
+    local final = bits(1)
+    local btype = bits(2)
+    if btype == 0 then
+      -- Stored: discard the partial byte, then LEN/NLEN + raw copy.
+      bitbuf, bitcnt = 0, 0
+      local len = bits(16)
+      local nlen = bits(16)
+      if bxor(nlen, 0xFFFF) ~= len then error("stored length mismatch") end
+      if outn + len > max_out or pos + len - 1 > #data then error("stored overflow") end
+      ffi.copy(out + outn, data:sub(pos, pos + len - 1), len)
+      outn = outn + len
+      pos = pos + len
+    else
+      local ldesc, ddesc
+      if btype == 1 then
+        if not fixed_l_desc then
+          local fl, fd = {}, {}
+          for i = 0, 143 do fl[i] = 8 end
+          for i = 144, 255 do fl[i] = 9 end
+          for i = 256, 279 do fl[i] = 7 end
+          for i = 280, 287 do fl[i] = 8 end
+          for i = 0, 29 do fd[i] = 5 end
+          fixed_l_desc = build_huffman(fl, 0, 288)
+          fixed_d_desc = build_huffman(fd, 0, 30)
+        end
+        ldesc, ddesc = fixed_l_desc, fixed_d_desc
+      elseif btype == 2 then
+        local hlit = bits(5) + 257
+        local hdist = bits(5) + 1
+        local hclen = bits(4) + 4
+        local clen = {}
+        for i = 0, 18 do clen[i] = 0 end
+        for i = 0, hclen - 1 do
+          clen[CLEN_ORDER[i + 1]] = bits(3)
+        end
+        local clh = build_huffman(clen, 0, 19)
+        if not clh then error("bad code-length tree") end
+        local total = hlit + hdist
+        local n = 0
+        while n < total do
+          local sym = decode(clh)
+          if sym < 16 then
+            lens[n] = sym
+            n = n + 1
+          else
+            local rep, prev = 0, 0
+            if sym == 16 then
+              if n == 0 then error("repeat with no previous length") end
+              prev = lens[n - 1]
+              rep = 3 + bits(2)
+            elseif sym == 17 then
+              rep = 3 + bits(3)
+            else -- 18
+              rep = 11 + bits(7)
+            end
+            if n + rep > total then error("code length overflow") end
+            for _ = 1, rep do
+              lens[n] = prev
+              n = n + 1
+            end
+          end
+        end
+        ldesc = build_huffman(lens, 0, hlit)
+        ddesc = build_huffman(lens, hlit, hdist)
+        if not ldesc or not ddesc then error("bad dynamic tree") end
+      else
+        error("invalid block type")
+      end
+
+      -- LZ77 decode loop.
+      while true do
+        local sym = decode(ldesc)
+        if sym < 256 then
+          if outn >= max_out then error("output overflow") end
+          out[outn] = sym
+          outn = outn + 1
+        elseif sym == 256 then
+          break
+        else
+          local li = sym - 256 -- 1..29 for valid length symbols
+          if li > 29 then error("invalid length symbol") end
+          local length = LENGTH_BASE[li] + bits(LENGTH_EXTRA[li])
+          local dsym = decode(ddesc)
+          if dsym > 29 then error("invalid distance symbol") end
+          local dist = DIST_BASE[dsym + 1] + bits(DIST_EXTRA[dsym + 1])
+          if dist > outn then error("distance too far back") end
+          if outn + length > max_out then error("output overflow") end
+          local src = outn - dist
+          -- Byte-wise copy: overlapping copies encode runs.
+          for i = 0, length - 1 do
+            out[outn + i] = out[src + i]
+          end
+          outn = outn + length
+        end
+      end
+    end
+    if final == 1 then break end
+  end
+
+  return ffi.string(out, outn)
 end
 
 --- Number of index entries to parse per chunk before yielding to the event loop.
@@ -863,11 +1048,6 @@ end
 --- Must be called after M.dict_path is set to the .dz file.
 --- @return boolean  true on success, false on any parse failure
 function M:_parse_dz_header()
-  if not zlib_ok then
-    vim.notify("dict: zlib not available, cannot read .dict.dz", vim.log.levels.WARN)
-    return false
-  end
-
   local fd = uv.fs_open(self.dict_path, "r", 438)
   if not fd then return false end
 
@@ -887,8 +1067,13 @@ function M:_parse_dz_header()
   if extra:sub(1, 2) ~= "RA" then uv.fs_close(fd); return false end
 
   local chunk_size = extra:byte(7) + extra:byte(8) * 256
-  local chunk_count = extra:byte(9) + extra:byte(10) * 256
-  if chunk_size == 0 or chunk_count == 0 then uv.fs_close(fd); return false end
+  -- Number of chunk entries: the RA subfield length is the authoritative
+  -- bound, since it is what actually delimits the stored entries — some
+  -- writers store chcnt as entries-1, so derive the count from sublen
+  -- instead (RA content = 6 header bytes + 2 per entry).
+  local sublen = math.min(extra:byte(3) + extra:byte(4) * 256, #extra - 4)
+  local chunk_count = math.floor((sublen - 6) / 2)
+  if chunk_size == 0 or chunk_count < 1 then uv.fs_close(fd); return false end
 
   -- RA subfield: 2(SI) + 2(sublen) + 2(ver) + 2(chlen) + 2(chcnt) = 10 bytes header
   local RA_HEADER_SIZE = 10
@@ -922,30 +1107,26 @@ function M:_parse_dz_header()
 
   self._dz_chunk_size = chunk_size
   self._dz_offsets = offsets
+  -- The chunk table must stay inside the file (gzip trailer is 8 bytes);
+  -- a table running past the end means a misparsed header.
+  local stat = uv.fs_fstat(fd)
+  if stat and offsets[chunk_count + 1] > stat.size - 8 then
+    uv.fs_close(fd)
+    return false
+  end
   uv.fs_close(fd)
   return true
 end
 
---- Decompress a raw DEFLATE buffer using zlib (windowBits=-15).
+--- Decompress a raw DEFLATE buffer with the built-in pure-LuaJIT decoder.
 --- @param compressed string  raw deflate data
 --- @param max_out integer  maximum output size (= chunk_size)
 --- @return string
 function M._inflate_raw(compressed, max_out)
   if max_out <= 0 or max_out > 65536 then return "" end
-  local stream = ffi.new("z_stream")
-  local out_buf = ffi.new("unsigned char[?]", max_out)
-  stream.next_in = ffi.cast("const unsigned char*", compressed)
-  stream.avail_in = #compressed
-  stream.next_out = out_buf
-  stream.avail_out = max_out
-  if zlib.inflateInit2_(stream, -15, zlib.zlibVersion(), ffi.sizeof("z_stream")) ~= 0 then
-    return ""
-  end
-  local ret = zlib.inflate(stream, 4) -- Z_FINISH
-  local n = max_out - stream.avail_out
-  zlib.inflateEnd(stream)
-  if ret ~= 1 and n == 0 then return "" end -- Z_STREAM_END = 1
-  return ffi.string(out_buf, n)
+  local ok, data = pcall(raw_inflate, compressed, max_out)
+  if not ok then return "" end
+  return data
 end
 
 --- Read arbitrary range from dictzip file by inflating relevant chunks.
