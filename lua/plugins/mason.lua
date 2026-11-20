@@ -75,9 +75,16 @@ return {
             end
           end
         end
-        -- Auto-install listed servers and enable them for matching filetypes
+        -- Auto-install listed servers and enable them for matching filetypes.
+        -- jdtls is excluded: it is managed by nvim-jdtls (lua/plugins/nvim-jdtls.lua),
+        -- which passes its own cmd, debug/test bundles and a per-project -data
+        -- workspace. Without the exclusion, automatic_enable also enables the
+        -- lspconfig jdtls, starting a second, competing language server on every
+        -- java buffer ("Multiple LSP clients ... you should have at most one
+        -- JDTLS server running").
         require("mason-lspconfig").setup({
           ensure_installed = ensure_installed,
+          automatic_enable = { exclude = { "jdtls" } }
         })
       end
 
