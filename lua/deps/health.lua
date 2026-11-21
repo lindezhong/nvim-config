@@ -262,10 +262,10 @@ function M.check()
     end
   end
 
-  -- python venv support (debugpy builds its venv via Mason; vim-dashboard
-  -- builds need it too). Probes ensurepip, not venv: on Debian/Ubuntu the
-  -- venv module imports fine without the python3-venv package, but venv
-  -- creation then fails (ensurepip is what the split package provides).
+  -- python venv support (debugpy builds its venv via Mason). Probes
+  -- ensurepip, not venv: on Debian/Ubuntu the venv module imports fine
+  -- without the python3-venv package, but venv creation then fails
+  -- (ensurepip is what the split package provides).
   -- Windows/macOS bundle ensurepip. Probes the resolved executable path
   -- with the same 5s cap as the java probe.
   if python_path then
