@@ -37,6 +37,8 @@
 --
 -- Requirements: Neovim 0.12+; SQLite dashboards need the system libsqlite3.
 --
+-- Options (sidebar size/position/dir, keys, defaults): :help dbdash-setup
+--
 -- Docs: :help dbdash. Examples and the config JSON Schema: <plugin_dir>/example/
 --   (run `:echo stdpath("data") .. "/lazy/dbdash.nvim/example/"` to get the path)
 
@@ -48,6 +50,8 @@ return {
     -- autocmds (modules load on first use), and its BufReadCmd autocmd must
     -- exist when session.lua restores dbdash:// buffers at VimEnter.
     lazy = false,
-    opts = {},
+    opts = {
+      sidebar = { width = "25%" },  -- 25% of the editor width, computed when opened
+    },
   },
 }
