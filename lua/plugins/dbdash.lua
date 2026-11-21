@@ -39,6 +39,9 @@
 --
 -- Options (sidebar size/position/dir, keys, defaults): :help dbdash-setup
 --
+-- Sessions: session.lua restores running dashboards; changed arguments are
+-- kept in "{session_file}.dbdash" via the session hook below.
+--
 -- Docs: :help dbdash. Examples and the config JSON Schema: <plugin_dir>/example/
 --   (run `:echo stdpath("data") .. "/lazy/dbdash.nvim/example/"` to get the path)
 
@@ -53,5 +56,24 @@ return {
     opts = {
       sidebar = { width = "25%" },  -- 25% of the editor width, computed when opened
     },
+    config = function(_, opts)
+      local dbdash = require("dbdash")
+      dbdash.setup(opts)
+
+      -- ===== Argument persistence (session hook) =====
+      -- The session itself restores and restarts dashboards (dbdash:// buffers)
+      -- with default arguments; this keeps the changed argument values in
+      -- "{session_file}.dbdash" (removed with the session by :Exit).
+      require("session").register("dbdash", {
+        --- @param session_file string path to the session file
+        on_save = function(session_file)
+          dbdash.mksession(session_file .. ".dbdash")
+        end,
+        --- @param session_file string path to the session file
+        on_load = function(session_file)
+          dbdash.load_session(session_file .. ".dbdash")
+        end,
+      })
+    end,
   },
 }
