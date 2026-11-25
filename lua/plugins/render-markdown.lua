@@ -16,9 +16,12 @@
 --   heading.icons  -> keep original hash marks ('# ', '## ', ...), colored per
 --                     level; trailing spaces needed (raw gap is concealed)
 --   heading.sign   -> disabled ('󰫎 ' in sign column)
---   checkbox       -> U+2610/U+2611 ballot boxes
+--   checkbox       -> U+2610/U+2611 ballot boxes; custom '[-]' (todo) -> U+25D0
 --   callout        -> same wording as defaults, nerd prefix stripped, padded to
 --                     raw tag width (see NOTE in config below)
+--   link           -> every inlined link icon (hyperlink, image, email,
+--                     footnote, wiki and all link.custom destinations) blanked;
+--                     links keep their highlight only
 -- Components that only use plain Unicode by default (bullet '●', table borders,
 -- quote '│', code '█▄▀') are left untouched.
 --
@@ -94,6 +97,15 @@ return {
         cite      = { raw = "[!CITE]",      rendered = "Cite   ",      highlight = "RenderMarkdownQuote" },
       }
 
+      -- Blank every built-in link.custom icon (web, github, youtube, ...),
+      -- otherwise e.g. [text](https://...) still gets a nerd glyph. Read from
+      -- the plugin defaults so entries added upstream are covered too.
+      -- HACK: render-markdown.settings is internal (v8.14.0 layout).
+      local link_custom = {}
+      for name in pairs(require("render-markdown.settings").link.default.custom) do
+        link_custom[name] = { icon = "" }
+      end
+
       require("render-markdown").setup({
         -- Cursor line keeps its rendered look in normal mode; anti-conceal
         -- (which reveals raw source on the cursor line only) still applies in
@@ -135,6 +147,20 @@ return {
           -- any font. Trailing space keeps a gap before the item text.
           unchecked = { icon = "☐ " }, -- replaces '[ ]'
           checked = { icon = "☑ " },   -- replaces '[x]'
+          -- Default '󰥔 ' (nerd clock); half-filled circle = in progress
+          custom = { todo = { rendered = "◐ " } }, -- replaces '[-]'
+        },
+
+        -- Link icons default to nerd font glyphs ('󰌹 ' etc.), shown as
+        -- garbage before link text like [toc](#anchor). Empty icon = no
+        -- prefix; the link text stays highlighted (RenderMarkdownLink).
+        link = {
+          hyperlink = "",
+          image = "",
+          email = "",
+          footnote = { icon = "" },
+          wiki = { icon = "" },
+          custom = link_custom,
         },
 
         -- Plain-text callout labels; why they are space-padded is documented
