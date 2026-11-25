@@ -80,8 +80,8 @@
 return {
   {
     "lindezhong/dbdash.nvim",
-    -- Install latest stable tag
-    version = "*",
+    -- Track the master branch (no release tag pinning)
+    branch = "master",
     -- Not lazy-loaded: plugin/dbdash.lua only defines commands, mappings and
     -- autocmds (modules load on first use), and its BufReadCmd autocmd must
     -- exist when session.lua restores dbdash:// buffers at VimEnter.
